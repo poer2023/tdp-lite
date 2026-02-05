@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @tailwind base;
@@ -70,7 +70,7 @@
 .size-64 { width: 16rem; height: 16rem; }
 
 :root {
-  --background: #f0f0f0;
+  --background: #e8e8e6;
   --foreground: #2b2b2b;
   --muted-foreground: #6b7280;
   --paper-white: #fdfdfd;
@@ -91,16 +91,13 @@ body {
   font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
 }
 
-/* Textured background - dotted pattern from Stitch design */
+/* Textured background - solid color */
 .bg-textured {
-  background-color: #f0f0f0;
-  background-image: radial-gradient(#e5e5e5 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: #e8e8e6;
 }
 
 .dark .bg-textured {
   background-color: #0a0a0a;
-  background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
 }
 
 /* Paper card style from Stitch */

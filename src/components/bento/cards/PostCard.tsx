@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn, formatRelativeTimeUppercase } from "@/lib/utils";
 import { Post } from "@/lib/schema";
-import { ArrowUpRight, Clock } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 interface PostCardProps {
   post: Post;
@@ -19,53 +19,59 @@ export function PostCard({ post, isHero = false, className }: PostCardProps) {
       )}
     >
       {post.coverUrl ? (
-        <>
-          <div className="absolute inset-0 z-0 h-full w-full">
-            <img
-              src={post.coverUrl}
-              alt={post.title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-          </div>
-
-          <div className="relative z-10 flex h-full flex-col justify-between p-6">
-            <div className="flex items-start justify-between">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
-                {isHero ? "Featured" : "Article"}
-              </span>
-              <div className="rounded-full bg-white/20 p-2 text-white opacity-0 transition-all group-hover:opacity-100 backdrop-blur-md">
-                <ArrowUpRight className="h-4 w-4" />
-              </div>
+        <div className="h-full w-full bg-white p-2 dark:bg-gray-900">
+          {/* 内部图片容器，带圆角 */}
+          <div className="relative h-full w-full overflow-hidden rounded-2xl">
+            {/* 背景图片和渐变 */}
+            <div className="absolute inset-0 z-0 h-full w-full overflow-hidden rounded-2xl">
+              <img
+                src={post.coverUrl}
+                alt={post.title}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              {/* 更浓的底部渐变 */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-xs text-white/70">
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {formatRelativeTime(post.publishedAt || post.createdAt, post.locale)}
-                </span>
-                {post.tags && post.tags.length > 0 && (
-                  <span className="font-mono uppercase">{post.tags[0]}</span>
+            <div className="relative z-10 flex h-full flex-col justify-between p-5">
+              {/* 顶部：只有箭头按钮（右上角） */}
+              <div className="flex items-start justify-end">
+                <div className="rounded-full bg-white/90 p-2 text-gray-800 shadow-sm">
+                  <ArrowUpRight className="h-4 w-4" />
+                </div>
+              </div>
+
+              {/* 底部内容区 */}
+              <div className="space-y-3">
+                {/* Featured 标签和时间在同一行 */}
+                <div className="flex items-center gap-3">
+                  {isHero && (
+                    <span className="rounded-full bg-black px-3 py-1 text-xs font-medium uppercase tracking-wider text-white">
+                      Featured
+                    </span>
+                  )}
+                  <span className="font-mono text-xs uppercase tracking-wider text-white/80">
+                    {formatRelativeTimeUppercase(post.publishedAt || post.createdAt, post.locale)}
+                  </span>
+                </div>
+                <h3 className={cn(
+                  "font-display font-bold leading-tight text-white",
+                  isHero ? "text-3xl" : "text-xl"
+                )}>
+                  {post.title}
+                </h3>
+                {post.excerpt && (
+                  <p className={cn(
+                    "text-white/80",
+                    isHero ? "text-base line-clamp-3" : "text-sm line-clamp-2"
+                  )}>
+                    {post.excerpt}
+                  </p>
                 )}
               </div>
-              <h3 className={cn(
-                "font-display font-bold leading-tight text-white",
-                isHero ? "text-3xl" : "text-xl"
-              )}>
-                {post.title}
-              </h3>
-              {post.excerpt && (
-                <p className={cn(
-                  "text-white/80",
-                  isHero ? "text-base line-clamp-3" : "text-sm line-clamp-2"
-                )}>
-                  {post.excerpt}
-                </p>
-              )}
             </div>
           </div>
-        </>
+        </div>
       ) : (
         // Text-only card (no cover image)
         <div className="flex h-full flex-col justify-between p-6">
@@ -95,7 +101,7 @@ export function PostCard({ post, isHero = false, className }: PostCardProps) {
           </div>
 
           <div className="text-xs text-muted-foreground">
-            {formatRelativeTime(post.publishedAt || post.createdAt, post.locale)}
+            {formatRelativeTimeUppercase(post.publishedAt || post.createdAt, post.locale)}
           </div>
         </div>
       )}

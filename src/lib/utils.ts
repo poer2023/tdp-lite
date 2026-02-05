@@ -40,3 +40,31 @@ export function formatRelativeTime(
   if (diffDays < 7) return `${diffDays}d ago`;
   return formatDate(d, locale);
 }
+
+export function formatRelativeTimeUppercase(
+  date: Date | string,
+  locale: string = "en"
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (locale === "zh") {
+    if (diffSecs < 60) return "刚刚";
+    if (diffMins < 60) return `${diffMins} 分钟前`;
+    if (diffHours < 24) return `${diffHours} 小时前`;
+    if (diffDays < 7) return `${diffDays} 天前`;
+    return formatDate(d, locale);
+  }
+
+  // 英文大写格式: "2 HRS AGO"
+  if (diffSecs < 60) return "JUST NOW";
+  if (diffMins < 60) return `${diffMins} MIN${diffMins > 1 ? "S" : ""} AGO`;
+  if (diffHours < 24) return `${diffHours} HR${diffHours > 1 ? "S" : ""} AGO`;
+  if (diffDays < 7) return `${diffDays} DAY${diffDays > 1 ? "S" : ""} AGO`;
+  return formatDate(d, locale).toUpperCase();
+}
