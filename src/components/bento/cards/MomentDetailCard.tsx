@@ -16,7 +16,7 @@ export function MomentDetailCard({
   className,
 }: MomentDetailCardProps) {
   const hasMedia = moment.media && moment.media.length > 0;
-  const primaryMedia = hasMedia ? moment.media[0] : null;
+  const primaryMedia = hasMedia ? moment.media![0] : null;
 
   return (
     <div
