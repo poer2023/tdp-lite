@@ -6,6 +6,9 @@ import { desc, eq } from "drizzle-orm";
 import { Grid3X3, Home, Layers, Search, User } from "lucide-react";
 import Link from "next/link";
 
+// Force dynamic rendering to avoid database queries during build
+export const dynamic = "force-dynamic";
+
 type Locale = "en" | "zh";
 
 interface HomePageProps {
