@@ -6,7 +6,7 @@ const locales: Locale[] = ["en", "zh"];
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
-  params: Promise<{ locale: Locale }>;
+  params: Promise<{ locale: string }>;
 }
 
 export async function generateStaticParams() {
@@ -25,6 +25,13 @@ export async function generateMetadata({
       locale === "zh"
         ? "一个极简的个人博客平台"
         : "A minimal personal blog platform",
+    manifest: "/manifest.json",
+    themeColor: "#111",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "TDP Lite",
+    },
   };
 }
 
