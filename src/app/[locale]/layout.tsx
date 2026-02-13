@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 type Locale = "en" | "zh";
 
@@ -11,6 +11,12 @@ interface LocaleLayoutProps {
 
 export async function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
+}
+
+export function generateViewport(): Viewport {
+  return {
+    themeColor: "#111",
+  };
 }
 
 export async function generateMetadata({
@@ -26,7 +32,6 @@ export async function generateMetadata({
         ? "一个极简的个人博客平台"
         : "A minimal personal blog platform",
     manifest: "/manifest.json",
-    themeColor: "#111",
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",
