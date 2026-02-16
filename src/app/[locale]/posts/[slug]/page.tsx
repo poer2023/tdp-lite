@@ -2,6 +2,10 @@ import { notFound } from "next/navigation";
 import { formatDate } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDetail";
+import { getPublicPost } from "@/lib/content/read";
+
+export const dynamic = "force-dynamic";
 
 type Locale = "en" | "zh";
 
@@ -9,52 +13,50 @@ interface PostPageProps {
   params: Promise<{ locale: Locale; slug: string }>;
 }
 
-async function getPost(slug: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  try {
-    const res = await fetch(`${baseUrl}/api/posts/${slug}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.post || null;
-  } catch {
-    return null;
-  }
-}
+const avatar =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1";
 
 export default async function PostPage({ params }: PostPageProps) {
   const { locale, slug } = await params;
-  const post = await getPost(slug);
+
+  const post = await getPublicPost(locale, slug);
 
   if (!post) {
     notFound();
   }
 
-  return (
-    <article className="prose prose-gray max-w-none dark:prose-invert">
-      <header className="mb-8 not-prose">
-        <h1 className="mb-4 text-4xl font-bold">{post.title}</h1>
-        <div className="flex items-center gap-4 text-gray-500">
-          {post.publishedAt && (
-            <time>{formatDate(post.publishedAt, locale)}</time>
-          )}
-          {post.tags && post.tags.length > 0 && (
-            <div className="flex gap-2">
-              {post.tags.map((tag: string) => (
-                <span
-                  key={tag}
-                  className="rounded bg-gray-100 px-2 py-0.5 text-sm dark:bg-gray-800"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-      </header>
+  // Estimate reading time (~200 words per minute)
+  const wordCount = post.content.split(/\s+/).length;
+  const readingTime = `${Math.max(1, Math.ceil(wordCount / 200))} min read`;
 
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
-    </article>
+  // Format the published date
+  const publishedDate = post.publishedAt
+    ? formatDate(post.publishedAt, locale)
+    : formatDate(post.createdAt, locale);
+
+  // Extract category from first tag or default
+  const category = post.tags && post.tags.length > 0 ? post.tags[0] : "Journal";
+
+  return (
+    <div className="min-h-screen bg-[#e8e8e6]">
+      <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
+      <div className="relative z-10 p-6 md:p-10">
+        <ArticlePaperDetail
+          title={post.title}
+          excerpt={post.excerpt || undefined}
+          kicker={category}
+          publishedDate={publishedDate}
+          readingTime={readingTime}
+          category={category}
+          backHref={`/${locale}`}
+          avatarSrc={avatar}
+          content={
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {post.content}
+            </ReactMarkdown>
+          }
+        />
+      </div>
+    </div>
   );
 }

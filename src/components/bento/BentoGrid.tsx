@@ -3,6 +3,12 @@ import { FeedItem } from "./types";
 import { PostCard } from "./cards/PostCard";
 import { MomentCard } from "./cards/MomentCard";
 import { GalleryCard } from "./cards/GalleryCard";
+import { ActionCard } from "./cards/ActionCard";
+import {
+  computeBentoSpans,
+  getFeedItemLayoutKey,
+  getHighlightedItemId,
+} from "./layoutEngine";
 
 interface BentoGridProps {
   items: FeedItem[];
@@ -10,6 +16,9 @@ interface BentoGridProps {
 }
 
 export function BentoGrid({ items, className }: BentoGridProps) {
+  const spanByItemKey = computeBentoSpans(items);
+  const highlightedId = getHighlightedItemId(items);
+
   return (
     <div
       className={cn(
@@ -17,44 +26,24 @@ export function BentoGrid({ items, className }: BentoGridProps) {
         className
       )}
     >
-      {items.map((item, index) => {
-        const spanClass = getItemSpan(item, index);
+      {items.map((item) => {
+        const itemKey = getFeedItemLayoutKey(item);
+        const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
+        const isHighlighted = item.id === highlightedId;
+
         return (
-          <div key={item.id} className={cn("bento-card", spanClass)}>
-            {item.type === "post" && <PostCard post={item} isHero={index === 0} />}
-            {item.type === "moment" && <MomentCard moment={item} />}
+          <div key={itemKey} className={cn("bento-card", spanClass)}>
+            {item.type === "post" && (
+              <PostCard post={item} isHighlighted={isHighlighted} />
+            )}
+            {item.type === "moment" && (
+              <MomentCard moment={item} isHighlighted={isHighlighted} />
+            )}
             {item.type === "gallery" && <GalleryCard item={item} />}
+            {item.type === "action" && <ActionCard item={item} />}
           </div>
         );
       })}
     </div>
   );
-}
-
-function getItemSpan(item: FeedItem, index: number): string {
-  // First item is always Hero (2x2)
-  if (index === 0) {
-    return "col-span-1 md:col-span-2 row-span-2";
-  }
-
-  if (item.type === "post" && item.coverUrl) {
-    // Posts with cover: Wide (2x1)
-    return "col-span-1 md:col-span-2 row-span-1";
-  }
-
-  if (item.type === "moment") {
-    if (item.media && item.media.length > 0) {
-      // Image moments: Tall (1x2)
-      return "col-span-1 row-span-2";
-    }
-    // Text moments: Standard (1x1)
-    return "col-span-1 row-span-1";
-  }
-
-  if (item.type === "gallery") {
-    // Gallery: Standard (1x1)
-    return "col-span-1 row-span-1";
-  }
-
-  return "col-span-1 row-span-1";
 }

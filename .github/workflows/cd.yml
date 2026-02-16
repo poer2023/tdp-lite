@@ -1,0 +1,154 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: cd-${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_branch || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9.15.0"
+  GO_VERSION: "1.23.x"
+  NEXTAUTH_SECRET: cd-nextauth-secret
+  NEXTAUTH_URL: http://127.0.0.1:3000
+  DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tdp_lite_ci
+  TDP_PREVIEW_SECRET: cd-preview-secret
+
+jobs:
+  release-bundle:
+    name: Build Release Bundle
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: backend/go.sum
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm build
+
+      - name: Build backend binaries
+        run: |
+          mkdir -p dist/bin
+          (cd backend && go build -o ../dist/bin/tdp-api ./cmd/tdp-api)
+          (cd backend && go build -o ../dist/bin/tdp-worker ./cmd/tdp-worker)
+
+      - name: Package release assets
+        run: |
+          mkdir -p dist/release
+          cp -r backend/openapi dist/release/openapi
+          cp -r backend/migrations dist/release/migrations
+          cp backend/README.md dist/release/README.backend.md
+          cp dist/bin/tdp-api dist/release/tdp-api
+          cp dist/bin/tdp-worker dist/release/tdp-worker
+          tar -czf dist/tdp-release-${GITHUB_SHA}.tar.gz -C dist/release .
+          shasum -a 256 dist/tdp-release-${GITHUB_SHA}.tar.gz > dist/tdp-release-${GITHUB_SHA}.sha256
+
+      - name: Upload release bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: tdp-release-${{ github.sha }}
+          path: |
+            dist/tdp-release-${{ github.sha }}.tar.gz
+            dist/tdp-release-${{ github.sha }}.sha256
+          if-no-files-found: error
+
+  deploy-vercel:
+    name: Deploy Frontend To Vercel
+    needs: release-bundle
+    if: needs.release-bundle.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      deploy_url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Check deploy secrets
+        id: gate
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Vercel secrets are not fully configured, skipping deploy."
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup Node.js
+        if: steps.gate.outputs.enabled == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Vercel CLI
+        if: steps.gate.outputs.enabled == 'true'
+        run: npm install -g vercel@latest
+
+      - name: Deploy
+        id: deploy
+        if: steps.gate.outputs.enabled == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
+          url="$(vercel deploy --prod --yes --token "$VERCEL_TOKEN" | tail -n 1)"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Vercel production url: $url"
+
+  cd-summary:
+    name: CD Summary
+    needs:
+      - release-bundle
+      - deploy-vercel
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print summary
+        run: |
+          echo "release-bundle result: ${{ needs.release-bundle.result }}"
+          echo "deploy-vercel result: ${{ needs.deploy-vercel.result }}"
+          echo "deploy url: ${{ needs.deploy-vercel.outputs.deploy_url }}"

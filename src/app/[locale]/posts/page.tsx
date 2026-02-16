@@ -1,59 +1,45 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { getPublicPosts } from "@/lib/content/read";
+
+// Force dynamic rendering to avoid database queries during build
+export const dynamic = "force-dynamic";
 
 type Locale = "en" | "zh";
+
+const locales: Locale[] = ["en", "zh"];
 
 interface PostsPageProps {
   params: Promise<{ locale: Locale }>;
 }
 
-// Fetch posts from API
-async function getPosts(locale: Locale) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  try {
-    const res = await fetch(
-      `${baseUrl}/api/posts?locale=${locale}&status=published`,
-      { cache: "no-store" }
-    );
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.posts || [];
-  } catch {
-    return [];
-  }
-}
-
 export default async function PostsPage({ params }: PostsPageProps) {
   const { locale } = await params;
-  const posts = await getPosts(locale);
+
+  // Validate locale to prevent [locale] catching non-locale paths like "api"
+  const validLocale = locales.includes(locale) ? locale : "en";
+
+  const postsData = await getPublicPosts(validLocale);
 
   const t = {
     en: { title: "Posts", empty: "No posts yet." },
     zh: { title: "文章", empty: "暂无文章。" },
-  }[locale];
+  }[validLocale];
 
   return (
     <div className="space-y-8">
       <h1 className="text-3xl font-bold">{t.title}</h1>
 
-      {posts.length === 0 ? (
+      {postsData.length === 0 ? (
         <p className="text-gray-500">{t.empty}</p>
       ) : (
         <div className="space-y-6">
-          {posts.map(
-            (post: {
-              id: string;
-              slug: string;
-              title: string;
-              excerpt?: string;
-              publishedAt?: string;
-              tags?: string[];
-            }) => (
+          {postsData.map((post) => (
               <article
                 key={post.id}
                 className="border-b pb-6 last:border-b-0"
               >
-                <Link href={`/${locale}/posts/${post.slug}`}>
+                <Link href={`/${validLocale}/posts/${post.slug}`}>
                   <h2 className="mb-2 text-xl font-semibold hover:text-gray-600 dark:hover:text-gray-300">
                     {post.title}
                   </h2>
@@ -65,7 +51,7 @@ export default async function PostsPage({ params }: PostsPageProps) {
                 )}
                 <div className="flex items-center gap-4 text-sm text-gray-500">
                   {post.publishedAt && (
-                    <time>{formatDate(post.publishedAt, locale)}</time>
+                    <time>{formatDate(post.publishedAt, validLocale)}</time>
                   )}
                   {post.tags && post.tags.length > 0 && (
                     <div className="flex gap-2">

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Moment } from "@/lib/schema";
@@ -17,6 +18,8 @@ export function MomentDetailCard({
 }: MomentDetailCardProps) {
   const hasMedia = moment.media && moment.media.length > 0;
   const primaryMedia = hasMedia ? moment.media![0] : null;
+  const skipOptimization =
+    primaryMedia?.url.startsWith("blob:") || primaryMedia?.url.startsWith("data:");
 
   return (
     <div
@@ -36,11 +39,13 @@ export function MomentDetailCard({
         {primaryMedia ? (
           <>
             {primaryMedia.type === "image" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={primaryMedia.url}
                 alt=""
-                className="w-full h-full object-cover"
+                fill
+                unoptimized={Boolean(skipOptimization)}
+                sizes="(min-width: 768px) 60vw, 100vw"
+                className="object-cover"
               />
             ) : (
               <video

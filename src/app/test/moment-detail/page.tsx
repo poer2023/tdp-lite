@@ -20,12 +20,16 @@ const mockMoments: Moment[] = [
     ],
     locale: "en",
     visibility: "public",
+    status: "published",
+    publishedAt: new Date("2023-10-14"),
     location: {
       name: "Northern Alps, Japan",
       lat: 36.72,
       lng: 137.6,
     },
     createdAt: new Date("2023-10-14"),
+    updatedAt: new Date("2023-10-14"),
+    deletedAt: null,
   },
   {
     id: "b2c3d4e5-f6a7-8901-bcde-f23456789012",
@@ -41,12 +45,16 @@ const mockMoments: Moment[] = [
     ],
     locale: "en",
     visibility: "public",
+    status: "published",
+    publishedAt: new Date("2023-11-02"),
     location: {
       name: "Shibuya, Tokyo",
       lat: 35.66,
       lng: 139.7,
     },
     createdAt: new Date("2023-11-02"),
+    updatedAt: new Date("2023-11-02"),
+    deletedAt: null,
   },
   {
     id: "c3d4e5f6-a7b8-9012-cdef-345678901234",
@@ -55,8 +63,12 @@ const mockMoments: Moment[] = [
     media: [],
     locale: "en",
     visibility: "public",
+    status: "published",
+    publishedAt: new Date("2024-01-15"),
     location: null,
     createdAt: new Date("2024-01-15"),
+    updatedAt: new Date("2024-01-15"),
+    deletedAt: null,
   },
 ];
 

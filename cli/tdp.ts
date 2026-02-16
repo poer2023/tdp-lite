@@ -1,20 +1,24 @@
 #!/usr/bin/env node
 
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { createHash, createHmac, randomUUID } from "crypto";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { join } from "path";
 
 const CONFIG_PATH = join(homedir(), ".tdp-lite.json");
 
-interface Config {
-  apiKey?: string;
+type ContentKind = "post" | "moment" | "gallery";
+
+type Config = {
   endpoint?: string;
-}
+  keyId?: string;
+  keySecret?: string;
+};
 
 function loadConfig(): Config {
   if (!existsSync(CONFIG_PATH)) return {};
   try {
-    return JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
+    return JSON.parse(readFileSync(CONFIG_PATH, "utf-8")) as Config;
   } catch {
     return {};
   }
@@ -24,245 +28,613 @@ function saveConfig(config: Config): void {
   writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 
-async function request(
-  path: string,
-  options: RequestInit = {}
-): Promise<Response> {
+function sha256Hex(input: Buffer | string): string {
+  return createHash("sha256").update(input).digest("hex");
+}
+
+function canonicalQuery(rawQuery: string): string {
+  if (!rawQuery) return "";
+  const pairs = rawQuery
+    .split("&")
+    .filter(Boolean)
+    .map((pair) => {
+      const [k, v = ""] = pair.split("=");
+      return `${k}=${v}`;
+    })
+    .sort();
+  return pairs.join("&");
+}
+
+function buildSignature(input: {
+  method: string;
+  path: string;
+  rawQuery: string;
+  timestamp: string;
+  nonce: string;
+  bodyHash: string;
+  secret: string;
+}): string {
+  const canonical = [
+    input.method.toUpperCase(),
+    input.path,
+    canonicalQuery(input.rawQuery),
+    input.timestamp,
+    input.nonce,
+    input.bodyHash,
+  ].join("\n");
+  return createHmac("sha256", input.secret).update(canonical).digest("hex");
+}
+
+function requireConfig(): Required<Config> {
   const config = loadConfig();
-  if (!config.endpoint) {
-    throw new Error("Endpoint not configured. Run: tdp config set endpoint <url>");
+  if (!config.endpoint || !config.keyId || !config.keySecret) {
+    throw new Error(
+      "Missing CLI config. Run: tdp auth init --endpoint <url> --key-id <id> --key-secret <secret>"
+    );
   }
-  if (!config.apiKey) {
-    throw new Error("API key not configured. Run: tdp config set api-key <key>");
+  return {
+    endpoint: config.endpoint.replace(/\/$/, ""),
+    keyId: config.keyId,
+    keySecret: config.keySecret,
+  };
+}
+
+function parseFlag(args: string[], key: string, short?: string): string | undefined {
+  const candidates = [key];
+  if (short) candidates.push(short);
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (candidates.includes(arg)) {
+      return args[i + 1];
+    }
+    const prefix = `${key}=`;
+    if (arg.startsWith(prefix)) {
+      return arg.slice(prefix.length);
+    }
   }
 
-  const url = `${config.endpoint}${path}`;
+  return undefined;
+}
+
+function parseScopes(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((scope) => scope.trim())
+    .filter(Boolean);
+}
+
+function contentPath(kind: ContentKind): string {
+  switch (kind) {
+    case "post":
+      return "posts";
+    case "moment":
+      return "moments";
+    case "gallery":
+      return "gallery-items";
+    default:
+      return "posts";
+  }
+}
+
+function guessMimeType(filePath: string): string {
+  const ext = filePath.split(".").pop()?.toLowerCase() ?? "";
+  const map: Record<string, string> = {
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
+    avif: "image/avif",
+    heic: "image/heic",
+    heif: "image/heif",
+    mp4: "video/mp4",
+    webm: "video/webm",
+    mov: "video/quicktime",
+    m4v: "video/x-m4v",
+    json: "application/json",
+    md: "text/markdown",
+    txt: "text/plain",
+  };
+  return map[ext] ?? "application/octet-stream";
+}
+
+async function signedRequest(
+  method: string,
+  pathWithQuery: string,
+  options: {
+    body?: unknown;
+    rawBody?: Buffer;
+    idempotencyKey?: string;
+    extraHeaders?: Record<string, string>;
+  } = {}
+): Promise<Response> {
+  const config = requireConfig();
+
+  const [path, rawQuery = ""] = pathWithQuery.split("?");
+  const timestamp = String(Date.now());
+  const nonce = randomUUID();
+
+  let bodyBytes: Buffer = Buffer.alloc(0);
+  let body: BodyInit | undefined;
+  let contentType = "application/json";
+
+  if (options.rawBody) {
+    bodyBytes = options.rawBody;
+    body = new Uint8Array(options.rawBody);
+    contentType = options.extraHeaders?.["Content-Type"] || "application/octet-stream";
+  } else if (options.body !== undefined) {
+    const raw = JSON.stringify(options.body);
+    bodyBytes = Buffer.from(raw);
+    body = raw;
+    contentType = "application/json";
+  }
+
+  const signature = buildSignature({
+    method,
+    path,
+    rawQuery,
+    timestamp,
+    nonce,
+    bodyHash: sha256Hex(bodyBytes),
+    secret: config.keySecret,
+  });
+
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${config.apiKey}`,
-    ...(options.headers as Record<string, string>),
+    "X-TDP-Key-Id": config.keyId,
+    "X-TDP-Timestamp": timestamp,
+    "X-TDP-Nonce": nonce,
+    "X-TDP-Signature": signature,
+    ...options.extraHeaders,
   };
 
-  return fetch(url, { ...options, headers });
-}
-
-async function uploadFile(filePath: string): Promise<{ url: string }> {
-  const config = loadConfig();
-  const file = readFileSync(filePath);
-  const filename = filePath.split("/").pop() || "file";
-
-  const formData = new FormData();
-  formData.append("file", new Blob([file]), filename);
-
-  const res = await fetch(`${config.endpoint}/api/upload`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${config.apiKey}` },
-    body: formData,
-  });
-
-  if (!res.ok) {
-    throw new Error(`Upload failed: ${res.statusText}`);
+  if (body) {
+    headers["Content-Type"] = contentType;
+  }
+  if (options.idempotencyKey) {
+    headers["Idempotency-Key"] = options.idempotencyKey;
   }
 
-  return res.json();
-}
-
-// Commands
-const commands: Record<string, (args: string[]) => Promise<void>> = {
-  async config(args) {
-    const [action, key, value] = args;
-
-    if (action === "set") {
-      const config = loadConfig();
-      if (key === "api-key") {
-        config.apiKey = value;
-      } else if (key === "endpoint") {
-        config.endpoint = value.replace(/\/$/, "");
-      } else {
-        console.error(`Unknown config key: ${key}`);
-        process.exit(1);
-      }
-      saveConfig(config);
-      console.log(`✓ Set ${key}`);
-    } else if (action === "get") {
-      const config = loadConfig();
-      console.log(JSON.stringify(config, null, 2));
-    } else {
-      console.log("Usage: tdp config <set|get> [key] [value]");
-    }
-  },
-
-  async moment(args) {
-    let content = "";
-    let locale = "en";
-    const media: { type: string; url: string }[] = [];
-
-    for (let i = 0; i < args.length; i++) {
-      const arg = args[i];
-      if (arg === "-l" || arg === "--locale") {
-        locale = args[++i];
-      } else if (arg === "-i" || arg === "--image") {
-        const imagePath = args[++i];
-        console.log(`Uploading ${imagePath}...`);
-        const result = await uploadFile(imagePath);
-        media.push({ type: "image", url: result.url });
-      } else if (arg === "-v" || arg === "--video") {
-        const videoPath = args[++i];
-        console.log(`Uploading ${videoPath}...`);
-        const result = await uploadFile(videoPath);
-        media.push({ type: "video", url: result.url });
-      } else {
-        content = arg;
-      }
-    }
-
-    if (!content) {
-      console.error("Usage: tdp moment <content> [-i image] [-v video] [-l locale]");
-      process.exit(1);
-    }
-
-    const res = await request("/api/moments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content, media, locale }),
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      console.error("Failed:", error.error);
-      process.exit(1);
-    }
-
-    const data = await res.json();
-    console.log(`✓ Moment created: ${data.moment.id}`);
-  },
-
-  async post(args) {
-    let filePath = "";
-    let locale = "en";
-    let publish = false;
-
-    for (let i = 0; i < args.length; i++) {
-      const arg = args[i];
-      if (arg === "-l" || arg === "--locale") {
-        locale = args[++i];
-      } else if (arg === "--publish") {
-        publish = true;
-      } else {
-        filePath = arg;
-      }
-    }
-
-    if (!filePath) {
-      console.error("Usage: tdp post <file.md> [--publish] [-l locale]");
-      process.exit(1);
-    }
-
-    const content = readFileSync(filePath, "utf-8");
-
-    // Parse frontmatter
-    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-    let title = "";
-    let slug = "";
-    let excerpt = "";
-    let tags: string[] = [];
-    let body = content;
-
-    if (frontmatterMatch) {
-      const frontmatter = frontmatterMatch[1];
-      body = frontmatterMatch[2];
-
-      for (const line of frontmatter.split("\n")) {
-        const [key, ...valueParts] = line.split(":");
-        const value = valueParts.join(":").trim();
-        if (key === "title") title = value.replace(/^["']|["']$/g, "");
-        if (key === "slug") slug = value;
-        if (key === "excerpt") excerpt = value.replace(/^["']|["']$/g, "");
-        if (key === "tags") tags = value.replace(/[\[\]]/g, "").split(",").map((t) => t.trim());
-      }
-    }
-
-    if (!title) {
-      // Extract title from first heading
-      const headingMatch = body.match(/^#\s+(.+)$/m);
-      title = headingMatch ? headingMatch[1] : filePath.split("/").pop()?.replace(".md", "") || "Untitled";
-    }
-
-    if (!slug) {
-      slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    }
-
-    const res = await request("/api/posts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        slug,
-        excerpt,
-        content: body,
-        tags,
-        locale,
-        status: publish ? "published" : "draft",
-      }),
-    });
-
-    if (!res.ok) {
-      const error = await res.json();
-      console.error("Failed:", error.error);
-      process.exit(1);
-    }
-
-    const data = await res.json();
-    console.log(`✓ Post created: ${data.post.slug} (${publish ? "published" : "draft"})`);
-  },
-
-  async upload(args) {
-    for (const filePath of args) {
-      console.log(`Uploading ${filePath}...`);
-      const result = await uploadFile(filePath);
-      console.log(`✓ ${result.url}`);
-    }
-  },
-
-  async help() {
-    console.log(`
-TDP Lite CLI
-
-Usage: tdp <command> [options]
-
-Commands:
-  config set api-key <key>    Set API key
-  config set endpoint <url>   Set API endpoint
-  config get                  Show current config
-
-  moment <content>            Create a moment
-    -i, --image <path>        Attach image
-    -v, --video <path>        Attach video
-    -l, --locale <en|zh>      Set locale (default: en)
-
-  post <file.md>              Create a post from markdown
-    --publish                 Publish immediately
-    -l, --locale <en|zh>      Set locale (default: en)
-
-  upload <file>...            Upload files to R2
-
-Examples:
-  tdp config set api-key tdp_sk_xxxxx
-  tdp config set endpoint https://blog.example.com
-  tdp moment "Hello world" -i ./photo.jpg -l zh
-  tdp post ./article.md --publish
-  tdp upload ./photos/*.jpg
-`);
-  },
-};
-
-// Main
-const [, , command, ...args] = process.argv;
-
-if (!command || !commands[command]) {
-  commands.help([]);
-} else {
-  commands[command](args).catch((err) => {
-    console.error("Error:", err.message);
-    process.exit(1);
+  const response = await fetch(`${config.endpoint}${pathWithQuery}`, {
+    method,
+    headers,
+    body,
   });
+
+  return response;
 }
+
+type JsonObject = Record<string, unknown>;
+
+function isJsonObject(value: unknown): value is JsonObject {
+  return typeof value === "object" && value !== null;
+}
+
+function asRecord(value: unknown): JsonObject {
+  return isJsonObject(value) ? value : {};
+}
+
+function jsonMessage(value: unknown): string | null {
+  if (!isJsonObject(value)) return null;
+  const error = value.error;
+  if (isJsonObject(error) && typeof error.message === "string") {
+    return error.message;
+  }
+  if (typeof value.message === "string") {
+    return value.message;
+  }
+  return null;
+}
+
+async function readJsonOrThrow(response: Response): Promise<unknown> {
+  const text = await response.text();
+  let parsed: unknown = null;
+  try {
+    parsed = text ? JSON.parse(text) : null;
+  } catch {
+    parsed = null;
+  }
+
+  if (!response.ok) {
+    const message = jsonMessage(parsed) || text || response.statusText;
+    throw new Error(`HTTP ${response.status}: ${message}`);
+  }
+
+  return parsed;
+}
+
+function loadPayloadFromArg(args: string[]): unknown {
+  const file = parseFlag(args, "--file", "-f");
+  const jsonRaw = parseFlag(args, "--json", "-j");
+  if (file) {
+    return JSON.parse(readFileSync(file, "utf-8"));
+  }
+  if (jsonRaw) {
+    return JSON.parse(jsonRaw);
+  }
+  throw new Error("missing payload. Use --file <json> or --json '<payload>'");
+}
+
+async function handleAuth(args: string[]) {
+  const sub = args[0];
+  if (sub === "init") {
+    const endpoint = parseFlag(args, "--endpoint", "-e");
+    const keyId = parseFlag(args, "--key-id", "-k");
+    const keySecret = parseFlag(args, "--key-secret", "-s");
+    if (!endpoint || !keyId || !keySecret) {
+      throw new Error("usage: tdp auth init --endpoint <url> --key-id <id> --key-secret <secret>");
+    }
+    saveConfig({ endpoint: endpoint.replace(/\/$/, ""), keyId, keySecret });
+    console.log("✓ auth config saved");
+    return;
+  }
+
+  if (sub === "show") {
+    const config = loadConfig();
+    console.log(
+      JSON.stringify(
+        {
+          endpoint: config.endpoint,
+          keyId: config.keyId,
+          keySecretConfigured: Boolean(config.keySecret),
+        },
+        null,
+        2
+      )
+    );
+    return;
+  }
+
+  throw new Error("usage: tdp auth <init|show>");
+}
+
+async function handleContent(args: string[]) {
+  const action = args[0];
+  if (action === "create") {
+    const kind = args[1] as ContentKind;
+    if (!["post", "moment", "gallery"].includes(kind)) {
+      throw new Error("usage: tdp content create <post|moment|gallery> --file payload.json");
+    }
+
+    const payload = loadPayloadFromArg(args.slice(2));
+    const idempotencyKey = parseFlag(args, "--idempotency-key") || randomUUID();
+    const response = await signedRequest("POST", `/v1/${contentPath(kind)}`, {
+      body: payload,
+      idempotencyKey,
+    });
+    const data = await readJsonOrThrow(response);
+    const item = asRecord(asRecord(data).item);
+    const itemId = typeof item.id === "string" ? item.id : "unknown";
+    console.log(`✓ created ${kind}: ${itemId}`);
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (action === "update") {
+    const kind = args[1] as ContentKind;
+    const id = args[2];
+    if (!["post", "moment", "gallery"].includes(kind) || !id) {
+      throw new Error("usage: tdp content update <post|moment|gallery> <id> --file patch.json");
+    }
+
+    const payload = loadPayloadFromArg(args.slice(3));
+    const idempotencyKey = parseFlag(args, "--idempotency-key") || randomUUID();
+    const response = await signedRequest("PATCH", `/v1/${contentPath(kind)}/${id}`, {
+      body: payload,
+      idempotencyKey,
+    });
+    const data = await readJsonOrThrow(response);
+    console.log(`✓ updated ${kind}: ${id}`);
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (action === "publish" || action === "unpublish") {
+    const kind = args[1] as ContentKind;
+    const id = args[2];
+    if (!["post", "moment", "gallery"].includes(kind) || !id) {
+      throw new Error(`usage: tdp content ${action} <post|moment|gallery> <id>`);
+    }
+
+    const verb = action === "publish" ? "publish" : "unpublish";
+    const response = await signedRequest("POST", `/v1/${contentPath(kind)}/${id}/${verb}`, {
+      body: {},
+    });
+    const data = await readJsonOrThrow(response);
+    console.log(`✓ ${verb} ${kind}: ${id}`);
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (action === "delete") {
+    const kind = args[1] as ContentKind;
+    const id = args[2];
+    if (!["post", "moment", "gallery"].includes(kind) || !id) {
+      throw new Error("usage: tdp content delete <post|moment|gallery> <id>");
+    }
+
+    const response = await signedRequest("DELETE", `/v1/${contentPath(kind)}/${id}`);
+    await readJsonOrThrow(response);
+    console.log(`✓ deleted ${kind}: ${id}`);
+    return;
+  }
+
+  throw new Error("usage: tdp content <create|update|publish|unpublish|delete> ...");
+}
+
+async function handleMedia(args: string[]) {
+  const action = args[0];
+  if (action !== "upload") {
+    throw new Error("usage: tdp media upload <file>");
+  }
+
+  const filePath = args[1];
+  if (!filePath) {
+    throw new Error("usage: tdp media upload <file>");
+  }
+
+  const bytes = readFileSync(filePath);
+  const mimeType = guessMimeType(filePath);
+  const sha256 = sha256Hex(bytes);
+
+  const initRes = await signedRequest("POST", "/v1/media/uploads", {
+    body: {
+      filename: filePath.split("/").pop(),
+      mimeType,
+      size: bytes.length,
+      sha256,
+    },
+    idempotencyKey: randomUUID(),
+  });
+  const initData = asRecord(await readJsonOrThrow(initRes));
+  const uploadId =
+    typeof initData.uploadId === "string" ? initData.uploadId : null;
+  if (!uploadId) {
+    throw new Error("invalid upload init response: missing uploadId");
+  }
+
+  const uploadUrl =
+    typeof initData.uploadUrl === "string" ? initData.uploadUrl : null;
+  const uploadMethod =
+    typeof initData.uploadMethod === "string" ? initData.uploadMethod : "PUT";
+  const uploadHeadersRaw = asRecord(initData.uploadHeaders);
+  const uploadHeaders = Object.fromEntries(
+    Object.entries(uploadHeadersRaw).filter(([, value]) => typeof value === "string")
+  ) as Record<string, string>;
+
+  if (uploadUrl) {
+    const uploadResponse = await fetch(uploadUrl, {
+      method: uploadMethod,
+      headers:
+        Object.keys(uploadHeaders).length > 0
+          ? uploadHeaders
+          : {
+              "Content-Type": mimeType,
+            },
+      body: bytes,
+    });
+    if (!uploadResponse.ok) {
+      throw new Error(`file upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
+    }
+  }
+
+  const completeRes = await signedRequest(
+    "POST",
+    `/v1/media/uploads/${uploadId}/complete`,
+    {
+      body: {
+        size: bytes.length,
+        sha256,
+      },
+      idempotencyKey: randomUUID(),
+    }
+  );
+  const completeData = await readJsonOrThrow(completeRes);
+  const completeDataRecord = asRecord(completeData);
+  const completeAsset = asRecord(completeDataRecord.asset);
+  const completeAssetId =
+    typeof completeAsset.id === "string" ? completeAsset.id : null;
+
+  console.log(`✓ uploaded: ${completeAssetId || uploadId}`);
+  console.log(JSON.stringify(completeData, null, 2));
+}
+
+async function handlePreview(args: string[]) {
+  const action = args[0];
+  if (action !== "create") {
+    throw new Error("usage: tdp preview create <post|moment|gallery> <content-id>");
+  }
+  const kind = args[1] as ContentKind;
+  const contentId = args[2];
+  if (!["post", "moment", "gallery"].includes(kind) || !contentId) {
+    throw new Error("usage: tdp preview create <post|moment|gallery> <content-id>");
+  }
+
+  const response = await signedRequest("POST", "/v1/previews/sessions", {
+    body: { kind, contentId },
+    idempotencyKey: randomUUID(),
+  });
+  const data = await readJsonOrThrow(response);
+  console.log("✓ preview session created");
+  console.log(JSON.stringify(data, null, 2));
+}
+
+async function handleAI(args: string[]) {
+  const action = args[0];
+  if (action !== "suggest") {
+    throw new Error("usage: tdp ai suggest <post|moment|gallery> <content-id> --provider <provider> --model <model>");
+  }
+
+  const kind = args[1] as ContentKind;
+  const contentId = args[2];
+  const provider = parseFlag(args, "--provider", "-p") || "openai";
+  const model = parseFlag(args, "--model", "-m") || "gpt-4.1-mini";
+  const prompt = parseFlag(args, "--prompt") || "Analyze and propose improvements.";
+
+  if (!["post", "moment", "gallery"].includes(kind) || !contentId) {
+    throw new Error("usage: tdp ai suggest <post|moment|gallery> <content-id> --provider <provider> --model <model>");
+  }
+
+  const response = await signedRequest("POST", "/v1/ai/jobs", {
+    body: {
+      kind,
+      contentId,
+      provider,
+      model,
+      prompt,
+    },
+    idempotencyKey: randomUUID(),
+  });
+  const data = await readJsonOrThrow(response);
+  const job = asRecord(asRecord(data).job);
+  const jobId = typeof job.id === "string" ? job.id : "unknown";
+  console.log(`✓ ai job created: ${jobId}`);
+  console.log(JSON.stringify(data, null, 2));
+}
+
+async function handleJobs(args: string[]) {
+  const action = args[0];
+  if (action !== "watch") {
+    throw new Error("usage: tdp jobs watch <job-id>");
+  }
+  const jobId = args[1];
+  if (!jobId) {
+    throw new Error("usage: tdp jobs watch <job-id>");
+  }
+
+  const intervalMs = Number(parseFlag(args, "--interval-ms")) || 2000;
+  const timeoutMs = Number(parseFlag(args, "--timeout-ms")) || 120000;
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const response = await signedRequest("GET", `/v1/jobs/${jobId}`);
+    const data = await readJsonOrThrow(response);
+    const statusRaw = asRecord(data).status;
+    const status = typeof statusRaw === "string" ? statusRaw : "unknown";
+    console.log(`[${new Date().toISOString()}] status=${status}`);
+
+    if (["succeeded", "failed", "canceled"].includes(status)) {
+      console.log(JSON.stringify(data, null, 2));
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+
+  throw new Error(`job watch timeout: ${jobId}`);
+}
+
+async function handleKeys(args: string[]) {
+  const action = args[0];
+
+  if (action === "ls") {
+    const response = await signedRequest("GET", "/v1/keys");
+    const data = await readJsonOrThrow(response);
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (action === "create") {
+    const name = parseFlag(args, "--name") || "tdp-key";
+    const scopes = parseScopes(parseFlag(args, "--scopes"));
+    const response = await signedRequest("POST", "/v1/keys", {
+      body: { name, scopes },
+      idempotencyKey: randomUUID(),
+    });
+    const data = await readJsonOrThrow(response);
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (action === "rotate") {
+    const keyId = args[1];
+    if (!keyId) throw new Error("usage: tdp keys rotate <key-id>");
+    const response = await signedRequest("POST", `/v1/keys/${keyId}/rotate`, {
+      body: { reason: parseFlag(args, "--reason") || "manual rotate" },
+    });
+    const data = await readJsonOrThrow(response);
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  if (action === "revoke") {
+    const keyId = args[1];
+    if (!keyId) throw new Error("usage: tdp keys revoke <key-id>");
+    const response = await signedRequest("POST", `/v1/keys/${keyId}/revoke`, {
+      body: {},
+    });
+    const data = await readJsonOrThrow(response);
+    console.log(JSON.stringify(data, null, 2));
+    return;
+  }
+
+  throw new Error("usage: tdp keys <ls|create|rotate|revoke>");
+}
+
+async function help() {
+  console.log(`
+TDP CLI v2
+
+Usage:
+  tdp auth init --endpoint <url> --key-id <id> --key-secret <secret>
+  tdp auth show
+
+  tdp content create <post|moment|gallery> --file payload.json
+  tdp content update <post|moment|gallery> <id> --file patch.json
+  tdp content publish <post|moment|gallery> <id>
+  tdp content unpublish <post|moment|gallery> <id>
+  tdp content delete <post|moment|gallery> <id>
+
+  tdp media upload <file>
+  tdp preview create <post|moment|gallery> <content-id>
+
+  tdp ai suggest <post|moment|gallery> <content-id> --provider <provider> --model <model>
+  tdp jobs watch <job-id>
+
+  tdp keys ls
+  tdp keys create --name "Publisher" --scopes content:write,media:write
+  tdp keys rotate <key-id>
+  tdp keys revoke <key-id>
+`);
+}
+
+async function main() {
+  const [, , command, ...args] = process.argv;
+
+  if (!command || command === "help" || command === "--help" || command === "-h") {
+    await help();
+    return;
+  }
+
+  switch (command) {
+    case "auth":
+      await handleAuth(args);
+      return;
+    case "content":
+      await handleContent(args);
+      return;
+    case "media":
+      await handleMedia(args);
+      return;
+    case "preview":
+      await handlePreview(args);
+      return;
+    case "ai":
+      await handleAI(args);
+      return;
+    case "jobs":
+      await handleJobs(args);
+      return;
+    case "keys":
+      await handleKeys(args);
+      return;
+    default:
+      throw new Error(`unknown command: ${command}`);
+  }
+}
+
+main().catch((error) => {
+  console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+});
