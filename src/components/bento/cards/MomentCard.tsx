@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { Moment } from "@/lib/schema";
 import { MapPin, Quote } from "lucide-react";
@@ -12,9 +13,10 @@ export function MomentCard({ moment, className }: MomentCardProps) {
   const mainMedia = hasMedia ? moment.media![0] : null;
 
   return (
-    <div
+    <Link
+      href={`/${moment.locale}/moments/${moment.id}`}
       className={cn(
-        "paper-card group relative flex h-full flex-col overflow-hidden",
+        "paper-card group relative flex h-full cursor-pointer flex-col overflow-hidden",
         className
       )}
     >
@@ -78,6 +80,6 @@ export function MomentCard({ moment, className }: MomentCardProps) {
           </div>
         </div>
       )}
-    </div>
+    </Link>
   );
 }

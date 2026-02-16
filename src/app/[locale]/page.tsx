@@ -3,8 +3,9 @@ import { FeedItem } from "@/components/bento/types";
 import { db } from "@/lib/db";
 import { posts, moments, gallery } from "@/lib/schema";
 import { desc, eq } from "drizzle-orm";
-import { Grid3X3, Home, Layers, Search, User } from "lucide-react";
+import { Layers } from "lucide-react";
 import Link from "next/link";
+import { BottomNav } from "@/components/BottomNav";
 
 // Force dynamic rendering to avoid database queries during build
 export const dynamic = "force-dynamic";
@@ -136,39 +137,7 @@ export default async function HomePage({ params }: HomePageProps) {
         </main>
       </div>
 
-      {/* Bottom Navigation - Stitch style */}
-      <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2">
-        <nav className="flex items-center gap-1 rounded-full border border-white/50 bg-white/90 px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-black/5 backdrop-blur-md">
-          <Link
-            href={`/${locale}`}
-            className="text-ink-light hover:text-ink group relative flex size-11 items-center justify-center rounded-full transition-all hover:bg-black/5"
-          >
-            <Home className="h-5 w-5" />
-            <span className="pointer-events-none absolute -top-12 rounded bg-black px-2 py-1 font-mono text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
-              Home
-            </span>
-          </Link>
-          <Link
-            href={`/${locale}/gallery`}
-            className="flex size-11 items-center justify-center rounded-full bg-black text-white shadow-md"
-          >
-            <Grid3X3 className="h-5 w-5" />
-          </Link>
-          <Link
-            href={`/${locale}/posts`}
-            className="text-ink-light hover:text-ink group relative flex size-11 items-center justify-center rounded-full transition-all hover:bg-black/5"
-          >
-            <Search className="h-5 w-5" />
-          </Link>
-          <div className="mx-1 h-5 w-px bg-black/10" />
-          <Link
-            href={`/${locale}/about`}
-            className="text-ink-light hover:text-ink group relative flex size-11 items-center justify-center rounded-full transition-all hover:bg-black/5"
-          >
-            <User className="h-5 w-5" />
-          </Link>
-        </nav>
-      </div>
+      <BottomNav locale={locale} activeTab="home" />
     </div>
   );
 }
