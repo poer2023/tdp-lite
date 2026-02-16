@@ -240,7 +240,8 @@ jobs:
             fi
           }
 
-          (cd backend && go run ./cmd/tdp-api) >/tmp/tdp-api.log 2>&1 &
+          (cd backend && go build -o /tmp/tdp-api-ci ./cmd/tdp-api)
+          /tmp/tdp-api-ci >/tmp/tdp-api.log 2>&1 &
           API_PID=$!
 
           TDP_SEARCH_PRIMARY=go pnpm start -p 3000 >/tmp/tdp-next.log 2>&1 &
@@ -267,6 +268,17 @@ jobs:
           kill "$API_PID" >/dev/null 2>&1 || true
           wait "$API_PID" >/dev/null 2>&1 || true
           API_PID=""
+
+          for _ in $(seq 1 30); do
+            if ! curl -fsS "http://127.0.0.1:8080/healthz" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          if curl -fsS "http://127.0.0.1:8080/healthz" >/dev/null 2>&1; then
+            echo "expected Go API to be stopped before fallback verification" >&2
+            exit 1
+          fi
 
           search_headers_down="$(mktemp)"
           curl -sS -D "$search_headers_down" -o /tmp/search-down.json \
