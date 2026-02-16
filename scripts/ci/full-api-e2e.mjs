@@ -342,7 +342,7 @@ async function main() {
     expectedStatus: 200,
   });
   const postId = postCreate1?.json?.item?.id;
-  const postSlug = postCreate1?.json?.item?.slug;
+  let postSlug = postCreate1?.json?.item?.slug;
   expect(typeof postId === "string" && postId.length > 0, "post create should return id");
   expect(typeof postSlug === "string" && postSlug.length > 0, "post create should return slug");
 
@@ -366,7 +366,7 @@ async function main() {
   });
   expect(extractErrorCode(postConflict.json) === "idempotency_conflict", "idempotency conflict should return 409");
 
-  await callApi({
+  const postUpdate = await callApi({
     method: "PATCH",
     path: `/v1/posts/${encodeURIComponent(postId)}`,
     signed: true,
@@ -378,6 +378,10 @@ async function main() {
     idempotencyKey: "ci-e2e-post-update",
     expectedStatus: 200,
   });
+  const updatedPostSlug = postUpdate?.json?.item?.slug;
+  if (typeof updatedPostSlug === "string" && updatedPostSlug.length > 0) {
+    postSlug = updatedPostSlug;
+  }
 
   await callApi({
     method: "POST",
