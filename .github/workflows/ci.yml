@@ -27,6 +27,8 @@ env:
   TDP_API_BASE_URL: http://127.0.0.1:8080
   NEXT_PUBLIC_TDP_API_BASE_URL: http://127.0.0.1:8080
   TDP_PREVIEW_SECRET: ci-preview-secret
+  TDP_CI_KEY_ID: ci_root
+  TDP_CI_KEY_SECRET: ci_root_secret
   DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tdp_lite_ci
 
 jobs:
@@ -187,6 +189,24 @@ jobs:
             NOW()
           )
           ON CONFLICT (id) DO NOTHING;
+
+          INSERT INTO api_keys (name, key_hash, permissions, key_id, secret_ciphertext, scopes)
+          VALUES (
+            'CI Root Key',
+            encode(digest('ci_root_secret', 'sha256'), 'hex'),
+            '["*"]'::jsonb,
+            'ci_root',
+            'ci_root_secret',
+            '["*"]'::jsonb
+          )
+          ON CONFLICT (key_id)
+          DO UPDATE SET
+            key_hash = EXCLUDED.key_hash,
+            permissions = EXCLUDED.permissions,
+            secret_ciphertext = EXCLUDED.secret_ciphertext,
+            scopes = EXCLUDED.scopes,
+            revoked_at = NULL,
+            updated_at = NOW();
           SQL
 
       - name: Build frontend
@@ -197,6 +217,7 @@ jobs:
           set -euo pipefail
 
           API_PID=""
+          WORKER_PID=""
           NEXT_PID=""
 
           cleanup() {
@@ -206,10 +227,16 @@ jobs:
               tail -n 200 /tmp/tdp-next.log || true
               echo "----- Go API logs -----"
               tail -n 200 /tmp/tdp-api.log || true
+              echo "----- Go Worker logs -----"
+              tail -n 200 /tmp/tdp-worker.log || true
             fi
             if [ -n "${NEXT_PID:-}" ]; then
               kill "$NEXT_PID" >/dev/null 2>&1 || true
               wait "$NEXT_PID" >/dev/null 2>&1 || true
+            fi
+            if [ -n "${WORKER_PID:-}" ]; then
+              kill "$WORKER_PID" >/dev/null 2>&1 || true
+              wait "$WORKER_PID" >/dev/null 2>&1 || true
             fi
             if [ -n "${API_PID:-}" ]; then
               kill "$API_PID" >/dev/null 2>&1 || true
@@ -241,8 +268,11 @@ jobs:
           }
 
           (cd backend && go build -o /tmp/tdp-api-ci ./cmd/tdp-api)
+          (cd backend && go build -o /tmp/tdp-worker-ci ./cmd/tdp-worker)
           /tmp/tdp-api-ci >/tmp/tdp-api.log 2>&1 &
           API_PID=$!
+          TDP_JOB_POLL_INTERVAL=1s /tmp/tdp-worker-ci >/tmp/tdp-worker.log 2>&1 &
+          WORKER_PID=$!
 
           TDP_SEARCH_PRIMARY=go pnpm start -p 3000 >/tmp/tdp-next.log 2>&1 &
           NEXT_PID=$!
@@ -256,6 +286,8 @@ jobs:
           assert_http_200 "http://127.0.0.1:3000/en/moments"
           assert_http_200 "http://127.0.0.1:3000/en/moments/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
           assert_http_200 "http://127.0.0.1:3000/en/gallery"
+
+          node scripts/ci/full-api-e2e.mjs
 
           search_headers_up="$(mktemp)"
           curl -sS -D "$search_headers_up" -o /tmp/search-up.json \
