@@ -1,8 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { posts, moments, gallery } from "@/lib/schema";
-import { desc } from "drizzle-orm";
 import { AdminDashboard } from "./AdminDashboard";
 
 export default async function AdminPage() {
@@ -12,19 +9,14 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  // Fetch recent content
-  const [recentPosts, recentMoments, recentGallery] = await Promise.all([
-    db.select().from(posts).orderBy(desc(posts.createdAt)).limit(20),
-    db.select().from(moments).orderBy(desc(moments.createdAt)).limit(20),
-    db.select().from(gallery).orderBy(desc(gallery.createdAt)).limit(20),
-  ]);
+  const usePublisherV2 = process.env.PUBLISHER_V2_ENABLED === "true";
+  const publisherBaseUrl = process.env.PUBLISHER_BASE_URL;
+
+  if (usePublisherV2 && publisherBaseUrl) {
+    redirect(publisherBaseUrl);
+  }
 
   return (
-    <AdminDashboard
-      user={session.user}
-      initialPosts={recentPosts}
-      initialMoments={recentMoments}
-      initialGallery={recentGallery}
-    />
+    <AdminDashboard user={session.user} />
   );
 }

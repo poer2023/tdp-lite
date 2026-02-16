@@ -1,4 +1,3 @@
-import Link from "next/link";
 import {
   Terminal,
   Wind,
@@ -14,6 +13,7 @@ import {
   Mail,
   Plus,
 } from "lucide-react";
+import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
 import { db } from "@/lib/db";
 import { posts, moments, gallery } from "@/lib/schema";
@@ -76,11 +76,14 @@ export default async function AboutPage({ params }: AboutPageProps) {
           <header className="mb-24 flex flex-col items-center gap-16 md:flex-row md:items-start">
             {/* Avatar */}
             <div className="group relative">
-              <div className="h-56 w-56 rotate-[-3deg] overflow-hidden rounded-[3rem] border-[14px] border-white paper-stack-shadow transition-transform duration-700 group-hover:rotate-0 md:h-64 md:w-64">
-                <img
-                  alt="User profile"
-                  className="h-full w-full object-cover contrast-[1.05] brightness-[0.98] grayscale-[0.05]"
+              <div className="relative h-56 w-56 rotate-[-3deg] overflow-hidden rounded-[3rem] border-[14px] border-white paper-stack-shadow transition-transform duration-700 group-hover:rotate-0 md:h-64 md:w-64">
+                <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1"
+                  alt="User profile"
+                  fill
+                  unoptimized
+                  sizes="(min-width: 768px) 16rem, 14rem"
+                  className="object-cover contrast-[1.05] brightness-[0.98] grayscale-[0.05]"
                 />
               </div>
               <div className="bg-ink absolute -bottom-6 -right-6 rotate-6 rounded-2xl px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-white paper-stack-shadow">
@@ -173,11 +176,14 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 Currently Reading
               </h3>
               <div className="flex gap-6 items-start">
-                <div className="h-40 w-28 shrink-0 rotate-[-6deg] overflow-hidden rounded-2xl border border-black/5 bg-paper-grey transition-transform paper-stack-shadow group-hover:rotate-0">
-                  <img
-                    alt="Book cover"
-                    className="h-full w-full object-cover"
+                <div className="relative h-40 w-28 shrink-0 rotate-[-6deg] overflow-hidden rounded-2xl border border-black/5 bg-paper-grey transition-transform paper-stack-shadow group-hover:rotate-0">
+                  <Image
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiAlc_Yk4SdPoZ6_R2pnELqovwoEgd4huXGJ7pH3cQD8Z7kLfVckop0Xm8E3uly53SSaExVIgxCvnjbLyMPfQgUoZDNxiJMrNNrf3O9hju-GLwGpwmlpTLfGAyZCNF53lOG6Ce70FSHXDpRa-HYQNJjqcpDV5jJhJy-gsmez6NMPuUwDLbSxmiCMpJ6Ci4475ZsYptBDkfyeuz8CMFzkA2vTMxYx5kCT2EV8H7rSRopWd42Ewky4nyGrL8dSzhuXdOfKkZZhl5C4oJ"
+                    alt="Book cover"
+                    fill
+                    unoptimized
+                    sizes="7rem"
+                    className="object-cover"
                   />
                 </div>
                 <div className="min-w-0 flex-1">

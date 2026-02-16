@@ -5,9 +5,10 @@ import { posts, moments, gallery } from "@/lib/schema";
 import { desc, eq } from "drizzle-orm";
 import { Layers } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
+import { unstable_cache } from "next/cache";
 
-// Force dynamic rendering to avoid database queries during build
 export const dynamic = "force-dynamic";
 
 type Locale = "en" | "zh";
@@ -16,70 +17,65 @@ interface HomePageProps {
   params: Promise<{ locale: Locale }>;
 }
 
+const getHomeItems = unstable_cache(
+  async (): Promise<FeedItem[]> => {
+    const [postsData, momentsData, galleryData] = await Promise.all([
+      db
+        .select()
+        .from(posts)
+        .where(eq(posts.status, "published"))
+        .orderBy(desc(posts.publishedAt))
+        .limit(10),
+      db
+        .select()
+        .from(moments)
+        .where(eq(moments.visibility, "public"))
+        .orderBy(desc(moments.createdAt))
+        .limit(10),
+      db.select().from(gallery).orderBy(desc(gallery.createdAt)).limit(10),
+    ]);
+
+    type ContentItem =
+      | ({ type: "post" } & typeof postsData[0])
+      | ({ type: "moment" } & typeof momentsData[0])
+      | ({ type: "gallery" } & typeof galleryData[0]);
+
+    const postItems: ContentItem[] = postsData.map((post) => ({
+      type: "post" as const,
+      ...post,
+    }));
+
+    const momentItems: ContentItem[] = momentsData.map((moment) => ({
+      type: "moment" as const,
+      ...moment,
+    }));
+
+    const galleryItems: ContentItem[] = galleryData.map((item) => ({
+      type: "gallery" as const,
+      ...item,
+    }));
+
+    const allItems = [...postItems, ...momentItems, ...galleryItems].sort(
+      (a, b) => {
+        const getDate = (item: ContentItem) => {
+          if (item.type === "post") {
+            return item.publishedAt?.getTime() ?? item.createdAt.getTime();
+          }
+          return item.createdAt.getTime();
+        };
+        return getDate(b) - getDate(a);
+      }
+    );
+
+    return allItems.slice(0, 10) as FeedItem[];
+  },
+  ["home-items-v1"],
+  { revalidate: 60 }
+);
+
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
-
-  // Fetch data from database
-  const [postsData, momentsData, galleryData] = await Promise.all([
-    db
-      .select()
-      .from(posts)
-      .where(eq(posts.status, "published"))
-      .orderBy(desc(posts.publishedAt))
-      .limit(10),
-    db
-      .select()
-      .from(moments)
-      .where(eq(moments.visibility, "public"))
-      .orderBy(desc(moments.createdAt))
-      .limit(10),
-    db.select().from(gallery).orderBy(desc(gallery.createdAt)).limit(10),
-  ]);
-
-  // Transform to FeedItem format (without ActionItem)
-  type ContentItem =
-    | ({ type: "post" } & typeof postsData[0])
-    | ({ type: "moment" } & typeof momentsData[0])
-    | ({ type: "gallery" } & typeof galleryData[0]);
-
-  const postItems: ContentItem[] = postsData.map((post) => ({
-    type: "post" as const,
-    ...post,
-  }));
-
-  const momentItems: ContentItem[] = momentsData.map((moment) => ({
-    type: "moment" as const,
-    ...moment,
-  }));
-
-  const galleryItems: ContentItem[] = galleryData.map((item) => ({
-    type: "gallery" as const,
-    ...item,
-  }));
-
-  // Combine and sort by date
-  const allItems = [...postItems, ...momentItems, ...galleryItems].sort(
-    (a, b) => {
-      const getDate = (item: ContentItem) => {
-        if (item.type === "post") {
-          return item.publishedAt?.getTime() ?? item.createdAt.getTime();
-        }
-        return item.createdAt.getTime();
-      };
-      return getDate(b) - getDate(a);
-    }
-  );
-
-  // Add action button at the end
-  const items: FeedItem[] = [
-    ...(allItems.slice(0, 10) as FeedItem[]),
-    {
-      type: "action",
-      id: "create-entry",
-      icon: "Pencil",
-      label: "Create Entry",
-    },
-  ];
+  const items = await getHomeItems();
 
   return (
     <div className="text-ink relative min-h-screen overflow-x-hidden bg-[#e9e9e7] pb-32 font-display selection:bg-black/10 selection:text-black">
@@ -107,9 +103,12 @@ export default async function HomePage({ params }: HomePageProps) {
             </div>
             {/* Avatar - links to about page */}
             <Link href={`/${locale}/about`}>
-              <img
+              <Image
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1"
                 alt="Profile portrait"
+                width={48}
+                height={48}
+                sizes="48px"
                 className="size-12 rounded-full border border-white object-cover shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03),inset_0_0_0_1px_rgba(255,255,255,0.5)] ring-1 ring-black/5 sepia-[0.1] transition-transform hover:scale-105"
               />
             </Link>

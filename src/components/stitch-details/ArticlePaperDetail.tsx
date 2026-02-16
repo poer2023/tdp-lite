@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Bookmark, MapPin, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FloatingDock } from "./FloatingDock";
@@ -51,6 +52,8 @@ export function ArticlePaperDetail({
   dockItems,
 }: ArticlePaperDetailProps) {
   const titleParts = accentTitle ? [title, accentTitle] : [title];
+  const skipAvatarOptimization =
+    avatarSrc?.startsWith("blob:") || avatarSrc?.startsWith("data:");
 
   return (
     <section
@@ -89,9 +92,12 @@ export function ArticlePaperDetail({
             </div>
             {avatarSrc ? (
               <div className="size-12 overflow-hidden rounded-full border border-white shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03),inset_0_0_0_1px_rgba(255,255,255,0.5)] ring-1 ring-black/5">
-                <img
+                <Image
                   src={avatarSrc}
                   alt="Avatar"
+                  width={48}
+                  height={48}
+                  unoptimized={Boolean(skipAvatarOptimization)}
                   className="h-full w-full object-cover sepia-[0.1]"
                 />
               </div>

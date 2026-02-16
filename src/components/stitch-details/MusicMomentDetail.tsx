@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import {
   ArrowLeft,
-  Bookmark,
   Heart,
   Pause,
   Play,
@@ -58,6 +58,8 @@ export function MusicMomentDetail({
   waveform,
 }: MusicMomentDetailProps) {
   const [isPlaying, setIsPlaying] = useState(true);
+  const skipCoverOptimization =
+    coverImage.startsWith("blob:") || coverImage.startsWith("data:");
   const bars = useMemo(
     () =>
       waveform || [
@@ -94,9 +96,12 @@ export function MusicMomentDetail({
               <p className="text-xs font-medium">{sourceId}</p>
             </div>
             <div className="size-10 rotate-3 overflow-hidden rounded-lg border border-white shadow-sm">
-              <img
+              <Image
                 src={coverImage}
                 alt="Profile"
+                width={40}
+                height={40}
+                unoptimized={skipCoverOptimization}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -120,10 +125,13 @@ export function MusicMomentDetail({
                   }}
                 >
                   <div className="relative size-24 overflow-hidden rounded-full border-2 border-black/20 md:size-32">
-                    <img
+                    <Image
                       src={coverImage}
                       alt="Album Art"
-                      className="h-full w-full object-cover grayscale-[0.3]"
+                      fill
+                      unoptimized={skipCoverOptimization}
+                      sizes="(min-width: 768px) 8rem, 6rem"
+                      className="object-cover grayscale-[0.3]"
                     />
                     <div className="absolute inset-0 bg-black/10" />
                     <div className="absolute left-1/2 top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/10 bg-paper-white shadow-inner" />

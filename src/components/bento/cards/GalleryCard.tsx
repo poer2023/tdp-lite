@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { GalleryItem } from "@/lib/schema";
 import { Camera, Aperture } from "lucide-react";
@@ -5,24 +6,41 @@ import { Camera, Aperture } from "lucide-react";
 interface GalleryCardProps {
   item: GalleryItem;
   className?: string;
+  preview?: boolean;
 }
 
-export function GalleryCard({ item, className }: GalleryCardProps) {
+export function GalleryCard({ item, className, preview = false }: GalleryCardProps) {
+  const imageSrc = item.thumbUrl || item.fileUrl;
+  const skipOptimization =
+    imageSrc.startsWith("blob:") || imageSrc.startsWith("data:");
+
   return (
     <div
       className={cn(
-        "paper-card group relative h-full w-full overflow-hidden",
+        "paper-card relative h-full w-full overflow-hidden",
+        !preview && "group",
         className
       )}
     >
-      <img
-        src={item.thumbUrl || item.fileUrl}
+      <Image
+        src={imageSrc}
         alt={item.title || "Gallery Photo"}
-        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        fill
+        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        unoptimized={skipOptimization}
+        className={cn(
+          "object-cover transition-transform duration-500",
+          !preview && "group-hover:scale-105"
+        )}
       />
 
       {/* Hover overlay with EXIF info */}
-      <div className="absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+      <div
+        className={cn(
+          "absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 transition-opacity duration-300",
+          preview ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        )}
+      >
         <div className="flex justify-end">
           {item.title && (
             <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
@@ -55,7 +73,12 @@ export function GalleryCard({ item, className }: GalleryCardProps) {
 
       {/* Always visible title badge */}
       {item.title && (
-        <div className="absolute bottom-3 left-3 opacity-100 transition-opacity group-hover:opacity-0">
+        <div
+          className={cn(
+            "absolute bottom-3 left-3 transition-opacity",
+            preview ? "opacity-0" : "opacity-100 group-hover:opacity-0"
+          )}
+        >
           <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-gray-800 shadow-sm backdrop-blur-sm dark:bg-black/70 dark:text-white">
             {item.title}
           </span>

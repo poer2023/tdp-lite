@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { formatRelativeTime } from "@/lib/utils";
 import { db } from "@/lib/db";
 import { moments } from "@/lib/schema";
@@ -51,7 +52,7 @@ export default async function MomentsPage({ params }: MomentsPageProps) {
                   {moment.media.map((item, index) => (
                     <div
                       key={index}
-                      className="aspect-square overflow-hidden rounded"
+                      className="relative aspect-square overflow-hidden rounded"
                     >
                       {item.type === "video" ? (
                         <video
@@ -59,10 +60,13 @@ export default async function MomentsPage({ params }: MomentsPageProps) {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <img
+                        <Image
                           src={item.url}
                           alt=""
-                          className="h-full w-full object-cover"
+                          fill
+                          unoptimized
+                          sizes="(min-width: 768px) 33vw, 50vw"
+                          className="object-cover"
                         />
                       )}
                     </div>

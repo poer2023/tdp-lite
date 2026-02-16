@@ -109,6 +109,41 @@ export const apiKeys = pgTable("api_keys", {
     .defaultNow(),
 });
 
+// Preview sessions - transient drafts for remote publisher iframe preview
+export const previewSessions = pgTable(
+  "preview_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    payload: jsonb("payload")
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_preview_sessions_expires").on(table.expiresAt)]
+);
+
+// Publish idempotency keys - prevent duplicate writes on retries
+export const publishIdempotencyKeys = pgTable(
+  "publish_idempotency_keys",
+  {
+    key: text("key").primaryKey(),
+    requestHash: text("request_hash").notNull(),
+    response: jsonb("response")
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_publish_idempotency_created").on(table.createdAt)]
+);
+
 // Type exports
 export type Post = typeof posts.$inferSelect;
 export type NewPost = typeof posts.$inferInsert;
@@ -118,3 +153,7 @@ export type GalleryItem = typeof gallery.$inferSelect;
 export type NewGalleryItem = typeof gallery.$inferInsert;
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type NewApiKey = typeof apiKeys.$inferInsert;
+export type PreviewSession = typeof previewSessions.$inferSelect;
+export type NewPreviewSession = typeof previewSessions.$inferInsert;
+export type PublishIdempotencyKey = typeof publishIdempotencyKeys.$inferSelect;
+export type NewPublishIdempotencyKey = typeof publishIdempotencyKeys.$inferInsert;

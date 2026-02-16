@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
   Bookmark,
@@ -74,6 +75,10 @@ function getImageRatio(
     return FALLBACK_IMAGE_RATIO;
   }
   return Math.max(MIN_IMAGE_RATIO, Math.min(width / height, MAX_IMAGE_RATIO));
+}
+
+function shouldSkipOptimization(src: string) {
+  return src.startsWith("blob:") || src.startsWith("data:");
 }
 
 export function GalleryMomentDetail({
@@ -226,9 +231,12 @@ export function GalleryMomentDetail({
           : "border border-transparent opacity-60 hover:border-black/10 hover:opacity-100"
       )}
     >
-      <img
+      <Image
         src={image.thumbSrc || image.src}
         alt={image.alt || `${title} thumbnail ${imageIndex + 1}`}
+        width={56}
+        height={56}
+        unoptimized={shouldSkipOptimization(image.thumbSrc || image.src)}
         className="h-full w-full object-cover"
         onLoad={(event) => registerImageDimensions(image.id, event.currentTarget)}
       />
@@ -280,10 +288,13 @@ export function GalleryMomentDetail({
                   className="bg-paper-grey group relative mx-auto h-[var(--mobile-media-height)] w-full overflow-hidden rounded-[1.35rem] shadow-[0_24px_40px_-16px_rgba(0,0,0,0.2)] transition-[width,height,border-radius] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] lg:mx-0 lg:h-[var(--desktop-media-height)] lg:w-[var(--desktop-media-width)]"
                   style={mediaFrameStyle}
                 >
-                  <img
+                  <Image
                     src={currentImage.src}
                     alt={currentImage.alt || title}
-                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.01]"
+                    fill
+                    sizes="(min-width: 1024px) 60vw, 100vw"
+                    unoptimized={shouldSkipOptimization(currentImage.src)}
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.01]"
                     onLoad={(event) =>
                       registerImageDimensions(currentImage.id, event.currentTarget)
                     }
@@ -380,9 +391,12 @@ export function GalleryMomentDetail({
                   <div className="flex items-center gap-2">
                     {avatarSrc ? (
                       <div className="size-6 overflow-hidden rounded-full border border-black/10">
-                        <img
+                        <Image
                           src={avatarSrc}
                           alt="Avatar"
+                          width={24}
+                          height={24}
+                          unoptimized={shouldSkipOptimization(avatarSrc)}
                           className="h-full w-full object-cover grayscale"
                         />
                       </div>

@@ -6,6 +6,11 @@ import { db } from "./db";
 import { posts, moments, gallery, type MediaItem } from "./schema";
 import { uploadImage } from "./r2";
 import { eq } from "drizzle-orm";
+import {
+  createGalleryEntry,
+  createMomentEntry,
+  createPostEntry,
+} from "./publish/service";
 
 /**
  * Ensure user is authenticated, throw if not
@@ -16,17 +21,6 @@ async function requireAuth() {
     throw new Error("Unauthorized");
   }
   return session.user;
-}
-
-/**
- * Generate a URL-friendly slug from title
- */
-function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 100);
 }
 
 /**
@@ -53,31 +47,27 @@ export async function createMoment(formData: FormData) {
     if (file && file.size > 0) {
       const url = await uploadImage(file, file.name);
       media.push({
-        type: "image",
+        type: file.type.startsWith("video/") ? "video" : "image",
         url,
       });
     }
   }
 
-  const location = locationName ? { name: locationName } : null;
-
-  const [newMoment] = await db
-    .insert(moments)
-    .values({
-      content: content.trim(),
-      media,
-      locale,
-      visibility,
-      location,
-    })
-    .returning();
+  const newMoment = await createMomentEntry({
+    content: content.trim(),
+    locale: locale === "zh" ? "zh" : "en",
+    visibility: visibility === "private" ? "private" : "public",
+    locationName: locationName?.trim() || undefined,
+    media,
+  });
 
   revalidatePath("/");
+  revalidatePath("/admin");
   return newMoment;
 }
 
 /**
- * Create a new post (article with optional cover image)
+ * Create a new post (article with optional cover media)
  */
 export async function createPost(formData: FormData) {
   await requireAuth();
@@ -97,13 +87,12 @@ export async function createPost(formData: FormData) {
     throw new Error("Content is required");
   }
 
-  // Upload cover image if provided
+  // Upload cover media (image/video) if provided
   let coverUrl: string | null = null;
   if (coverFile && coverFile.size > 0) {
     coverUrl = await uploadImage(coverFile, coverFile.name);
   }
 
-  // Parse tags from comma-separated string
   const tags = tagsRaw
     ? tagsRaw
         .split(",")
@@ -111,25 +100,18 @@ export async function createPost(formData: FormData) {
         .filter(Boolean)
     : [];
 
-  const slug = generateSlug(title);
-  const publishedAt = status === "published" ? new Date() : null;
-
-  const [newPost] = await db
-    .insert(posts)
-    .values({
-      slug,
-      locale,
-      title: title.trim(),
-      excerpt: excerpt?.trim() || null,
-      content: content.trim(),
-      coverUrl,
-      tags,
-      status,
-      publishedAt,
-    })
-    .returning();
+  const newPost = await createPostEntry({
+    title: title.trim(),
+    content: content.trim(),
+    excerpt: excerpt?.trim() || undefined,
+    locale: locale === "zh" ? "zh" : "en",
+    tags,
+    status: status === "published" ? "published" : "draft",
+    coverUrl: coverUrl || undefined,
+  });
 
   revalidatePath("/");
+  revalidatePath("/admin");
   return newPost;
 }
 
@@ -159,23 +141,26 @@ export async function createGallery(formData: FormData) {
   const heightRaw = formData.get("height") as string | null;
   const capturedAtRaw = formData.get("capturedAt") as string | null;
 
-  const [newGalleryItem] = await db
-    .insert(gallery)
-    .values({
-      fileUrl,
-      title: title?.trim() || null,
-      camera,
-      lens,
-      focalLength,
-      aperture,
-      iso: isoRaw ? parseInt(isoRaw, 10) : null,
-      width: widthRaw ? parseInt(widthRaw, 10) : null,
-      height: heightRaw ? parseInt(heightRaw, 10) : null,
-      capturedAt: capturedAtRaw ? new Date(capturedAtRaw) : null,
-    })
-    .returning();
+  const locale = (formData.get("locale") as string) || "en";
+
+  const newGalleryItem = await createGalleryEntry({
+    locale: locale === "zh" ? "zh" : "en",
+    fileUrl,
+    title: title?.trim() || undefined,
+    camera: camera || undefined,
+    lens: lens || undefined,
+    focalLength: focalLength || undefined,
+    aperture: aperture || undefined,
+    iso: isoRaw ? parseInt(isoRaw, 10) : undefined,
+    width: widthRaw ? parseInt(widthRaw, 10) : undefined,
+    height: heightRaw ? parseInt(heightRaw, 10) : undefined,
+    capturedAt: capturedAtRaw
+      ? new Date(capturedAtRaw).toISOString()
+      : undefined,
+  });
 
   revalidatePath("/");
+  revalidatePath("/admin");
   return newGalleryItem;
 }
 
@@ -207,5 +192,6 @@ export async function deleteContent(
   }
 
   revalidatePath("/");
+  revalidatePath("/admin");
   return { success: true };
 }
