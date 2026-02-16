@@ -240,10 +240,10 @@ jobs:
             fi
           }
 
-          pnpm backend:api >/tmp/tdp-api.log 2>&1 &
+          (cd backend && go run ./cmd/tdp-api) >/tmp/tdp-api.log 2>&1 &
           API_PID=$!
 
-          TDP_SEARCH_PRIMARY=go pnpm start -- -p 3000 >/tmp/tdp-next.log 2>&1 &
+          TDP_SEARCH_PRIMARY=go pnpm start -p 3000 >/tmp/tdp-next.log 2>&1 &
           NEXT_PID=$!
 
           wait_for_url "http://127.0.0.1:8080/healthz"
