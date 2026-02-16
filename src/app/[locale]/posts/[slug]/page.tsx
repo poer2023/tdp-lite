@@ -2,10 +2,8 @@ import { notFound } from "next/navigation";
 import { formatDate } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { db } from "@/lib/db";
-import { posts } from "@/lib/schema";
-import { eq, and } from "drizzle-orm";
 import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDetail";
+import { getPublicPost } from "@/lib/content/read";
 
 export const dynamic = "force-dynamic";
 
@@ -21,11 +19,7 @@ const avatar =
 export default async function PostPage({ params }: PostPageProps) {
   const { locale, slug } = await params;
 
-  const [post] = await db
-    .select()
-    .from(posts)
-    .where(and(eq(posts.slug, slug), eq(posts.status, "published")))
-    .limit(1);
+  const post = await getPublicPost(locale, slug);
 
   if (!post) {
     notFound();

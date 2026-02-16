@@ -62,6 +62,7 @@ export async function createGalleryEntry(
   const [record] = await db
     .insert(gallery)
     .values({
+      locale: input.locale,
       fileUrl: input.fileUrl,
       thumbUrl: input.thumbUrl || null,
       title: input.title?.trim() || null,

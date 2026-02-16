@@ -33,6 +33,7 @@ function createMoment(
   options?: { withMedia?: boolean; contentLength?: number }
 ): FeedItem {
   const contentLength = options?.contentLength ?? 50;
+  const now = new Date("2026-02-16T00:00:00.000Z");
   const moment: Moment = {
     id,
     content: "x".repeat(contentLength),
@@ -42,7 +43,11 @@ function createMoment(
     locale: "en",
     visibility: "public",
     location: null,
-    createdAt: new Date("2026-02-16T00:00:00.000Z"),
+    status: "published",
+    publishedAt: now,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
   };
 
   return { type: "moment", ...moment };
@@ -52,8 +57,10 @@ function createGallery(
   id: string,
   options?: { width?: number | null; height?: number | null }
 ): FeedItem {
+  const now = new Date("2026-02-16T00:00:00.000Z");
   const gallery: GalleryItem = {
     id,
+    locale: "en",
     fileUrl: `https://example.com/${id}.jpg`,
     thumbUrl: null,
     title: null,
@@ -69,7 +76,11 @@ function createGallery(
     longitude: null,
     isLivePhoto: false,
     videoUrl: null,
-    createdAt: new Date("2026-02-16T00:00:00.000Z"),
+    status: "published",
+    publishedAt: now,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
   };
 
   return { type: "gallery", ...gallery };

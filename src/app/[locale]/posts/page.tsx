@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
-import { db } from "@/lib/db";
-import { posts } from "@/lib/schema";
-import { desc, eq, and } from "drizzle-orm";
+import { getPublicPosts } from "@/lib/content/read";
 
 // Force dynamic rendering to avoid database queries during build
 export const dynamic = "force-dynamic";
@@ -21,16 +19,7 @@ export default async function PostsPage({ params }: PostsPageProps) {
   // Validate locale to prevent [locale] catching non-locale paths like "api"
   const validLocale = locales.includes(locale) ? locale : "en";
 
-  const postsData = await db
-    .select()
-    .from(posts)
-    .where(
-      and(
-        eq(posts.status, "published"),
-        eq(posts.locale, validLocale)
-      )
-    )
-    .orderBy(desc(posts.publishedAt));
+  const postsData = await getPublicPosts(validLocale);
 
   const t = {
     en: { title: "Posts", empty: "No posts yet." },

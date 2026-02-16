@@ -1,7 +1,7 @@
 import { GalleryCard } from "@/components/bento/cards/GalleryCard";
 import { MomentCard } from "@/components/bento/cards/MomentCard";
 import { PostCard } from "@/components/bento/cards/PostCard";
-import { loadPreviewPayload } from "@/lib/publish/loadPreviewPayload";
+import { loadPreviewPayloadFromApi } from "@/lib/previewApi";
 import {
   inferPostCoverMediaType,
   toPreviewGallery,
@@ -30,7 +30,7 @@ function PreviewError({ message }: { message: string }) {
 
 export default async function PreviewCardPage({ searchParams }: PreviewCardPageProps) {
   const params = await searchParams;
-  const resolved = await loadPreviewPayload(params);
+  const resolved = await loadPreviewPayloadFromApi(params);
 
   if (!resolved.ok) {
     return <PreviewError message={resolved.reason} />;

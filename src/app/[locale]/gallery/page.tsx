@@ -1,6 +1,4 @@
-import { db } from "@/lib/db";
-import { gallery } from "@/lib/schema";
-import { desc } from "drizzle-orm";
+import { getPublicGallery } from "@/lib/content/read";
 import { Camera, Aperture } from "lucide-react";
 import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
@@ -15,14 +13,14 @@ interface GalleryPageProps {
 }
 
 const getGalleryItems = unstable_cache(
-  async () => db.select().from(gallery).orderBy(desc(gallery.createdAt)),
+  async (locale: Locale) => getPublicGallery(locale),
   ["gallery-items-v1"],
   { revalidate: 120 }
 );
 
 export default async function GalleryPage({ params }: GalleryPageProps) {
   const { locale } = await params;
-  const items = await getGalleryItems();
+  const items = await getGalleryItems(locale);
 
   return (
     <div className="text-ink relative min-h-screen overflow-x-hidden bg-[#e9e9e7] pb-32 font-display selection:bg-black/10 selection:text-black">
@@ -62,7 +60,8 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
               return (
                 <div
                   key={item.id}
-                  className="group relative mb-4 break-inside-avoid overflow-hidden rounded-2xl border border-black/5 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+                  id={`gallery-${item.id}`}
+                  className="group relative mb-4 break-inside-avoid scroll-mt-28 overflow-hidden rounded-2xl border border-black/5 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all target:ring-2 target:ring-black/40 target:shadow-[0_14px_40px_rgba(0,0,0,0.16)]"
                 >
                   {/* Image */}
                   <Image

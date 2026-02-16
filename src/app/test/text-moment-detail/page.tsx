@@ -13,12 +13,16 @@ const mockMoments: Moment[] = [
     media: [],
     locale: "en",
     visibility: "public",
+    status: "published",
+    publishedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
     location: {
       name: "Shinjuku • Tokyo",
       lat: 35.69,
       lng: 139.7,
     },
     createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    deletedAt: null,
   },
   {
     id: "t2b3c4d5-e6f7-8901-bcde-f23456789012",
@@ -27,12 +31,16 @@ const mockMoments: Moment[] = [
     media: [],
     locale: "en",
     visibility: "public",
+    status: "published",
+    publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     location: {
       name: "Kyoto",
       lat: 35.01,
       lng: 135.77,
     },
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    deletedAt: null,
   },
   {
     id: "t3c4d5e6-f7a8-9012-cdef-345678901234",
@@ -41,8 +49,12 @@ const mockMoments: Moment[] = [
     media: [],
     locale: "en",
     visibility: "public",
+    status: "published",
+    publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     location: null,
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    deletedAt: null,
   },
 ];
 

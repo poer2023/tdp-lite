@@ -1,11 +1,9 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { moments } from "@/lib/schema";
-import { eq } from "drizzle-orm";
 import { MomentDetailCard } from "@/components/bento/cards/MomentDetailCard";
 import { TextMomentDetailCard } from "@/components/bento/cards/TextMomentDetailCard";
 import { ArrowLeft } from "lucide-react";
+import { getPublicMoment } from "@/lib/content/read";
 
 export const dynamic = "force-dynamic";
 
@@ -20,11 +18,7 @@ export default async function MomentDetailPage({
 }: MomentDetailPageProps) {
   const { locale, id } = await params;
 
-  const [moment] = await db
-    .select()
-    .from(moments)
-    .where(eq(moments.id, id))
-    .limit(1);
+  const moment = await getPublicMoment(locale, id);
 
   if (!moment) {
     notFound();

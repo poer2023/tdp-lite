@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { AdminDashboard } from "./AdminDashboard";
 
 export default async function AdminPage() {
   const session = await auth();
@@ -9,14 +8,12 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  const usePublisherV2 = process.env.PUBLISHER_V2_ENABLED === "true";
-  const publisherBaseUrl = process.env.PUBLISHER_BASE_URL;
+  const publisherBaseUrl =
+    process.env.PUBLISHER_BASE_URL || process.env.TDP_API_BASE_URL;
 
-  if (usePublisherV2 && publisherBaseUrl) {
-    redirect(publisherBaseUrl);
+  if (!publisherBaseUrl) {
+    redirect("/");
   }
 
-  return (
-    <AdminDashboard user={session.user} />
-  );
+  redirect(publisherBaseUrl);
 }

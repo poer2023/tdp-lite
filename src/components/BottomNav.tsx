@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Home, Grid3X3, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Tab = "home" | "gallery" | "posts" | "about";
+type Tab = "home" | "gallery" | "search" | "about";
 
 interface BottomNavProps {
   locale: string;
@@ -12,7 +12,7 @@ interface BottomNavProps {
 const tabs: { id: Tab; icon: typeof Home; label: string; path: string }[] = [
   { id: "home", icon: Home, label: "Home", path: "" },
   { id: "gallery", icon: Grid3X3, label: "Gallery", path: "/gallery" },
-  { id: "posts", icon: Search, label: "Posts", path: "/posts" },
+  { id: "search", icon: Search, label: "Search", path: "/search" },
 ];
 
 export function BottomNav({ locale, activeTab }: BottomNavProps) {

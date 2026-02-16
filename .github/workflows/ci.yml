@@ -1,0 +1,282 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - macdev
+      - codex/**
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9.15.0"
+  GO_VERSION: "1.23.x"
+  NEXTAUTH_SECRET: ci-nextauth-secret
+  NEXTAUTH_URL: http://127.0.0.1:3000
+  TDP_API_BASE_URL: http://127.0.0.1:8080
+  NEXT_PUBLIC_TDP_API_BASE_URL: http://127.0.0.1:8080
+  TDP_PREVIEW_SECRET: ci-preview-secret
+  DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/tdp_lite_ci
+
+jobs:
+  frontend:
+    name: Frontend Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test:layout
+
+      - name: Build
+        run: pnpm build
+
+  backend:
+    name: Backend Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: backend/go.sum
+
+      - name: Go test
+        working-directory: backend
+        run: go test ./...
+
+      - name: Go build
+        working-directory: backend
+        run: go build ./...
+
+  integration-smoke:
+    name: Integration Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs:
+      - frontend
+      - backend
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tdp_lite_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d tdp_lite_ci"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache-dependency-path: backend/go.sum
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Apply database migrations
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f drizzle/0000_famous_captain_marvel.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/0001_api_platform.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/0002_search_fts_indexes.sql
+
+      - name: Seed smoke data
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO posts (id, slug, locale, title, excerpt, content, tags, status, published_at, created_at, updated_at)
+          VALUES (
+            'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'ci-post-smoke',
+            'en',
+            'CI Smoke Post',
+            'smoke excerpt',
+            'smoke content',
+            '["ci"]'::jsonb,
+            'published',
+            NOW(),
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (locale, slug) DO NOTHING;
+
+          INSERT INTO moments (id, content, media, locale, visibility, location, status, published_at, created_at, updated_at)
+          VALUES (
+            'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+            'ci smoke moment',
+            '[]'::jsonb,
+            'en',
+            'public',
+            '{"name":"CI"}'::jsonb,
+            'published',
+            NOW(),
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (id) DO NOTHING;
+
+          INSERT INTO gallery (id, locale, file_url, thumb_url, title, status, published_at, created_at, updated_at)
+          VALUES (
+            'cccccccc-cccc-cccc-cccc-cccccccccccc',
+            'en',
+            'https://example.com/ci-image.jpg',
+            'https://example.com/ci-thumb.jpg',
+            'CI Gallery Item',
+            'published',
+            NOW(),
+            NOW(),
+            NOW()
+          )
+          ON CONFLICT (id) DO NOTHING;
+          SQL
+
+      - name: Build frontend
+        run: pnpm build
+
+      - name: Runtime smoke tests
+        run: |
+          set -euo pipefail
+
+          API_PID=""
+          NEXT_PID=""
+
+          cleanup() {
+            status=$?
+            if [ "$status" -ne 0 ]; then
+              echo "----- Next logs -----"
+              tail -n 200 /tmp/tdp-next.log || true
+              echo "----- Go API logs -----"
+              tail -n 200 /tmp/tdp-api.log || true
+            fi
+            if [ -n "${NEXT_PID:-}" ]; then
+              kill "$NEXT_PID" >/dev/null 2>&1 || true
+              wait "$NEXT_PID" >/dev/null 2>&1 || true
+            fi
+            if [ -n "${API_PID:-}" ]; then
+              kill "$API_PID" >/dev/null 2>&1 || true
+              wait "$API_PID" >/dev/null 2>&1 || true
+            fi
+          }
+          trap cleanup EXIT
+
+          wait_for_url() {
+            local url="$1"
+            for _ in $(seq 1 120); do
+              if curl -fsS "$url" >/dev/null 2>&1; then
+                return 0
+              fi
+              sleep 1
+            done
+            echo "timeout waiting for $url" >&2
+            return 1
+          }
+
+          assert_http_200() {
+            local url="$1"
+            local code
+            code="$(curl -sS -o /dev/null -w "%{http_code}" "$url")"
+            if [ "$code" != "200" ]; then
+              echo "expected 200 from $url, got $code" >&2
+              return 1
+            fi
+          }
+
+          pnpm backend:api >/tmp/tdp-api.log 2>&1 &
+          API_PID=$!
+
+          TDP_SEARCH_PRIMARY=go pnpm start -- -p 3000 >/tmp/tdp-next.log 2>&1 &
+          NEXT_PID=$!
+
+          wait_for_url "http://127.0.0.1:8080/healthz"
+          wait_for_url "http://127.0.0.1:3000/en"
+
+          assert_http_200 "http://127.0.0.1:3000/en"
+          assert_http_200 "http://127.0.0.1:3000/en/posts"
+          assert_http_200 "http://127.0.0.1:3000/en/posts/ci-post-smoke"
+          assert_http_200 "http://127.0.0.1:3000/en/moments"
+          assert_http_200 "http://127.0.0.1:3000/en/moments/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+          assert_http_200 "http://127.0.0.1:3000/en/gallery"
+
+          search_headers_up="$(mktemp)"
+          curl -sS -D "$search_headers_up" -o /tmp/search-up.json \
+            -X POST "http://127.0.0.1:3000/api/search" \
+            -H "content-type: application/json" \
+            --data '{"section":"post","query":"smoke","locale":"en","filters":{"localeScope":"all"},"limit":5}'
+          grep -iq '^x-tdp-search-source: go' "$search_headers_up"
+          grep -iq '^x-tdp-search-fallback: false' "$search_headers_up"
+
+          kill "$API_PID" >/dev/null 2>&1 || true
+          wait "$API_PID" >/dev/null 2>&1 || true
+          API_PID=""
+
+          search_headers_down="$(mktemp)"
+          curl -sS -D "$search_headers_down" -o /tmp/search-down.json \
+            -X POST "http://127.0.0.1:3000/api/search" \
+            -H "content-type: application/json" \
+            --data '{"section":"post","query":"smoke","locale":"en","filters":{"localeScope":"all"},"limit":5}'
+          grep -iq '^x-tdp-search-source: next' "$search_headers_down"
+          grep -iq '^x-tdp-search-fallback: true' "$search_headers_down"
+
+          curl -sS "http://127.0.0.1:3000/preview/card?sid=dummy&exp=9999999999&sig=dummy" \
+            | grep -q "Preview Unavailable"
+
+          echo "integration smoke checks passed"

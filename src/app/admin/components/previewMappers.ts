@@ -6,6 +6,7 @@ export function mapMomentDraftToPreview(
   draft: MomentDraft,
   mediaUrls: string[]
 ): Moment {
+  const now = new Date();
   const media: MediaItem[] = mediaUrls.map((url) => ({ type: "image", url }));
 
   return {
@@ -17,7 +18,11 @@ export function mapMomentDraftToPreview(
     location: draft.locationName.trim()
       ? { name: draft.locationName.trim() }
       : null,
-    createdAt: new Date(),
+    status: "draft",
+    publishedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
   };
 }
 
@@ -51,8 +56,10 @@ export function mapGalleryDraftToPreview(
   draft: GalleryDraft,
   imageUrl: string | null
 ): GalleryItem {
+  const now = new Date();
   return {
     id: "preview-gallery",
+    locale: "en",
     fileUrl:
       imageUrl ||
       "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop",
@@ -70,6 +77,10 @@ export function mapGalleryDraftToPreview(
     longitude: null,
     isLivePhoto: false,
     videoUrl: null,
-    createdAt: new Date(),
+    status: "draft",
+    publishedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
   };
 }

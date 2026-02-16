@@ -1,9 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatRelativeTime } from "@/lib/utils";
-import { db } from "@/lib/db";
-import { moments } from "@/lib/schema";
-import { desc, eq } from "drizzle-orm";
+import { getPublicMoments } from "@/lib/content/read";
 import { MapPin } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -20,11 +18,7 @@ export default async function MomentsPage({ params }: MomentsPageProps) {
   const { locale } = await params;
   const validLocale = locales.includes(locale) ? locale : "en";
 
-  const momentsData = await db
-    .select()
-    .from(moments)
-    .where(eq(moments.visibility, "public"))
-    .orderBy(desc(moments.createdAt));
+  const momentsData = await getPublicMoments(validLocale);
 
   const t = {
     en: { title: "Moments", empty: "No moments yet." },

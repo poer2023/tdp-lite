@@ -15,9 +15,11 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
-import { db } from "@/lib/db";
-import { posts, moments, gallery } from "@/lib/schema";
-import { eq, count } from "drizzle-orm";
+import {
+  getPublicGallery,
+  getPublicMoments,
+  getPublicPosts,
+} from "@/lib/content/read";
 
 export const dynamic = "force-dynamic";
 
@@ -30,17 +32,11 @@ interface AboutPageProps {
 export default async function AboutPage({ params }: AboutPageProps) {
   const { locale } = await params;
 
-  // Query real counts from database
+  // Query counts directly from local DB read layer
   const [postsCount, momentsCount, galleryCount] = await Promise.all([
-    db
-      .select({ count: count() })
-      .from(posts)
-      .where(eq(posts.status, "published")),
-    db
-      .select({ count: count() })
-      .from(moments)
-      .where(eq(moments.visibility, "public")),
-    db.select({ count: count() }).from(gallery),
+    getPublicPosts(locale),
+    getPublicMoments(locale),
+    getPublicGallery(locale),
   ]);
 
   const techStack = [
@@ -53,9 +49,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
   ];
 
   const activity = [
-    { value: String(postsCount[0].count), label: "Articles Published" },
-    { value: String(momentsCount[0].count), label: "Daily Moments" },
-    { value: String(galleryCount[0].count), label: "Analog Photos" },
+    { value: String(postsCount.length), label: "Articles Published" },
+    { value: String(momentsCount.length), label: "Daily Moments" },
+    { value: String(galleryCount.length), label: "Analog Photos" },
   ];
 
   const socialLinks = [

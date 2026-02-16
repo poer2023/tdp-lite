@@ -4,7 +4,7 @@ import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDeta
 import { GalleryMomentDetail } from "@/components/stitch-details/GalleryMomentDetail";
 import { MomentDetailCard } from "@/components/bento/cards/MomentDetailCard";
 import { TextMomentDetailCard } from "@/components/bento/cards/TextMomentDetailCard";
-import { loadPreviewPayload } from "@/lib/publish/loadPreviewPayload";
+import { loadPreviewPayloadFromApi } from "@/lib/previewApi";
 import {
   toPreviewGallery,
   toPreviewMoment,
@@ -35,7 +35,7 @@ export default async function PreviewDetailPage({
   searchParams,
 }: PreviewDetailPageProps) {
   const params = await searchParams;
-  const resolved = await loadPreviewPayload(params);
+  const resolved = await loadPreviewPayloadFromApi(params);
 
   if (!resolved.ok) {
     return <PreviewError message={resolved.reason} />;

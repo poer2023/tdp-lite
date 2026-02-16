@@ -16,7 +16,7 @@ export const posts = pgTable(
   "posts",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    slug: text("slug").notNull().unique(),
+    slug: text("slug").notNull(),
     locale: text("locale").notNull().default("en"),
     title: text("title").notNull(),
     excerpt: text("excerpt"),
@@ -61,9 +61,15 @@ export const moments = pgTable(
     locale: text("locale").notNull().default("en"),
     visibility: text("visibility").notNull().default("public"), // public | private
     location: jsonb("location").$type<Location | null>(),
+    status: text("status").notNull().default("published"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [index("idx_moments_created").on(table.createdAt)]
 );
@@ -73,6 +79,7 @@ export const gallery = pgTable(
   "gallery",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    locale: text("locale").notNull().default("en"),
     fileUrl: text("file_url").notNull(),
     thumbUrl: text("thumb_url"),
     title: text("title"),
@@ -91,11 +98,20 @@ export const gallery = pgTable(
     // Live Photo
     isLivePhoto: boolean("is_live_photo").default(false),
     videoUrl: text("video_url"),
+    status: text("status").notNull().default("published"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
-  (table) => [index("idx_gallery_created").on(table.createdAt)]
+  (table) => [
+    index("idx_gallery_created").on(table.createdAt),
+    index("idx_gallery_locale_created").on(table.locale, table.createdAt),
+  ]
 );
 
 // API Keys - 认证

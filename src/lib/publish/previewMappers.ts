@@ -10,6 +10,7 @@ import type {
 const NOW = () => new Date();
 
 export function toPreviewMoment(input: PublishMomentInput): Moment {
+  const now = NOW();
   return {
     id: "preview-moment",
     content: input.content,
@@ -17,7 +18,11 @@ export function toPreviewMoment(input: PublishMomentInput): Moment {
     locale: input.locale,
     visibility: input.visibility,
     location: input.locationName ? { name: input.locationName } : null,
-    createdAt: NOW(),
+    status: "draft",
+    publishedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
   };
 }
 
@@ -40,8 +45,10 @@ export function toPreviewPost(input: PublishPostInput): Post {
 }
 
 export function toPreviewGallery(input: PublishGalleryInput): GalleryItem {
+  const now = NOW();
   return {
     id: "preview-gallery",
+    locale: input.locale,
     fileUrl: input.fileUrl,
     thumbUrl: input.thumbUrl || null,
     title: input.title || null,
@@ -57,7 +64,11 @@ export function toPreviewGallery(input: PublishGalleryInput): GalleryItem {
     longitude: input.longitude || null,
     isLivePhoto: input.isLivePhoto || false,
     videoUrl: input.videoUrl || null,
-    createdAt: NOW(),
+    status: "draft",
+    publishedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
   };
 }
 

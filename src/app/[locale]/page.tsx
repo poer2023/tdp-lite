@@ -1,8 +1,6 @@
 import { BentoGrid } from "@/components/bento/BentoGrid";
 import { FeedItem } from "@/components/bento/types";
-import { db } from "@/lib/db";
-import { posts, moments, gallery } from "@/lib/schema";
-import { desc, eq } from "drizzle-orm";
+import { getPublicFeed } from "@/lib/content/read";
 import { Layers } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,64 +16,14 @@ interface HomePageProps {
 }
 
 const getHomeItems = unstable_cache(
-  async (): Promise<FeedItem[]> => {
-    const [postsData, momentsData, galleryData] = await Promise.all([
-      db
-        .select()
-        .from(posts)
-        .where(eq(posts.status, "published"))
-        .orderBy(desc(posts.publishedAt))
-        .limit(10),
-      db
-        .select()
-        .from(moments)
-        .where(eq(moments.visibility, "public"))
-        .orderBy(desc(moments.createdAt))
-        .limit(10),
-      db.select().from(gallery).orderBy(desc(gallery.createdAt)).limit(10),
-    ]);
-
-    type ContentItem =
-      | ({ type: "post" } & typeof postsData[0])
-      | ({ type: "moment" } & typeof momentsData[0])
-      | ({ type: "gallery" } & typeof galleryData[0]);
-
-    const postItems: ContentItem[] = postsData.map((post) => ({
-      type: "post" as const,
-      ...post,
-    }));
-
-    const momentItems: ContentItem[] = momentsData.map((moment) => ({
-      type: "moment" as const,
-      ...moment,
-    }));
-
-    const galleryItems: ContentItem[] = galleryData.map((item) => ({
-      type: "gallery" as const,
-      ...item,
-    }));
-
-    const allItems = [...postItems, ...momentItems, ...galleryItems].sort(
-      (a, b) => {
-        const getDate = (item: ContentItem) => {
-          if (item.type === "post") {
-            return item.publishedAt?.getTime() ?? item.createdAt.getTime();
-          }
-          return item.createdAt.getTime();
-        };
-        return getDate(b) - getDate(a);
-      }
-    );
-
-    return allItems.slice(0, 10) as FeedItem[];
-  },
+  async (locale: Locale): Promise<FeedItem[]> => getPublicFeed(locale, 10),
   ["home-items-v1"],
   { revalidate: 60 }
 );
 
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
-  const items = await getHomeItems();
+  const items = await getHomeItems(locale);
 
   return (
     <div className="text-ink relative min-h-screen overflow-x-hidden bg-[#e9e9e7] pb-32 font-display selection:bg-black/10 selection:text-black">
