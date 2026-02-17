@@ -1,5 +1,7 @@
+import { type AppLocale } from "@/lib/locale";
+
 export type Tab = "moment" | "post" | "gallery";
-export type Locale = "en" | "zh";
+export type Locale = AppLocale;
 
 export interface MomentDraft {
   content: string;
