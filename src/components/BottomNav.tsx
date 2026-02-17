@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Home, Grid3X3, Search, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toLocalizedPath } from "@/lib/locale-routing";
 
 type Tab = "home" | "gallery" | "search" | "about";
 
@@ -25,7 +26,7 @@ export function BottomNav({ locale, activeTab }: BottomNavProps) {
           return (
             <Link
               key={tab.id}
-              href={`/${locale}${tab.path}`}
+              href={toLocalizedPath(locale, tab.path || "/")}
               className={cn(
                 "group relative flex h-11 w-11 items-center justify-center rounded-full transition-all",
                 isActive
@@ -44,7 +45,7 @@ export function BottomNav({ locale, activeTab }: BottomNavProps) {
         })}
         <div className="mx-1 h-5 w-px bg-black/10" />
         <Link
-          href={`/${locale}/about`}
+          href={toLocalizedPath(locale, "/about")}
           className={cn(
             "group relative flex h-11 w-11 items-center justify-center rounded-full transition-all",
             activeTab === "about"

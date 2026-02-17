@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { toLocalizedPath } from "@/lib/locale-routing";
 import {
   gallery,
   moments,
@@ -92,15 +93,15 @@ export type PublishExecutionResult = {
 };
 
 function toMomentUrl(locale: string, momentId: string): string {
-  return `/${locale}/moments/${momentId}`;
+  return toLocalizedPath(locale, `/moments/${momentId}`);
 }
 
 function toPostUrl(locale: string, slug: string): string {
-  return `/${locale}/posts/${slug}`;
+  return toLocalizedPath(locale, `/posts/${slug}`);
 }
 
 function toGalleryUrl(locale: string): string {
-  return `/${locale}/gallery`;
+  return toLocalizedPath(locale, "/gallery");
 }
 
 export async function publishByPayload(

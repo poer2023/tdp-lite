@@ -6,6 +6,7 @@ import type { MediaKind } from "@/lib/media";
 import { isVideoUrl } from "@/lib/media";
 import { ArrowUpRight } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
+import { toLocalizedPath } from "@/lib/locale-routing";
 
 interface PostCardProps {
   post: Post;
@@ -150,7 +151,7 @@ export function PostCard({
   }
 
   return (
-    <Link href={`/${post.locale}/posts/${post.slug}`} className={wrapperClass}>
+    <Link href={toLocalizedPath(post.locale, `/posts/${post.slug}`)} className={wrapperClass}>
       {content}
     </Link>
   );

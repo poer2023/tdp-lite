@@ -18,6 +18,7 @@ import { SearchFilters, type SearchFilterDraft } from "./SearchFilters";
 import { SearchInput } from "./SearchInput";
 import { SearchSectionList } from "./SearchSectionList";
 import { highlightText } from "./highlight";
+import { toLocalizedPath } from "@/lib/locale-routing";
 
 const SEARCH_SECTIONS: SearchSection[] = ["post", "moment", "gallery"];
 const PUBLIC_SEARCH_ENDPOINT = "/api/search";
@@ -344,7 +345,7 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
                   className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
                 >
                   <Link
-                    href={`/${item.locale}/posts/${item.slug}`}
+                    href={toLocalizedPath(item.locale, `/posts/${item.slug}`)}
                     className="group block space-y-2"
                   >
                     <h4 className="line-clamp-2 text-base font-semibold text-[#111] transition-colors group-hover:text-[#000]">
@@ -379,7 +380,10 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
                   key={item.id}
                   className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
                 >
-                  <Link href={`/${item.locale}/moments/${item.id}`} className="group block space-y-2">
+                  <Link
+                    href={toLocalizedPath(item.locale, `/moments/${item.id}`)}
+                    className="group block space-y-2"
+                  >
                     <p className="line-clamp-5 text-sm leading-relaxed text-[#333]">
                       {highlightText(item.content, debouncedQuery)}
                     </p>
@@ -424,7 +428,7 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
                     className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
                   >
                     <Link
-                      href={`/${item.locale}/gallery#gallery-${item.id}`}
+                      href={toLocalizedPath(item.locale, `/gallery#gallery-${item.id}`)}
                       className="group flex gap-3"
                     >
                       <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-black/8 bg-black/5">
