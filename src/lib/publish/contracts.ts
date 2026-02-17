@@ -5,11 +5,15 @@ export const visibilitySchema = z.enum(["public", "private"]).default("public");
 export const postStatusSchema = z.enum(["draft", "published"]).default("draft");
 
 export const mediaItemSchema = z.object({
-  type: z.enum(["image", "video"]),
+  type: z.enum(["image", "video", "audio"]),
   url: z.string().url(),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
   thumbnailUrl: z.string().url().optional(),
+  title: z.string().trim().min(1).optional(),
+  artist: z.string().trim().min(1).optional(),
+  album: z.string().trim().min(1).optional(),
+  duration: z.string().trim().min(1).optional(),
 });
 
 export const publishMomentInputSchema = z.object({

@@ -233,13 +233,17 @@ export async function createMoment(formData: FormData) {
   const locationName = String(formData.get("locationName") || "").trim();
 
   const files = formData.getAll("images") as File[];
-  const media = [] as Array<{ type: "image" | "video"; url: string }>;
+  const media = [] as Array<{ type: "image" | "video" | "audio"; url: string }>;
 
   for (const file of files) {
     if (file && file.size > 0) {
       const upload = await uploadFile(file);
       media.push({
-        type: upload.mimeType.startsWith("video/") ? "video" : "image",
+        type: upload.mimeType.startsWith("video/")
+          ? "video"
+          : upload.mimeType.startsWith("audio/")
+            ? "audio"
+            : "image",
         url: upload.url,
       });
     }

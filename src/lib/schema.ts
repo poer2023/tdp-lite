@@ -37,11 +37,15 @@ export const posts = pgTable(
 
 // Media type for moments
 export interface MediaItem {
-  type: "image" | "video";
+  type: "image" | "video" | "audio";
   url: string;
   width?: number;
   height?: number;
   thumbnailUrl?: string;
+  title?: string;
+  artist?: string;
+  album?: string;
+  duration?: string;
 }
 
 // Location type

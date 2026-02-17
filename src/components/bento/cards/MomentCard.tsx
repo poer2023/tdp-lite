@@ -3,7 +3,7 @@ import Image from "next/image";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { Moment } from "@/lib/schema";
 import { isVideoUrl } from "@/lib/media";
-import { MapPin, Quote } from "lucide-react";
+import { MapPin, Music2, Quote } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
 
 interface MomentCardProps {
@@ -21,8 +21,9 @@ export function MomentCard({
 }: MomentCardProps) {
   const hasMedia = moment.media && moment.media.length > 0;
   const mainMedia = hasMedia ? moment.media![0] : null;
+  const isAudioMedia = Boolean(mainMedia?.type === "audio");
   const hasVideoMedia = Boolean(
-    mainMedia && (mainMedia.type === "video" || isVideoUrl(mainMedia.url))
+    mainMedia && !isAudioMedia && (mainMedia.type === "video" || isVideoUrl(mainMedia.url))
   );
   const skipOptimization =
     !hasVideoMedia &&
@@ -37,7 +38,22 @@ export function MomentCard({
   const content = hasMedia ? (
     <>
       <div className="absolute inset-0 z-0">
-        {hasVideoMedia ? (
+        {isAudioMedia ? (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#111] via-[#1f2937] to-[#111827]">
+            <div className="flex flex-col items-center gap-3 text-white/90">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-md">
+                <Music2 className="h-3.5 w-3.5" />
+                Music
+              </span>
+              <p className="font-display text-lg font-medium text-white">
+                {mainMedia?.title || moment.content}
+              </p>
+              {mainMedia?.artist ? (
+                <p className="font-mono text-xs text-white/70">{mainMedia.artist}</p>
+              ) : null}
+            </div>
+          </div>
+        ) : hasVideoMedia ? (
           <AutoplayCoverVideo
             src={mainMedia!.url}
             poster={mainMedia?.thumbnailUrl}
@@ -77,8 +93,11 @@ export function MomentCard({
 
         <div className="space-y-2">
           <p className="font-display text-lg font-medium leading-relaxed text-white">
-            &ldquo;{moment.content}&rdquo;
+            &ldquo;{isAudioMedia ? mainMedia?.title || moment.content : moment.content}&rdquo;
           </p>
+          {isAudioMedia && mainMedia?.artist ? (
+            <div className="font-mono text-xs text-white/70">{mainMedia.artist}</div>
+          ) : null}
           <div className="font-mono text-xs text-white/60">
             {formatRelativeTime(moment.createdAt, moment.locale)}
           </div>
@@ -106,7 +125,7 @@ export function MomentCard({
 
       <div className="flex-1 flex items-center">
         <p className="font-display text-lg font-medium leading-relaxed text-foreground">
-          &ldquo;{moment.content}&rdquo;
+          &ldquo;{isAudioMedia ? mainMedia?.title || moment.content : moment.content}&rdquo;
         </p>
       </div>
 
