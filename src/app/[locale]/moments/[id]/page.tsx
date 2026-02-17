@@ -4,10 +4,11 @@ import { MomentDetailCard } from "@/components/bento/cards/MomentDetailCard";
 import { TextMomentDetailCard } from "@/components/bento/cards/TextMomentDetailCard";
 import { ArrowLeft } from "lucide-react";
 import { getPublicMoment } from "@/lib/content/read";
+import { type AppLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
-type Locale = "en" | "zh";
+type Locale = AppLocale;
 
 interface MomentDetailPageProps {
   params: Promise<{ locale: Locale; id: string }>;

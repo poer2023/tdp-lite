@@ -4,10 +4,11 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDetail";
 import { getPublicPost } from "@/lib/content/read";
+import { type AppLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
-type Locale = "en" | "zh";
+type Locale = AppLocale;
 
 interface PostPageProps {
   params: Promise<{ locale: Locale; slug: string }>;

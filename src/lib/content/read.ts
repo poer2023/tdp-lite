@@ -1,14 +1,11 @@
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import type { FeedItem } from "@/components/bento/types";
 import { db } from "@/lib/db";
+import { normalizeLocale, type AppLocale } from "@/lib/locale";
 import { gallery, moments, posts, type GalleryItem, type Moment, type Post } from "@/lib/schema";
 
-export type Locale = "en" | "zh";
+export type Locale = AppLocale;
 type ContentFeedItem = Exclude<FeedItem, { type: "action" }>;
-
-function normalizeLocale(locale: string): Locale {
-  return locale === "zh" ? "zh" : "en";
-}
 
 const postSortExpr = sql<Date>`coalesce(${posts.publishedAt}, ${posts.createdAt})`;
 const momentSortExpr = sql<Date>`coalesce(${moments.publishedAt}, ${moments.createdAt})`;
@@ -92,16 +89,8 @@ export async function getPublicFeed(locale: string, limit: number = 10): Promise
   ];
 
   allItems.sort((a, b) => {
-    const aSortAt = a.type === "post"
-      ? (a.publishedAt ?? a.createdAt).getTime()
-      : a.type === "moment"
-        ? (a.publishedAt ?? a.createdAt).getTime()
-        : (a.publishedAt ?? a.createdAt).getTime();
-    const bSortAt = b.type === "post"
-      ? (b.publishedAt ?? b.createdAt).getTime()
-      : b.type === "moment"
-        ? (b.publishedAt ?? b.createdAt).getTime()
-        : (b.publishedAt ?? b.createdAt).getTime();
+    const aSortAt = (a.publishedAt ?? a.createdAt).getTime();
+    const bSortAt = (b.publishedAt ?? b.createdAt).getTime();
     return bSortAt - aSortAt;
   });
 

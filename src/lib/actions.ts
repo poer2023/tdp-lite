@@ -3,6 +3,7 @@
 import { createHash, createHmac, randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { auth } from "./auth";
+import { normalizeLocale } from "./locale";
 
 type ContentType = "moment" | "post" | "gallery";
 
@@ -228,7 +229,7 @@ export async function createMoment(formData: FormData) {
     throw new Error("Content is required");
   }
 
-  const locale = formData.get("locale") === "zh" ? "zh" : "en";
+  const locale = normalizeLocale(String(formData.get("locale") || ""));
   const visibility = formData.get("visibility") === "private" ? "private" : "public";
   const locationName = String(formData.get("locationName") || "").trim();
 
@@ -274,7 +275,7 @@ export async function createPost(formData: FormData) {
     throw new Error("Title and content are required");
   }
 
-  const locale = formData.get("locale") === "zh" ? "zh" : "en";
+  const locale = normalizeLocale(String(formData.get("locale") || ""));
   const status = formData.get("status") === "published" ? "published" : "draft";
   const excerpt = String(formData.get("excerpt") || "").trim();
   const tags = String(formData.get("tags") || "")
@@ -319,7 +320,7 @@ export async function createGallery(formData: FormData) {
   }
 
   const title = String(formData.get("title") || "").trim();
-  const locale = formData.get("locale") === "zh" ? "zh" : "en";
+  const locale = normalizeLocale(String(formData.get("locale") || ""));
 
   const upload = await uploadFile(imageFile);
 

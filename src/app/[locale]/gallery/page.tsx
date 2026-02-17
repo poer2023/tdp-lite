@@ -3,10 +3,11 @@ import { Camera, Aperture } from "lucide-react";
 import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
 import { unstable_cache } from "next/cache";
+import { type AppLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
-type Locale = "en" | "zh";
+type Locale = AppLocale;
 
 interface GalleryPageProps {
   params: Promise<{ locale: Locale }>;

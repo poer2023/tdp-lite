@@ -3,12 +3,11 @@ import Image from "next/image";
 import { formatRelativeTime } from "@/lib/utils";
 import { getPublicMoments } from "@/lib/content/read";
 import { MapPin } from "lucide-react";
+import { isAppLocale, type AppLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
-type Locale = "en" | "zh";
-
-const locales: Locale[] = ["en", "zh"];
+type Locale = AppLocale;
 
 interface MomentsPageProps {
   params: Promise<{ locale: Locale }>;
@@ -16,7 +15,7 @@ interface MomentsPageProps {
 
 export default async function MomentsPage({ params }: MomentsPageProps) {
   const { locale } = await params;
-  const validLocale = locales.includes(locale) ? locale : "en";
+  const validLocale = isAppLocale(locale) ? locale : "en";
 
   const momentsData = await getPublicMoments(validLocale);
 

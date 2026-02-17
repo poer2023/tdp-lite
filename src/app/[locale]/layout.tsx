@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 
-type Locale = "en" | "zh";
+import { APP_LOCALES, type AppLocale } from "@/lib/locale";
 
-const locales: Locale[] = ["en", "zh"];
+type Locale = AppLocale;
 
 interface LocaleLayoutProps {
   children: React.ReactNode;
@@ -10,7 +10,7 @@ interface LocaleLayoutProps {
 }
 
 export async function generateStaticParams() {
-  return locales.map((locale) => ({ locale }));
+  return APP_LOCALES.map((locale) => ({ locale }));
 }
 
 export function generateViewport(): Viewport {
@@ -43,7 +43,5 @@ export async function generateMetadata({
 export default async function LocaleLayout({
   children,
 }: LocaleLayoutProps) {
-  // No header/footer here - each page controls its own layout
-  // Bottom navigation is in the homepage
   return <>{children}</>;
 }

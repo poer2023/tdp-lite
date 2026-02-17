@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { getPublicPosts } from "@/lib/content/read";
+import { isAppLocale, type AppLocale } from "@/lib/locale";
 
 // Force dynamic rendering to avoid database queries during build
 export const dynamic = "force-dynamic";
 
-type Locale = "en" | "zh";
-
-const locales: Locale[] = ["en", "zh"];
+type Locale = AppLocale;
 
 interface PostsPageProps {
   params: Promise<{ locale: Locale }>;
@@ -17,7 +16,7 @@ export default async function PostsPage({ params }: PostsPageProps) {
   const { locale } = await params;
 
   // Validate locale to prevent [locale] catching non-locale paths like "api"
-  const validLocale = locales.includes(locale) ? locale : "en";
+  const validLocale = isAppLocale(locale) ? locale : "en";
 
   const postsData = await getPublicPosts(validLocale);
 

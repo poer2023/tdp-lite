@@ -21,9 +21,11 @@ import {
   getPublicPosts,
 } from "@/lib/content/read";
 
+import { type AppLocale } from "@/lib/locale";
+
 export const dynamic = "force-dynamic";
 
-type Locale = "en" | "zh";
+type Locale = AppLocale;
 
 interface AboutPageProps {
   params: Promise<{ locale: Locale }>;
