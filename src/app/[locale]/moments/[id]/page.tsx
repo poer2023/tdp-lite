@@ -4,11 +4,11 @@ import { MomentDetailCard } from "@/components/bento/cards/MomentDetailCard";
 import { TextMomentDetailCard } from "@/components/bento/cards/TextMomentDetailCard";
 import { ArrowLeft } from "lucide-react";
 import { getPublicMoment } from "@/lib/content/read";
-import { type AppLocale } from "@/lib/locale";
+import { toLocalizedPath } from "@/lib/locale-routing";
 
 export const dynamic = "force-dynamic";
 
-type Locale = AppLocale;
+type Locale = "en" | "zh";
 
 interface MomentDetailPageProps {
   params: Promise<{ locale: Locale; id: string }>;
@@ -36,7 +36,7 @@ export default async function MomentDetailPage({
         {/* Back navigation */}
         <div className="mx-auto max-w-5xl px-6 pt-8">
           <Link
-            href={`/${locale}`}
+            href={toLocalizedPath(locale, "/")}
             className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 font-mono text-xs uppercase tracking-widest text-[#666] shadow-sm backdrop-blur transition-all hover:bg-white hover:text-[#111]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />

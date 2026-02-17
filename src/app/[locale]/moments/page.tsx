@@ -3,11 +3,13 @@ import Image from "next/image";
 import { formatRelativeTime } from "@/lib/utils";
 import { getPublicMoments } from "@/lib/content/read";
 import { MapPin } from "lucide-react";
-import { isAppLocale, type AppLocale } from "@/lib/locale";
+import { DEFAULT_LOCALE, toLocalizedPath } from "@/lib/locale-routing";
 
 export const dynamic = "force-dynamic";
 
-type Locale = AppLocale;
+type Locale = "en" | "zh";
+
+const locales: Locale[] = ["en", "zh"];
 
 interface MomentsPageProps {
   params: Promise<{ locale: Locale }>;
@@ -15,7 +17,7 @@ interface MomentsPageProps {
 
 export default async function MomentsPage({ params }: MomentsPageProps) {
   const { locale } = await params;
-  const validLocale = isAppLocale(locale) ? locale : "en";
+  const validLocale = locales.includes(locale) ? locale : DEFAULT_LOCALE;
 
   const momentsData = await getPublicMoments(validLocale);
 
@@ -35,7 +37,7 @@ export default async function MomentsPage({ params }: MomentsPageProps) {
           {momentsData.map((moment) => (
             <Link
               key={moment.id}
-              href={`/${validLocale}/moments/${moment.id}`}
+              href={toLocalizedPath(validLocale, `/moments/${moment.id}`)}
               className="block rounded-lg border p-4 transition-colors hover:bg-gray-50"
             >
               <p className="mb-3 whitespace-pre-wrap">{moment.content}</p>

@@ -1,8 +1,7 @@
 "use client";
 
-import type { GalleryItem, Moment, Post } from "@/lib/schema";
+import type { Moment, Post } from "@/lib/schema";
 import type { MediaKind } from "@/lib/media";
-import { GalleryCard } from "@/components/bento/cards/GalleryCard";
 import { MomentCard } from "@/components/bento/cards/MomentCard";
 import { PostCard } from "@/components/bento/cards/PostCard";
 import type { Tab } from "./types";
@@ -12,10 +11,8 @@ interface LivePreviewPanelProps {
   momentPreview: Moment;
   postPreview: Post;
   postCoverMediaType: MediaKind | null;
-  galleryPreview: GalleryItem;
   hasMomentInput: boolean;
   hasPostInput: boolean;
-  hasGalleryInput: boolean;
 }
 
 function Placeholder({ text }: { text: string }) {
@@ -31,10 +28,8 @@ export function LivePreviewPanel({
   momentPreview,
   postPreview,
   postCoverMediaType,
-  galleryPreview,
   hasMomentInput,
   hasPostInput,
-  hasGalleryInput,
 }: LivePreviewPanelProps) {
   return (
     <section className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
@@ -70,18 +65,6 @@ export function LivePreviewPanel({
             </div>
           ) : (
             <Placeholder text="Write title/content to preview the post card before publishing." />
-          )}
-        </div>
-      )}
-
-      {activeTab === "gallery" && (
-        <div>
-          {hasGalleryInput ? (
-            <div className="min-h-[220px]">
-              <GalleryCard item={galleryPreview} preview className="min-h-[220px]" />
-            </div>
-          ) : (
-            <Placeholder text="Select an image to preview gallery card style and overlay." />
           )}
         </div>
       )}

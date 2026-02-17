@@ -76,16 +76,14 @@ export async function getPublicFeed(locale: string, limit: number = 10): Promise
   const resolvedLocale = normalizeLocale(locale);
   const cappedLimit = Math.max(1, Math.min(limit, 100));
 
-  const [postItems, momentItems, galleryItems] = await Promise.all([
+  const [postItems, momentItems] = await Promise.all([
     listPublicPosts(resolvedLocale, cappedLimit),
     listPublicMoments(resolvedLocale, cappedLimit),
-    listPublicGallery(resolvedLocale, cappedLimit),
   ]);
 
   const allItems: ContentFeedItem[] = [
     ...postItems.map((item) => ({ type: "post" as const, ...item })),
     ...momentItems.map((item) => ({ type: "moment" as const, ...item })),
-    ...galleryItems.map((item) => ({ type: "gallery" as const, ...item })),
   ];
 
   allItems.sort((a, b) => {

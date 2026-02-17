@@ -19,3 +19,5 @@ export type { MusicMomentDetailProps } from "./MusicMomentDetail";
 
 export { ArticlePaperDetail } from "./ArticlePaperDetail";
 export type { ArticlePaperDetailProps } from "./ArticlePaperDetail";
+
+export { GalleryImageDetail } from "./GalleryImageDetail";

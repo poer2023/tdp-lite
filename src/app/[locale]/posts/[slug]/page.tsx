@@ -4,11 +4,11 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDetail";
 import { getPublicPost } from "@/lib/content/read";
-import { type AppLocale } from "@/lib/locale";
+import { toLocalizedPath } from "@/lib/locale-routing";
 
 export const dynamic = "force-dynamic";
 
-type Locale = AppLocale;
+type Locale = "en" | "zh";
 
 interface PostPageProps {
   params: Promise<{ locale: Locale; slug: string }>;
@@ -49,7 +49,7 @@ export default async function PostPage({ params }: PostPageProps) {
           publishedDate={publishedDate}
           readingTime={readingTime}
           category={category}
-          backHref={`/${locale}`}
+          backHref={toLocalizedPath(locale, "/")}
           avatarSrc={avatar}
           content={
             <ReactMarkdown remarkPlugins={[remarkGfm]}>

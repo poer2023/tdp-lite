@@ -1,26 +1,32 @@
-import type { GalleryItem, MediaItem, Moment, Post } from "@/lib/schema";
-import {
-  toPreviewGallery,
-  toPreviewMoment,
-  toPreviewPost,
-} from "@/lib/publish/previewMappers";
-import type { PublishGalleryInput, PublishMomentInput, PublishPostInput } from "@/lib/publish/contracts";
-import type { GalleryDraft, MomentDraft, PostDraft } from "./types";
+import type { MediaItem, Moment, Post } from "@/lib/schema";
+import { generateSlug } from "@/lib/slug";
+import type { MomentDraft, PostDraft } from "./types";
 
 export function mapMomentDraftToPreview(
   draft: MomentDraft,
   mediaUrls: string[]
 ): Moment {
+  const now = new Date();
   const media: MediaItem[] = mediaUrls.map((url) => ({ type: "image", url }));
-  const input: PublishMomentInput = {
-    content: draft.content.trim() || "Your moment preview will appear here.",
+  const content = draft.content.trim();
+  const resolvedContent =
+    content || (media.length > 0 ? "" : "Your moment preview will appear here.");
+
+  return {
+    id: "preview-moment",
+    content: resolvedContent,
+    media,
     locale: draft.locale,
     visibility: draft.visibility,
-    ...(draft.locationName.trim() ? { locationName: draft.locationName.trim() } : {}),
-    media,
+    location: draft.locationName.trim()
+      ? { name: draft.locationName.trim() }
+      : null,
+    status: "draft",
+    publishedAt: null,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
   };
-
-  return toPreviewMoment(input);
 }
 
 export function mapPostDraftToPreview(
@@ -28,34 +34,23 @@ export function mapPostDraftToPreview(
   coverUrl: string | null
 ): Post {
   const title = draft.title.trim() || "Untitled Post";
-  const input: PublishPostInput = {
-    title,
-    content: draft.content.trim() || "Write your post content to preview it.",
-    ...(draft.excerpt.trim() ? { excerpt: draft.excerpt.trim() } : {}),
+  const content = draft.content.trim() || "Write your post content to preview it.";
+
+  return {
+    id: "preview-post",
+    slug: generateSlug(title) || "untitled-post",
     locale: draft.locale,
+    title,
+    excerpt: draft.excerpt.trim() || null,
+    content,
+    coverUrl,
     tags: draft.tags
       .split(",")
       .map((tag) => tag.trim())
       .filter(Boolean),
     status: draft.status,
-    ...(coverUrl ? { coverUrl } : {}),
+    publishedAt: draft.status === "published" ? new Date() : null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
-
-  return toPreviewPost(input);
-}
-
-export function mapGalleryDraftToPreview(
-  draft: GalleryDraft,
-  imageUrl: string | null
-): GalleryItem {
-  const input: PublishGalleryInput = {
-    locale: "en",
-    fileUrl:
-      imageUrl ||
-      "https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?q=80&w=600&auto=format&fit=crop",
-    ...(imageUrl ? { thumbUrl: imageUrl } : {}),
-    ...(draft.title.trim() ? { title: draft.title.trim() } : { title: "Preview Photo" }),
-  };
-
-  return toPreviewGallery(input);
 }

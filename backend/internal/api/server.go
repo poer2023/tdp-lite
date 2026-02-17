@@ -58,6 +58,7 @@ func (s *Server) Router() http.Handler {
 	r.Use(RequestID)
 	r.Use(AccessLog)
 
+	r.Get("/", s.handleRoot)
 	r.Get("/healthz", s.handleHealthz)
 	r.Get("/readyz", s.handleReadyz)
 
@@ -131,6 +132,18 @@ func (s *Server) Router() http.Handler {
 	return r
 }
 
+func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]any{
+		"ok":      true,
+		"service": "tdp-api",
+		"routes": map[string]string{
+			"healthz": "/healthz",
+			"readyz":  "/readyz",
+			"public":  "/v1/public",
+		},
+	})
+}
+
 func (s *Server) handleHealthz(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "service": "tdp-api"})
 }
@@ -189,6 +202,8 @@ func writeStoreError(w http.ResponseWriter, r *http.Request, err error) {
 	switch {
 	case errors.Is(err, store.ErrNotFound):
 		writeError(w, http.StatusNotFound, "not_found", "resource not found", false, reqID)
+	case errors.Is(err, store.ErrMomentContentOrMediaRequired):
+		writeError(w, http.StatusBadRequest, "invalid_payload", "moment content or media is required", false, reqID)
 	case errors.Is(err, store.ErrIdempotencyConflict):
 		writeError(w, http.StatusConflict, "idempotency_conflict", "idempotency key already used with another payload", false, reqID)
 	case errors.Is(err, store.ErrIdempotencyInProgress):

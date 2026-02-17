@@ -214,8 +214,8 @@ func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Content = strings.TrimSpace(req.Content)
-	if req.Content == "" {
-		writeError(w, http.StatusBadRequest, "invalid_payload", "content is required", false, requestIDFromContext(r.Context()))
+	if req.Content == "" && len(req.Media) == 0 {
+		writeError(w, http.StatusBadRequest, "invalid_payload", "content or media is required", false, requestIDFromContext(r.Context()))
 		return
 	}
 	req.Locale = normalizedLocale(req.Locale)

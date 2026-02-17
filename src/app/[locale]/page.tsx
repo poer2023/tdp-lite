@@ -8,11 +8,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { unstable_cache } from "next/cache";
 import { toLocalizedPath } from "@/lib/locale-routing";
 
-import { type AppLocale } from "@/lib/locale";
-
 export const dynamic = "force-dynamic";
 
-type Locale = AppLocale;
+type Locale = "en" | "zh";
 
 interface HomePageProps {
   params: Promise<{ locale: Locale }>;

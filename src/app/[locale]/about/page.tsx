@@ -16,10 +16,10 @@ import {
 import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
 import {
-  getPublicGallery,
   getPublicMoments,
   getPublicPosts,
 } from "@/lib/content/read";
+import { getAggregatedGalleryImages } from "@/lib/gallery";
 
 import { type AppLocale } from "@/lib/locale";
 
@@ -35,10 +35,10 @@ export default async function AboutPage({ params }: AboutPageProps) {
   const { locale } = await params;
 
   // Query counts directly from local DB read layer
-  const [postsCount, momentsCount, galleryCount] = await Promise.all([
+  const [postsCount, momentsCount, galleryItems] = await Promise.all([
     getPublicPosts(locale),
     getPublicMoments(locale),
-    getPublicGallery(locale),
+    getAggregatedGalleryImages(locale),
   ]);
 
   const techStack = [
@@ -53,7 +53,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
   const activity = [
     { value: String(postsCount.length), label: "Articles Published" },
     { value: String(momentsCount.length), label: "Daily Moments" },
-    { value: String(galleryCount.length), label: "Analog Photos" },
+    { value: String(galleryItems.length), label: "Analog Photos" },
   ];
 
   const socialLinks = [

@@ -7,14 +7,16 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 )
 
 var (
-	ErrNotFound              = errors.New("not found")
-	ErrNonceUsed             = errors.New("nonce already used")
-	ErrIdempotencyConflict   = errors.New("idempotency key conflict")
-	ErrIdempotencyInProgress = errors.New("idempotency request in progress")
+	ErrNotFound                     = errors.New("not found")
+	ErrNonceUsed                    = errors.New("nonce already used")
+	ErrIdempotencyConflict          = errors.New("idempotency key conflict")
+	ErrIdempotencyInProgress        = errors.New("idempotency request in progress")
+	ErrMomentContentOrMediaRequired = errors.New("moment content or media is required")
 )
 
 type Store struct {
@@ -782,6 +784,10 @@ type CreateMomentInput struct {
 }
 
 func (s *Store) CreateMoment(ctx context.Context, input CreateMomentInput) (Moment, error) {
+	if strings.TrimSpace(input.Content) == "" && len(input.Media) == 0 {
+		return Moment{}, ErrMomentContentOrMediaRequired
+	}
+
 	mediaRaw, err := json.Marshal(input.Media)
 	if err != nil {
 		return Moment{}, err
@@ -843,6 +849,10 @@ func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentI
 	}
 	if input.Status != nil {
 		existing.Status = *input.Status
+	}
+
+	if strings.TrimSpace(existing.Content) == "" && len(existing.Media) == 0 {
+		return Moment{}, ErrMomentContentOrMediaRequired
 	}
 
 	mediaRaw, err := json.Marshal(existing.Media)

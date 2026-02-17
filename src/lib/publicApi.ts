@@ -5,9 +5,7 @@ import type { GalleryItem, Moment, Post } from "@/lib/schema";
  * @deprecated Frontend display pages should read from DB via `src/lib/content/read.ts`.
  * This module is retained for compatibility paths that still need Go public APIs.
  */
-import { type AppLocale } from "@/lib/locale";
-
-export type Locale = AppLocale;
+export type Locale = "en" | "zh";
 
 type RawObject = Record<string, unknown>;
 
@@ -125,8 +123,7 @@ function toMoment(raw: unknown): Moment {
     const item = asObject(itemRaw);
     const width = asNumberOrNull(item.width);
     const height = asNumberOrNull(item.height);
-    const mediaType: "image" | "video" | "audio" =
-      item.type === "video" ? "video" : item.type === "audio" ? "audio" : "image";
+    const mediaType: "image" | "video" = item.type === "video" ? "video" : "image";
 
     return {
       type: mediaType,
@@ -134,10 +131,14 @@ function toMoment(raw: unknown): Moment {
       width: width === null ? undefined : width,
       height: height === null ? undefined : height,
       thumbnailUrl: asNullableString(item.thumbnailUrl) ?? undefined,
-      title: asNullableString(item.title) ?? undefined,
-      artist: asNullableString(item.artist) ?? undefined,
-      album: asNullableString(item.album) ?? undefined,
-      duration: asNullableString(item.duration) ?? undefined,
+      capturedAt: item.capturedAt ? toDate(item.capturedAt) : undefined,
+      camera: asNullableString(item.camera) ?? undefined,
+      lens: asNullableString(item.lens) ?? undefined,
+      focalLength: asNullableString(item.focalLength) ?? undefined,
+      aperture: asNullableString(item.aperture) ?? undefined,
+      iso: asNumberOrNull(item.iso) ?? undefined,
+      latitude: asNumberOrNull(item.latitude) ?? undefined,
+      longitude: asNumberOrNull(item.longitude) ?? undefined,
     };
   });
 

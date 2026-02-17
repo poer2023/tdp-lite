@@ -2,31 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { signOut } from "next-auth/react";
-import {
-  FileText,
-  Image as ImageIcon,
-  Layers,
-  LogOut,
-  MessageCircle,
-} from "lucide-react";
-import { createGallery, createMoment, createPost } from "@/lib/actions";
+import { FileText, Layers, LogOut, MessageCircle } from "lucide-react";
+import { createMoment, createPost } from "@/lib/actions";
 import { inferMediaKindFromFile } from "@/lib/media";
+import { isMomentPublishable } from "@/lib/momentValidation";
 import { ComposePanel } from "./components/ComposePanel";
 import { LivePreviewPanel } from "./components/LivePreviewPanel";
 import {
-  defaultGalleryDraft,
   defaultMomentDraft,
   defaultPostDraft,
-  type GalleryDraft,
   type MomentDraft,
   type PostDraft,
   type Tab,
 } from "./components/types";
-import {
-  mapGalleryDraftToPreview,
-  mapMomentDraftToPreview,
-  mapPostDraftToPreview,
-} from "./components/previewMappers";
+import { mapMomentDraftToPreview, mapPostDraftToPreview } from "./components/previewMappers";
 
 interface AdminDashboardProps {
   user: { name?: string | null; email?: string | null; image?: string | null };
@@ -64,16 +53,13 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
 
   const [momentDraft, setMomentDraft] = useState<MomentDraft>(defaultMomentDraft);
   const [postDraft, setPostDraft] = useState<PostDraft>(defaultPostDraft);
-  const [galleryDraft, setGalleryDraft] = useState<GalleryDraft>(defaultGalleryDraft);
 
   const [momentFileInputKey, setMomentFileInputKey] = useState(0);
   const [postFileInputKey, setPostFileInputKey] = useState(0);
-  const [galleryFileInputKey, setGalleryFileInputKey] = useState(0);
 
   const [errors, setErrors] = useState<Record<Tab, string | null>>({
     moment: null,
     post: null,
-    gallery: null,
   });
 
   const isSubmitting = submittingTab !== null;
@@ -81,7 +67,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "moment", label: "Moment", icon: <MessageCircle className="h-4 w-4" /> },
     { id: "post", label: "Post", icon: <FileText className="h-4 w-4" /> },
-    { id: "gallery", label: "Gallery", icon: <ImageIcon className="h-4 w-4" /> },
   ];
 
   const momentPreviewUrls = useObjectUrls(momentDraft.images);
@@ -90,7 +75,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     () => inferMediaKindFromFile(postDraft.cover),
     [postDraft.cover]
   );
-  const galleryPreviewUrl = useObjectUrl(galleryDraft.image);
 
   const momentPreview = useMemo(
     () => mapMomentDraftToPreview(momentDraft, momentPreviewUrls),
@@ -100,11 +84,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   const postPreview = useMemo(
     () => mapPostDraftToPreview(postDraft, postCoverPreviewUrl),
     [postDraft, postCoverPreviewUrl]
-  );
-
-  const galleryPreview = useMemo(
-    () => mapGalleryDraftToPreview(galleryDraft, galleryPreviewUrl),
-    [galleryDraft, galleryPreviewUrl]
   );
 
   const hasMomentInput = Boolean(
@@ -121,8 +100,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
       postCoverPreviewUrl
   );
 
-  const hasGalleryInput = Boolean(galleryDraft.title.trim() || galleryPreviewUrl);
-
   const updateError = (tab: Tab, message: string | null) => {
     setErrors((prev) => ({ ...prev, [tab]: message }));
   };
@@ -130,8 +107,8 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   const handlePublishMoment = async () => {
     if (isSubmitting) return;
 
-    if (!momentDraft.content.trim()) {
-      updateError("moment", "Moment content is required.");
+    if (!isMomentPublishable(momentDraft.content, momentDraft.images.length)) {
+      updateError("moment", "Moment content or media is required.");
       return;
     }
 
@@ -201,35 +178,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
     }
   };
 
-  const handlePublishGallery = async () => {
-    if (isSubmitting) return;
-
-    if (!galleryDraft.image) {
-      updateError("gallery", "Please select an image before publishing.");
-      return;
-    }
-
-    updateError("gallery", null);
-    setSubmittingTab("gallery");
-
-    try {
-      const formData = new FormData();
-      formData.set("image", galleryDraft.image);
-      if (galleryDraft.title.trim()) {
-        formData.set("title", galleryDraft.title.trim());
-      }
-
-      await createGallery(formData);
-      setGalleryDraft(defaultGalleryDraft);
-      setGalleryFileInputKey((prev) => prev + 1);
-    } catch (error) {
-      console.error("Failed to publish photo:", error);
-      updateError("gallery", "Failed to publish photo. Please retry.");
-    } finally {
-      setSubmittingTab(null);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#e9e9e7] font-display">
       <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-30 mix-blend-multiply" />
@@ -279,27 +227,19 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
             errors={errors}
             momentDraft={momentDraft}
             postDraft={postDraft}
-            galleryDraft={galleryDraft}
             momentFileInputKey={momentFileInputKey}
             postFileInputKey={postFileInputKey}
-            galleryFileInputKey={galleryFileInputKey}
             onMomentDraftChange={(next) =>
               setMomentDraft((prev) => ({ ...prev, ...next }))
             }
             onPostDraftChange={(next) =>
               setPostDraft((prev) => ({ ...prev, ...next }))
             }
-            onGalleryDraftChange={(next) =>
-              setGalleryDraft((prev) => ({ ...prev, ...next }))
-            }
             onMomentImagesChange={(files) =>
               setMomentDraft((prev) => ({ ...prev, images: files }))
             }
             onPostCoverChange={(file) =>
               setPostDraft((prev) => ({ ...prev, cover: file }))
-            }
-            onGalleryImageChange={(file) =>
-              setGalleryDraft((prev) => ({ ...prev, image: file }))
             }
             onPublishMoment={handlePublishMoment}
             onSavePostDraft={() => {
@@ -310,7 +250,6 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
               setPostDraft((prev) => ({ ...prev, status: "published" }));
               submitPost("published");
             }}
-            onPublishGallery={handlePublishGallery}
           />
 
           <LivePreviewPanel
@@ -318,10 +257,8 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
             momentPreview={momentPreview}
             postPreview={postPreview}
             postCoverMediaType={postCoverMediaType}
-            galleryPreview={galleryPreview}
             hasMomentInput={hasMomentInput}
             hasPostInput={hasPostInput}
-            hasGalleryInput={hasGalleryInput}
           />
         </div>
       </div>

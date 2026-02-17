@@ -30,11 +30,19 @@ type Post struct {
 }
 
 type MomentMediaItem struct {
-	Type         string  `json:"type"`
-	URL          string  `json:"url"`
-	Width        *int    `json:"width,omitempty"`
-	Height       *int    `json:"height,omitempty"`
-	ThumbnailURL *string `json:"thumbnailUrl,omitempty"`
+	Type         string     `json:"type"`
+	URL          string     `json:"url"`
+	Width        *int       `json:"width,omitempty"`
+	Height       *int       `json:"height,omitempty"`
+	ThumbnailURL *string    `json:"thumbnailUrl,omitempty"`
+	CapturedAt   *time.Time `json:"capturedAt,omitempty"`
+	Camera       *string    `json:"camera,omitempty"`
+	Lens         *string    `json:"lens,omitempty"`
+	FocalLength  *string    `json:"focalLength,omitempty"`
+	Aperture     *string    `json:"aperture,omitempty"`
+	ISO          *int       `json:"iso,omitempty"`
+	Latitude     *float64   `json:"latitude,omitempty"`
+	Longitude    *float64   `json:"longitude,omitempty"`
 }
 
 type MomentLocation struct {

@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import { getPublicPosts } from "@/lib/content/read";
-import { isAppLocale, type AppLocale } from "@/lib/locale";
+import { DEFAULT_LOCALE, toLocalizedPath } from "@/lib/locale-routing";
 
 // Force dynamic rendering to avoid database queries during build
 export const dynamic = "force-dynamic";
 
-type Locale = AppLocale;
+type Locale = "en" | "zh";
+
+const locales: Locale[] = ["en", "zh"];
 
 interface PostsPageProps {
   params: Promise<{ locale: Locale }>;
@@ -16,7 +18,7 @@ export default async function PostsPage({ params }: PostsPageProps) {
   const { locale } = await params;
 
   // Validate locale to prevent [locale] catching non-locale paths like "api"
-  const validLocale = isAppLocale(locale) ? locale : "en";
+  const validLocale = locales.includes(locale) ? locale : DEFAULT_LOCALE;
 
   const postsData = await getPublicPosts(validLocale);
 
@@ -38,7 +40,7 @@ export default async function PostsPage({ params }: PostsPageProps) {
                 key={post.id}
                 className="border-b pb-6 last:border-b-0"
               >
-                <Link href={`/${validLocale}/posts/${post.slug}`}>
+                <Link href={toLocalizedPath(validLocale, `/posts/${post.slug}`)}>
                   <h2 className="mb-2 text-xl font-semibold hover:text-gray-600 dark:hover:text-gray-300">
                     {post.title}
                   </h2>

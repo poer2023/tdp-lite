@@ -1,10 +1,12 @@
 import { BottomNav } from "@/components/BottomNav";
+import { DEFAULT_LOCALE } from "@/lib/locale-routing";
 import { SearchPageClient } from "@/components/search/SearchPageClient";
-import { isAppLocale, type AppLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
-type Locale = AppLocale;
+type Locale = "en" | "zh";
+
+const locales: Locale[] = ["en", "zh"];
 
 interface SearchPageProps {
   params: Promise<{ locale: Locale }>;
@@ -12,7 +14,7 @@ interface SearchPageProps {
 
 export default async function SearchPage({ params }: SearchPageProps) {
   const { locale } = await params;
-  const validLocale = isAppLocale(locale) ? locale : "en";
+  const validLocale = locales.includes(locale) ? locale : DEFAULT_LOCALE;
 
   return (
     <div className="text-ink relative min-h-screen overflow-x-hidden bg-[#e9e9e7] pb-32 font-display selection:bg-black/10 selection:text-black">

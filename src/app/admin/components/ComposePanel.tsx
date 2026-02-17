@@ -3,12 +3,7 @@
 import type { FormEvent } from "react";
 import { Send, Upload } from "lucide-react";
 import { DropdownSelect, type DropdownOption } from "@/components/ui/DropdownSelect";
-import type {
-  GalleryDraft,
-  MomentDraft,
-  PostDraft,
-  Tab,
-} from "./types";
+import type { MomentDraft, PostDraft, Tab } from "./types";
 
 interface ComposePanelProps {
   activeTab: Tab;
@@ -16,20 +11,15 @@ interface ComposePanelProps {
   errors: Record<Tab, string | null>;
   momentDraft: MomentDraft;
   postDraft: PostDraft;
-  galleryDraft: GalleryDraft;
   momentFileInputKey: number;
   postFileInputKey: number;
-  galleryFileInputKey: number;
   onMomentDraftChange: (next: Partial<MomentDraft>) => void;
   onPostDraftChange: (next: Partial<PostDraft>) => void;
-  onGalleryDraftChange: (next: Partial<GalleryDraft>) => void;
   onMomentImagesChange: (files: File[]) => void;
   onPostCoverChange: (file: File | null) => void;
-  onGalleryImageChange: (file: File | null) => void;
   onPublishMoment: () => void;
   onSavePostDraft: () => void;
   onPublishPost: () => void;
-  onPublishGallery: () => void;
 }
 
 function ErrorMessage({ message }: { message: string | null }) {
@@ -62,20 +52,15 @@ export function ComposePanel({
   errors,
   momentDraft,
   postDraft,
-  galleryDraft,
   momentFileInputKey,
   postFileInputKey,
-  galleryFileInputKey,
   onMomentDraftChange,
   onPostDraftChange,
-  onGalleryDraftChange,
   onMomentImagesChange,
   onPostCoverChange,
-  onGalleryImageChange,
   onPublishMoment,
   onSavePostDraft,
   onPublishPost,
-  onPublishGallery,
 }: ComposePanelProps) {
   const handleMomentSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -85,11 +70,6 @@ export function ComposePanel({
   const handlePostSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSavePostDraft();
-  };
-
-  const handleGallerySubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onPublishGallery();
   };
 
   return (
@@ -106,7 +86,7 @@ export function ComposePanel({
           <textarea
             value={momentDraft.content}
             onChange={(e) => onMomentDraftChange({ content: e.target.value })}
-            placeholder="Share a short moment"
+            placeholder="Share a short moment (optional if media attached)"
             rows={5}
             className="w-full resize-none rounded-xl border border-black/10 bg-[#f4f4f2] px-4 py-3 text-sm text-[#111] placeholder-[#999] focus:border-black/20 focus:outline-none"
           />
@@ -265,42 +245,6 @@ export function ComposePanel({
           </div>
 
           <ErrorMessage message={errors.post} />
-        </form>
-      )}
-
-      {activeTab === "gallery" && (
-        <form onSubmit={handleGallerySubmit} className="space-y-3">
-          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-black/10 bg-[#f4f4f2] px-4 py-8 text-sm text-[#666] transition-colors hover:border-black/20">
-            <Upload className="h-5 w-5" />
-            {galleryDraft.image ? galleryDraft.image.name : "Select image"}
-            <input
-              key={galleryFileInputKey}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) =>
-                onGalleryImageChange(e.target.files?.[0] || null)
-              }
-            />
-          </label>
-
-          <input
-            value={galleryDraft.title}
-            onChange={(e) => onGalleryDraftChange({ title: e.target.value })}
-            placeholder="Title (optional)"
-            className="w-full rounded-xl border border-black/10 bg-[#f4f4f2] px-4 py-3 text-sm text-[#111] placeholder-[#999] focus:border-black/20 focus:outline-none"
-          />
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#111] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-black disabled:opacity-50"
-          >
-            <Send className="h-4 w-4" />
-            Publish Photo
-          </button>
-
-          <ErrorMessage message={errors.gallery} />
         </form>
       )}
     </section>

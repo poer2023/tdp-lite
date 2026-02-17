@@ -46,6 +46,14 @@ export interface MediaItem {
   artist?: string;
   album?: string;
   duration?: string;
+  capturedAt?: Date;
+  camera?: string;
+  lens?: string;
+  focalLength?: string;
+  aperture?: string;
+  iso?: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 // Location type

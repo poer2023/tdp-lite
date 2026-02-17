@@ -14,6 +14,14 @@ export const mediaItemSchema = z.object({
   artist: z.string().trim().min(1).optional(),
   album: z.string().trim().min(1).optional(),
   duration: z.string().trim().min(1).optional(),
+  capturedAt: z.coerce.date().optional(),
+  camera: z.string().trim().min(1).optional(),
+  lens: z.string().trim().min(1).optional(),
+  focalLength: z.string().trim().min(1).optional(),
+  aperture: z.string().trim().min(1).optional(),
+  iso: z.number().int().positive().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export const publishMomentInputSchema = z.object({
