@@ -202,6 +202,37 @@ jobs:
             fi
           }
 
+          assert_search_headers() {
+            local expected_source="$1"
+            local expected_fallback="$2"
+            local output_file="$3"
+
+            for attempt in $(seq 1 10); do
+              local headers_file
+              headers_file="$(mktemp)"
+
+              curl -sS -D "$headers_file" -o "$output_file" \
+                -X POST "http://127.0.0.1:3000/api/search" \
+                -H "content-type: application/json" \
+                --data '{"section":"post","query":"smoke","locale":"en","filters":{"localeScope":"all"},"limit":5}'
+
+              if grep -iq "^x-tdp-search-source: ${expected_source}" "$headers_file" &&
+                grep -iq "^x-tdp-search-fallback: ${expected_fallback}" "$headers_file"; then
+                rm -f "$headers_file"
+                return 0
+              fi
+
+              echo "search header mismatch attempt=${attempt} expected_source=${expected_source} expected_fallback=${expected_fallback}" >&2
+              cat "$headers_file" >&2
+              cat "$output_file" >&2 || true
+              rm -f "$headers_file"
+              sleep 1
+            done
+
+            echo "search header assertions exhausted retries" >&2
+            return 1
+          }
+
           (cd backend && go build -o /tmp/tdp-api-ci ./cmd/tdp-api)
           (cd backend && go build -o /tmp/tdp-worker-ci ./cmd/tdp-worker)
           /tmp/tdp-api-ci >/tmp/tdp-api.log 2>&1 &
@@ -224,13 +255,7 @@ jobs:
 
           node scripts/ci/full-api-e2e.mjs
 
-          search_headers_up="$(mktemp)"
-          curl -sS -D "$search_headers_up" -o /tmp/search-up.json \
-            -X POST "http://127.0.0.1:3000/api/search" \
-            -H "content-type: application/json" \
-            --data '{"section":"post","query":"smoke","locale":"en","filters":{"localeScope":"all"},"limit":5}'
-          grep -iq '^x-tdp-search-source: go' "$search_headers_up"
-          grep -iq '^x-tdp-search-fallback: false' "$search_headers_up"
+          assert_search_headers "go" "false" "/tmp/search-up.json"
 
           kill "$API_PID" >/dev/null 2>&1 || true
           wait "$API_PID" >/dev/null 2>&1 || true
@@ -247,13 +272,7 @@ jobs:
             exit 1
           fi
 
-          search_headers_down="$(mktemp)"
-          curl -sS -D "$search_headers_down" -o /tmp/search-down.json \
-            -X POST "http://127.0.0.1:3000/api/search" \
-            -H "content-type: application/json" \
-            --data '{"section":"post","query":"smoke","locale":"en","filters":{"localeScope":"all"},"limit":5}'
-          grep -iq '^x-tdp-search-source: next' "$search_headers_down"
-          grep -iq '^x-tdp-search-fallback: true' "$search_headers_down"
+          assert_search_headers "next" "true" "/tmp/search-down.json"
 
           curl -sS "http://127.0.0.1:3000/preview/card?sid=dummy&exp=9999999999&sig=dummy" \
             | grep -q "Preview Unavailable"
