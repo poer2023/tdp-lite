@@ -5,12 +5,14 @@ import { Moment } from "@/lib/schema";
 import { isVideoUrl } from "@/lib/media";
 import { MapPin, Music2, Quote } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
+import { toLocalizedPath } from "@/lib/locale-routing";
 
 interface MomentCardProps {
   moment: Moment;
   isHighlighted?: boolean;
   className?: string;
   preview?: boolean;
+  onOpenPreview?: () => void;
 }
 
 export function MomentCard({
@@ -18,6 +20,7 @@ export function MomentCard({
   isHighlighted = false,
   className,
   preview = false,
+  onOpenPreview,
 }: MomentCardProps) {
   const hasMedia = moment.media && moment.media.length > 0;
   const mainMedia = hasMedia ? moment.media![0] : null;
@@ -139,8 +142,16 @@ export function MomentCard({
     return <div className={wrapperClass}>{content}</div>;
   }
 
+  if (onOpenPreview) {
+    return (
+      <button type="button" className={cn(wrapperClass, "text-left")} onClick={onOpenPreview}>
+        {content}
+      </button>
+    );
+  }
+
   return (
-    <Link href={`/${moment.locale}/moments/${moment.id}`} className={wrapperClass}>
+    <Link href={toLocalizedPath(moment.locale, `/moments/${moment.id}`)} className={wrapperClass}>
       {content}
     </Link>
   );

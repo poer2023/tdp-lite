@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
 import { unstable_cache } from "next/cache";
+import { toLocalizedPath } from "@/lib/locale-routing";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,7 @@ export default async function HomePage({ params }: HomePageProps) {
               <p className="text-xs font-medium">ONLINE • TOKYO</p>
             </div>
             {/* Avatar - links to about page */}
-            <Link href={`/${locale}/about`}>
+            <Link href={toLocalizedPath(locale, "/about")}>
               <Image
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1"
                 alt="Profile portrait"
