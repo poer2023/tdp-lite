@@ -32,7 +32,7 @@ export function MomentCard({
     !hasVideoMedia &&
     (mainMedia?.url.startsWith("blob:") || mainMedia?.url.startsWith("data:"));
   const wrapperClass = cn(
-    "paper-card group relative flex h-full flex-col overflow-hidden",
+    "paper-card group relative flex h-full w-full flex-col overflow-hidden",
     isHighlighted && "ring-1 ring-black/15 shadow-[0_10px_26px_-12px_rgba(0,0,0,0.28)]",
     preview ? "cursor-default" : "cursor-pointer",
     className
