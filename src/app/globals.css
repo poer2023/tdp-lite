@@ -74,6 +74,18 @@
   --foreground: #2b2b2b;
   --muted-foreground: #6b7280;
   --paper-white: #fdfdfd;
+  --liquid-nav-shell-top: rgba(255, 255, 255, 0.09);
+  --liquid-nav-shell-bottom: rgba(255, 255, 255, 0.05);
+  --liquid-nav-border: rgba(255, 255, 255, 0.50);
+  --liquid-nav-inner-border: rgba(255, 255, 255, 0.85);
+  --liquid-nav-shadow-soft: 0 24px 48px -20px rgba(5, 12, 24, 0.35);
+  --liquid-nav-shadow-core: 0 8px 20px -10px rgba(10, 16, 28, 0.28);
+  --liquid-nav-tooltip-bg: rgba(26, 30, 36, 0.78);
+  --liquid-nav-icon: rgba(60, 65, 75, 0.88);
+  --liquid-nav-icon-hover: rgba(30, 35, 45, 0.96);
+  --liquid-nav-active-bg: rgba(255, 255, 255, 0.82);
+  --liquid-nav-active-color: rgba(15, 15, 20, 0.92);
+  --liquid-nav-active-border: rgba(255, 255, 255, 0.95);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -82,6 +94,17 @@
     --foreground: #ededed;
     --muted-foreground: #9ca3af;
     --paper-white: #1a1a1a;
+    --liquid-nav-shell-top: rgba(255, 255, 255, 0.07);
+    --liquid-nav-shell-bottom: rgba(255, 255, 255, 0.03);
+    --liquid-nav-border: rgba(255, 255, 255, 0.18);
+    --liquid-nav-inner-border: rgba(255, 255, 255, 0.25);
+    --liquid-nav-shadow-soft: 0 24px 48px -20px rgba(0, 0, 0, 0.6);
+    --liquid-nav-shadow-core: 0 8px 20px -10px rgba(0, 0, 0, 0.5);
+    --liquid-nav-icon: rgba(200, 205, 215, 0.75);
+    --liquid-nav-icon-hover: rgba(230, 235, 245, 0.95);
+    --liquid-nav-active-bg: rgba(30, 32, 38, 0.88);
+    --liquid-nav-active-color: rgba(240, 242, 255, 0.95);
+    --liquid-nav-active-border: rgba(255, 255, 255, 0.18);
   }
 }
 
@@ -236,4 +259,191 @@ body {
   opacity: 0.03;
   pointer-events: none;
   mix-blend-mode: overlay;
+}
+
+/* Liquid glass navigation */
+.liquid-nav-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--liquid-nav-border);
+  padding: 0.5rem;
+  background: linear-gradient(180deg, var(--liquid-nav-shell-top), var(--liquid-nav-shell-bottom));
+  box-shadow: var(--liquid-nav-shadow-soft), var(--liquid-nav-shadow-core);
+  /* backdrop-filter applied via inline style in IconNavShell */
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.liquid-nav-shell::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top-color: var(--liquid-nav-inner-border);
+  border-left-color: var(--liquid-nav-inner-border);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.liquid-nav-shell::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 3px;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  opacity: 0.55;
+  filter: blur(6px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.liquid-nav-content {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.liquid-nav-shader {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.72;
+  mix-blend-mode: screen;
+}
+
+.liquid-nav-item {
+  color: var(--liquid-nav-icon);
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 220ms ease;
+}
+
+.liquid-nav-item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 24% 22%, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0) 62%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04));
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+
+.liquid-nav-item svg {
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.liquid-nav-item:active {
+  transform: scale(0.97);
+}
+
+.liquid-nav-item:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.9),
+    0 0 0 4px rgba(63, 92, 165, 0.34),
+    0 10px 24px -14px rgba(9, 17, 33, 0.5);
+}
+
+.liquid-nav-item--active {
+  border: 1px solid var(--liquid-nav-active-border);
+  background: var(--liquid-nav-active-bg);
+  color: var(--liquid-nav-active-color);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.06),
+    0 2px 8px -2px rgba(0, 0, 0, 0.18);
+}
+
+.liquid-nav-item--active::before {
+  opacity: 1;
+  background: radial-gradient(
+    circle at 40% 20%,
+    rgba(255, 255, 255, 0.7),
+    rgba(255, 255, 255, 0.0) 60%
+  );
+}
+
+.liquid-nav-item--active svg {
+  transform: translateY(-0.25px);
+}
+
+.liquid-nav-item--emphasized {
+  width: 3rem;
+  height: 3rem;
+}
+
+.liquid-nav-divider {
+  width: 1px;
+  height: 1.35rem;
+  margin: 0 0.35rem;
+  background: linear-gradient(
+    180deg,
+    rgba(112, 122, 138, 0) 0%,
+    rgba(112, 122, 138, 0.42) 50%,
+    rgba(112, 122, 138, 0) 100%
+  );
+}
+
+.liquid-nav-tooltip {
+  left: 50%;
+  transform: translate(-50%, 4px);
+  background: var(--liquid-nav-tooltip-bg);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 10px 26px -14px rgba(8, 12, 20, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .liquid-nav-item:not(.liquid-nav-item--active):hover {
+    color: var(--liquid-nav-icon-hover);
+    transform: translateY(-1px);
+  }
+
+  .liquid-nav-item:not(.liquid-nav-item--active):hover::before {
+    opacity: 0.95;
+  }
+
+  .liquid-nav-item:hover .liquid-nav-tooltip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .liquid-nav-shell {
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 14px 30px -18px rgba(10, 16, 28, 0.35);
+  }
+
+  .liquid-nav-shell::after {
+    opacity: 0;
+  }
+
+  .liquid-nav-tooltip {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
