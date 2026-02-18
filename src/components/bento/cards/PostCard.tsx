@@ -45,7 +45,10 @@ export function PostCard({
   const content = coverSrc ? (
     <div className="h-full w-full bg-white p-2 dark:bg-gray-900">
       <div className="relative h-full w-full overflow-hidden rounded-2xl">
-        <div className="absolute inset-0 z-0 h-full w-full overflow-hidden rounded-2xl">
+        <div
+          className="absolute inset-0 z-0 h-full w-full overflow-hidden rounded-2xl"
+          data-lg-media-source="post-card-media"
+        >
           {hasVideoCover ? (
             <AutoplayCoverVideo
               src={coverSrc}

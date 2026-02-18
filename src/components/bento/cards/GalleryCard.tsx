@@ -21,6 +21,7 @@ export function GalleryCard({ item, className, preview = false }: GalleryCardPro
         !preview && "group",
         className
       )}
+      data-lg-media-source="gallery-card-media"
     >
       <Image
         src={imageSrc}
@@ -43,7 +44,7 @@ export function GalleryCard({ item, className, preview = false }: GalleryCardPro
       >
         <div className="flex justify-end">
           {item.title && (
-            <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
+            <span className="lg-chip-dark rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white">
               {item.title}
             </span>
           )}
@@ -79,7 +80,7 @@ export function GalleryCard({ item, className, preview = false }: GalleryCardPro
             preview ? "opacity-0" : "opacity-100 group-hover:opacity-0"
           )}
         >
-          <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-gray-800 shadow-sm backdrop-blur-sm dark:bg-black/70 dark:text-white">
+          <span className="lg-chip-dark rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-white shadow-sm dark:bg-black/70">
             {item.title}
           </span>
         </div>

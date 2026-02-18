@@ -28,16 +28,19 @@ export default async function MomentDetailPage({
   const hasMedia = moment.media && moment.media.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#e9e9e7] font-display">
+    <div className="min-h-screen bg-[#e9e9e7] font-display" data-lg-bg-layer="moment-root">
       {/* Noise overlay */}
-      <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
+      <div
+        className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply"
+        data-lg-bg-layer="moment-noise"
+      />
 
       <div className="relative z-10">
         {/* Back navigation */}
         <div className="mx-auto max-w-5xl px-6 pt-8">
           <Link
             href={toLocalizedPath(locale, "/")}
-            className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 font-mono text-xs uppercase tracking-widest text-[#666] shadow-sm backdrop-blur transition-all hover:bg-white hover:text-[#111]"
+            className="lg-chip-light inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 font-mono text-xs uppercase tracking-widest text-[#666] shadow-sm transition-all hover:bg-white hover:text-[#111]"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back

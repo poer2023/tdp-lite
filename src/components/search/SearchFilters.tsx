@@ -44,7 +44,7 @@ export function SearchFilters({ value, onChange }: SearchFiltersProps) {
   };
 
   return (
-    <section className="rounded-2xl border border-black/10 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
+    <section className="lg-panel-medium rounded-2xl border border-black/10 bg-white/80 p-4 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-4 w-4 text-[#666]" />

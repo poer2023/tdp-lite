@@ -24,8 +24,8 @@ export function MomentDetailCard({
   return (
     <div
       className={cn(
-        "relative w-full max-w-5xl mx-auto",
-        "pearlescent-blur paper-texture",
+        "lg-panel-strong relative w-full max-w-5xl mx-auto",
+        "paper-texture",
         "rounded-3xl overflow-hidden",
         "shadow-deep-stack",
         "border border-black/5 dark:border-white/10",
@@ -35,7 +35,10 @@ export function MomentDetailCard({
       )}
     >
       {/* Left side - Image area */}
-      <div className="relative aspect-square md:aspect-auto md:min-h-[500px] bg-black/5 dark:bg-white/5">
+      <div
+        className="relative aspect-square md:aspect-auto md:min-h-[500px] bg-black/5 dark:bg-white/5"
+        data-lg-media-source="moment-detail-media"
+      >
         {primaryMedia ? (
           <>
             {primaryMedia.type === "image" ? (
@@ -50,6 +53,7 @@ export function MomentDetailCard({
             ) : (
               <video
                 src={primaryMedia.url}
+                crossOrigin="anonymous"
                 className="w-full h-full object-cover"
                 muted
                 loop
@@ -62,7 +66,7 @@ export function MomentDetailCard({
               className={cn(
                 "absolute bottom-4 left-4",
                 "px-3 py-1.5 rounded-full",
-                "bg-black/40 backdrop-blur-sm",
+                "lg-chip-dark bg-black/40",
                 "text-white text-xs font-mono",
                 "flex items-center gap-2"
               )}

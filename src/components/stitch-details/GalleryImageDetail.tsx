@@ -226,7 +226,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
         <div className="mb-6">
           <Link
             href={`/${locale}/gallery`}
-            className="text-ink/80 group inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-sm backdrop-blur-md transition-all hover:bg-white"
+            className="lg-chip-light text-ink/80 group inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-sm transition-all hover:bg-white"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
             Back to Gallery
@@ -240,6 +240,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
                 type="button"
                 onClick={openLightbox}
                 className="group relative block w-full overflow-hidden rounded-[1.5rem] border border-black/5 bg-black/5 text-left"
+                data-lg-media-source="gallery-image-media"
               >
                 <Image
                   src={imageSrc}
@@ -251,7 +252,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
                   className="h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                 />
 
-                <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-white backdrop-blur-md">
+                <div className="lg-chip-dark absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-white">
                   <Maximize2 className="h-3.5 w-3.5" />
                   Zoom
                 </div>
@@ -371,35 +372,35 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
       {isLightboxOpen ? (
         <div className="fixed inset-0 z-[80] bg-black/92" role="dialog" aria-modal="true">
           <div className="absolute right-4 top-4 z-[90] flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => updateScale(scale / 1.15)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
-            >
+              <button
+                type="button"
+                onClick={() => updateScale(scale / 1.15)}
+                className="lg-chip-dark inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+              >
               <Minus className="h-4 w-4" />
             </button>
-            <button
-              type="button"
-              onClick={() => updateScale(scale * 1.15)}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
-            >
+              <button
+                type="button"
+                onClick={() => updateScale(scale * 1.15)}
+                className="lg-chip-dark inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+              >
               <Plus className="h-4 w-4" />
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                updateScale(1);
-                setOffset({ x: 0, y: 0 });
-              }}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 font-mono text-[11px] uppercase tracking-wider text-white backdrop-blur-md transition hover:bg-white/20"
-            >
+              <button
+                type="button"
+                onClick={() => {
+                  updateScale(1);
+                  setOffset({ x: 0, y: 0 });
+                }}
+                className="lg-chip-dark inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 font-mono text-[11px] uppercase tracking-wider text-white transition hover:bg-white/20"
+              >
               Reset
             </button>
-            <button
-              type="button"
-              onClick={closeLightbox}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20"
-            >
+              <button
+                type="button"
+                onClick={closeLightbox}
+                className="lg-chip-dark inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+              >
               <X className="h-4 w-4" />
             </button>
           </div>

@@ -1,10 +1,10 @@
 import Link from "next/link";
-import Image from "next/image";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { Moment } from "@/lib/schema";
 import { isVideoUrl } from "@/lib/media";
 import { MapPin, Music2, Quote } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
+import { MomentImageOnly } from "./MomentImageOnly";
 import { toLocalizedPath } from "@/lib/locale-routing";
 
 interface MomentCardProps {
@@ -40,11 +40,11 @@ export function MomentCard({
 
   const content = hasMedia ? (
     <>
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0" data-lg-media-source="moment-card-media">
         {isAudioMedia ? (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#111] via-[#1f2937] to-[#111827]">
             <div className="flex flex-col items-center gap-3 text-white/90">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur-md">
+              <span className="lg-chip-dark inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium">
                 <Music2 className="h-3.5 w-3.5" />
                 Music
               </span>
@@ -66,16 +66,12 @@ export function MomentCard({
             )}
           />
         ) : (
-          <Image
+          <MomentImageOnly
             src={mainMedia!.url}
             alt="Moment"
-            fill
-            unoptimized={Boolean(skipOptimization)}
             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-            className={cn(
-              "object-cover transition-transform duration-500",
-              !preview && "group-hover:scale-105"
-            )}
+            unoptimized={Boolean(skipOptimization)}
+            preview={preview}
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -83,11 +79,11 @@ export function MomentCard({
 
       <div className="relative z-10 flex h-full flex-col justify-between p-6">
         <div className="flex items-start justify-between">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
+          <span className="lg-chip-dark inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white">
             {isHighlighted ? "Spotlight" : "Insight"}
           </span>
           {moment.location && (
-            <span className="flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs text-white backdrop-blur-md">
+            <span className="lg-chip-dark flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs text-white">
               <MapPin className="h-3 w-3" />
               {moment.location.name}
             </span>

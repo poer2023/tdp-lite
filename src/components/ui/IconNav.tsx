@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useEffect, useId } from "react";
 import { cn } from "@/lib/utils";
-import { getLiquidGlassFilter } from "@/lib/liquid-glass";
+import { Vaso } from "vaso";
 
 interface IconNavShellProps {
   children: React.ReactNode;
@@ -11,40 +11,45 @@ interface IconNavShellProps {
 }
 
 export function IconNavShell({ children, className }: IconNavShellProps) {
-  const navRef = useRef<HTMLElement>(null);
-  const [filter, setFilter] = useState<string>(
-    "blur(20px) saturate(1.6) brightness(1.05)"
-  );
-
-  const updateFilter = useCallback(() => {
-    const nav = navRef.current;
-    if (!nav) return;
-    const rect = nav.getBoundingClientRect();
-    if (rect.width > 0 && rect.height > 0) {
-      setFilter(
-        getLiquidGlassFilter(Math.round(rect.width), Math.round(rect.height))
-      );
-    }
-  }, []);
+  const shellId = useId();
 
   useEffect(() => {
-    updateFilter();
-    const observer = new ResizeObserver(updateFilter);
-    if (navRef.current) observer.observe(navRef.current);
+    const shell = document.getElementById(shellId);
+    if (!shell) return;
+
+    const vasoLayer = shell.querySelector<HTMLElement>("[data-vaso]");
+    const filter = shell.querySelector<SVGFilterElement>("filter[id$='_filter']");
+    if (!vasoLayer || !filter?.id) return;
+
+    const pureRefraction = `url(#${filter.id})`;
+    const enforcePureRefraction = () => {
+      vasoLayer.style.setProperty("backdrop-filter", pureRefraction);
+      vasoLayer.style.setProperty("-webkit-backdrop-filter", pureRefraction);
+    };
+
+    enforcePureRefraction();
+
+    const observer = new MutationObserver(enforcePureRefraction);
+    observer.observe(vasoLayer, { attributes: true, attributeFilter: ["style"] });
+
     return () => observer.disconnect();
-  }, [updateFilter]);
+  }, [shellId]);
 
   return (
-    <nav
-      ref={navRef}
+    <Vaso
+      id={shellId}
+      component="nav"
       className={cn("liquid-nav-shell", className)}
-      style={{
-        backdropFilter: filter,
-        WebkitBackdropFilter: filter,
-      }}
+      data-lg-profile="nav"
+      px={0}
+      py={0}
+      radius={999}
+      depth={0.66}
+      blur={0}
+      dispersion={false}
     >
       <div className="liquid-nav-content">{children}</div>
-    </nav>
+    </Vaso>
   );
 }
 
@@ -87,6 +92,7 @@ export function IconNavItem({
             "liquid-nav-tooltip pointer-events-none absolute whitespace-nowrap rounded px-2 py-1 font-mono text-[10px] text-white opacity-0",
             tooltipTopClassName
           )}
+          data-lg-profile="tooltip"
         >
           {label}
         </span>

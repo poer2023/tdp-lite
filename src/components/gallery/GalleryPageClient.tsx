@@ -1,15 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { formatDate } from "@/lib/utils";
-import { GalleryFilters } from "@/components/gallery/GalleryFilters";
-import type {
-  GalleryImageAggregateDTO,
-  GallerySourceType,
-  GalleryTimePreset,
-} from "@/lib/gallery";
+import { MomentImageOnly } from "@/components/bento/cards/MomentImageOnly";
+import {
+  computeBentoSpans,
+  getFeedItemLayoutKey,
+} from "@/components/bento/layoutEngine";
+import type { FeedItem } from "@/components/bento/types";
+import { cn } from "@/lib/utils";
+import type { GalleryImageAggregateDTO } from "@/lib/gallery";
 
 interface GalleryPageClientProps {
   locale: "en" | "zh";
@@ -20,111 +20,81 @@ function shouldSkipOptimization(src: string): boolean {
   return src.startsWith("blob:") || src.startsWith("data:");
 }
 
-function passesTimePreset(latestAt: string, timePreset: GalleryTimePreset, now: Date): boolean {
-  if (timePreset === "all") {
-    return true;
-  }
+function toLayoutItem(item: GalleryImageAggregateDTO): Extract<FeedItem, { type: "gallery" }> {
+  const latestAt = new Date(item.latestAt);
 
-  const latest = new Date(latestAt);
-  if (Number.isNaN(latest.getTime())) {
-    return false;
-  }
-
-  if (timePreset === "today") {
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    return latest.getTime() >= startOfToday.getTime();
-  }
-
-  const days = timePreset === "7d" ? 7 : 30;
-  const threshold = now.getTime() - days * 24 * 60 * 60 * 1000;
-  return latest.getTime() >= threshold;
+  return {
+    type: "gallery",
+    id: item.imageId,
+    locale: item.locale,
+    fileUrl: item.imageUrl,
+    thumbUrl: item.thumbUrl,
+    title: item.title,
+    width: item.width,
+    height: item.height,
+    capturedAt: item.capturedAt ? new Date(item.capturedAt) : null,
+    camera: item.camera,
+    lens: item.lens,
+    focalLength: item.focalLength,
+    aperture: item.aperture,
+    iso: item.iso,
+    latitude: item.latitude,
+    longitude: item.longitude,
+    isLivePhoto: false,
+    videoUrl: null,
+    status: "published",
+    publishedAt: latestAt,
+    createdAt: latestAt,
+    updatedAt: latestAt,
+    deletedAt: null,
+  };
 }
 
 export function GalleryPageClient({ locale, items }: GalleryPageClientProps) {
-  const [sourceTypes, setSourceTypes] = useState<GallerySourceType[]>([
-    "post",
-    "moment",
-  ]);
-  const [timePreset, setTimePreset] = useState<GalleryTimePreset>("all");
-
-  const filtered = useMemo(() => {
-    const selectedSources = new Set(sourceTypes);
-    const now = new Date();
-
-    return items.filter((item) => {
-      const sourceMatched = item.sourceTypes.some((type) => selectedSources.has(type));
-      if (!sourceMatched) {
-        return false;
-      }
-
-      return passesTimePreset(item.latestAt, timePreset, now);
+  const cards = useMemo(() => {
+    return items.map((item) => {
+      const layoutItem = toLayoutItem(item);
+      return {
+        item,
+        layoutKey: getFeedItemLayoutKey(layoutItem),
+        layoutItem,
+      };
     });
-  }, [items, sourceTypes, timePreset]);
+  }, [items]);
 
-  return (
-    <div className="space-y-5">
-      <GalleryFilters
-        sourceTypes={sourceTypes}
-        timePreset={timePreset}
-        onSourceTypesChange={setSourceTypes}
-        onTimePresetChange={setTimePreset}
-      />
+  const spanByItemKey = useMemo(() => {
+    return computeBentoSpans(cards.map((card) => card.layoutItem));
+  }, [cards]);
 
-      <div className="flex items-center justify-between px-1">
-        <p className="font-mono text-xs uppercase tracking-widest text-[#777]">
-          {filtered.length} image{filtered.length === 1 ? "" : "s"}
-        </p>
-      </div>
+  return items.length === 0 ? (
+    <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-16 text-center">
+      <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
+        No images yet.
+      </p>
+    </div>
+  ) : (
+    <div className="grid auto-rows-[220px] grid-flow-dense grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4">
+      {cards.map(({ item, layoutKey }) => {
+        const imageSrc = item.thumbUrl || item.imageUrl;
+        const spanClass = spanByItemKey[layoutKey] ?? "col-span-1 row-span-1";
 
-      {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-16 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
-            No images match current filters.
-          </p>
-        </div>
-      ) : (
-        <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
-          {filtered.map((item) => {
-            const imageSrc = item.thumbUrl || item.imageUrl;
-            const sourceLabel = item.sourceTypes
-              .map((type) => (type === "post" ? "Post" : "Moment"))
-              .join(" + ");
-
-            return (
-              <Link
-                key={item.imageId}
-                href={`/${locale}/gallery/${item.imageId}`}
-                className="group mb-4 block break-inside-avoid overflow-hidden rounded-2xl border border-black/5 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)]"
-              >
-                <div className="relative overflow-hidden">
-                  <Image
-                    src={imageSrc}
-                    alt={item.title || "Gallery image"}
-                    width={item.width || 1200}
-                    height={item.height || 900}
-                    unoptimized={shouldSkipOptimization(imageSrc)}
-                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    className="h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                  />
-                </div>
-
-                <div className="space-y-2 p-3.5">
-                  <h3 className="line-clamp-1 font-serif text-lg text-[#111]">
-                    {item.title || "Untitled image"}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#666]">
-                    <span className="rounded-full bg-black/5 px-2 py-0.5">{sourceLabel}</span>
-                    <span className="rounded-full bg-black/5 px-2 py-0.5">
-                      {item.sourceCount} source{item.sourceCount === 1 ? "" : "s"}
-                    </span>
-                    <span>{formatDate(item.latestAt, locale)}</span>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
-      )}
+        return (
+          <div key={item.imageId} className={cn("bento-card", spanClass)}>
+            <Link
+              href={`/${locale}/gallery/${item.imageId}`}
+              className="group block h-full w-full"
+            >
+              <MomentImageOnly
+                src={imageSrc}
+                alt={item.title || "Gallery image"}
+                sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                unoptimized={shouldSkipOptimization(imageSrc)}
+                className="paper-card"
+              />
+            </Link>
+          </div>
+        );
+      })}
     </div>
   );
 }

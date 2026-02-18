@@ -79,6 +79,7 @@ export function AutoplayCoverVideo({
     <video
       ref={videoRef}
       src={shouldLoad ? src : undefined}
+      crossOrigin="anonymous"
       poster={poster}
       muted
       loop

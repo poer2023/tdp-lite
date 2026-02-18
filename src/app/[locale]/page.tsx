@@ -27,8 +27,14 @@ export default async function HomePage({ params }: HomePageProps) {
   const items = await getHomeItems(locale);
 
   return (
-    <div className="text-ink relative min-h-screen overflow-x-hidden bg-[#e9e9e7] pb-32 font-display selection:bg-black/10 selection:text-black">
-      <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
+    <div
+      className="text-ink relative min-h-screen overflow-x-hidden bg-[#e9e9e7] pb-32 font-display selection:bg-black/10 selection:text-black"
+      data-lg-bg-layer="home-root"
+    >
+      <div
+        className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply"
+        data-lg-bg-layer="home-noise"
+      />
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 py-12 md:px-12">
         {/* Top Navigation Bar */}
         <header className="mb-16 flex items-center justify-between">

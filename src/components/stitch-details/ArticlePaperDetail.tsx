@@ -143,7 +143,7 @@ export function ArticlePaperDetail({
             <div className="absolute -left-1 top-4 z-0 h-full w-full -rotate-1 rounded-xl border border-black/5 bg-[#f8f8f6] shadow-paper-sm" />
 
             <article className="relative z-10 overflow-hidden rounded-xl border border-black/5 bg-paper-white shadow-[0_10px_15px_-3px_rgba(0,0,0,0.05),0_4px_6px_-2px_rgba(0,0,0,0.025),inset_0_0_0_1px_rgba(255,255,255,0.8)]">
-              <div className="absolute -top-3 left-1/2 z-20 flex h-10 w-32 -translate-x-1/2 rotate-[-1deg] items-center justify-center border-l border-r border-white/60 bg-[#fdfdfd]/40 shadow-sm backdrop-blur-sm" />
+              <div className="lg-panel-light absolute -top-3 left-1/2 z-20 flex h-10 w-32 -translate-x-1/2 rotate-[-1deg] items-center justify-center border-l border-r border-white/60 bg-[#fdfdfd]/40 shadow-sm" />
 
               <div className="bg-paper-off-white relative border-b border-black/5 px-8 pb-12 pt-20 md:px-16">
                 <div

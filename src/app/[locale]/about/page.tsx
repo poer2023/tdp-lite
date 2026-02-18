@@ -66,9 +66,15 @@ export default async function AboutPage({ params }: AboutPageProps) {
   return (
     <>
       {/* Noise overlay */}
-      <div className="bg-noise pointer-events-none fixed inset-0 z-0 mix-blend-multiply" />
+      <div
+        className="bg-noise pointer-events-none fixed inset-0 z-0 mix-blend-multiply"
+        data-lg-bg-layer="about-noise"
+      />
 
-      <div className="pearlescent text-ink min-h-screen overflow-x-hidden pb-32 font-display selection:bg-black/10 selection:text-black">
+      <div
+        className="pearlescent text-ink min-h-screen overflow-x-hidden pb-32 font-display selection:bg-black/10 selection:text-black"
+        data-lg-bg-layer="about-root"
+      >
         <div className="relative z-10 mx-auto max-w-[1240px] px-8 pt-24 md:px-16">
           {/* Header */}
           <header className="mb-24 flex flex-col items-center gap-16 md:flex-row md:items-start">
@@ -103,7 +109,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 together bits, bytes, and broken reflections.
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-5 md:justify-start">
-                <div className="flex items-center gap-3 rounded-full border border-white/50 bg-white/80 px-6 py-3 backdrop-blur paper-stack-shadow">
+                <div className="lg-chip-light flex items-center gap-3 rounded-full border border-white/50 bg-white/80 px-6 py-3 paper-stack-shadow">
                   <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
                   <span className="text-ink font-mono text-sm uppercase tracking-[0.15em]">
                     Available for hire

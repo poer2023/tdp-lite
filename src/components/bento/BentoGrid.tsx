@@ -111,7 +111,7 @@ export function BentoGrid({ items, className }: BentoGridProps) {
           <button
             type="button"
             aria-label="Close moment preview"
-            className="absolute inset-0 bg-black/30 backdrop-blur-md"
+            className="lg-overlay-dark absolute inset-0 bg-black/30"
             onClick={closeMomentPreview}
           />
 
@@ -120,7 +120,7 @@ export function BentoGrid({ items, className }: BentoGridProps) {
               type="button"
               aria-label="Close preview"
               onClick={closeMomentPreview}
-              className="absolute -top-12 right-0 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white backdrop-blur-md transition hover:bg-black/80"
+              className="lg-chip-dark absolute -top-12 right-0 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/65 text-white transition hover:bg-black/80"
             >
               <X className="h-4 w-4" />
             </button>

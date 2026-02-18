@@ -174,7 +174,7 @@ export function DropdownSelect<T extends string>({
           aria-activedescendant={`${listboxId}-${activeIndex}`}
           onKeyDown={handleListKeyDown}
           className={cn(
-            "absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-2xl border border-black/10 bg-[#f4f4f2] p-2 shadow-[0_14px_28px_rgba(0,0,0,0.16)] backdrop-blur-sm",
+            "lg-panel-medium absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-2xl border border-black/10 bg-[#f4f4f2] p-2 shadow-[0_14px_28px_rgba(0,0,0,0.16)]",
             menuClassName
           )}
         >

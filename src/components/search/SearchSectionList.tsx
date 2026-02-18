@@ -46,7 +46,7 @@ export function SearchSectionList<T extends { id: string }>({
   }, [hasMore, isLoading, onLoadMore, items.length]);
 
   return (
-    <section className="rounded-2xl border border-black/10 bg-white/85 p-4 shadow-sm backdrop-blur-sm">
+    <section className="lg-panel-medium rounded-2xl border border-black/10 bg-white/85 p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="font-display text-xl font-semibold text-[#111]">{title}</h3>
         <span className="rounded-full bg-black/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-[#666]">
