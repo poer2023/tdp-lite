@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { getLiquidGlassFilter } from "@/lib/liquid-glass";
 
 interface IconNavShellProps {
   children: React.ReactNode;
@@ -7,14 +11,39 @@ interface IconNavShellProps {
 }
 
 export function IconNavShell({ children, className }: IconNavShellProps) {
+  const navRef = useRef<HTMLElement>(null);
+  const [filter, setFilter] = useState<string>(
+    "blur(20px) saturate(1.6) brightness(1.05)"
+  );
+
+  const updateFilter = useCallback(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const rect = nav.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      setFilter(
+        getLiquidGlassFilter(Math.round(rect.width), Math.round(rect.height))
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    updateFilter();
+    const observer = new ResizeObserver(updateFilter);
+    if (navRef.current) observer.observe(navRef.current);
+    return () => observer.disconnect();
+  }, [updateFilter]);
+
   return (
     <nav
-      className={cn(
-        "flex items-center gap-1 rounded-full border border-white/50 bg-white/90 px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-black/5 backdrop-blur-md",
-        className
-      )}
+      ref={navRef}
+      className={cn("liquid-nav-shell", className)}
+      style={{
+        backdropFilter: filter,
+        WebkitBackdropFilter: filter,
+      }}
     >
-      {children}
+      <div className="liquid-nav-content">{children}</div>
     </nav>
   );
 }
@@ -40,13 +69,12 @@ export function IconNavItem({
   tooltipTopClassName = "-top-12",
   className,
 }: IconNavItemProps) {
+  const isHighlighted = active || emphasized;
   const baseClass = cn(
-    "group relative flex h-11 w-11 items-center justify-center rounded-full transition-all",
-    emphasized
-      ? "h-12 w-12 bg-black text-white shadow-md hover:scale-[1.03]"
-      : active
-        ? "bg-black text-white shadow-md"
-        : cn("text-[#666] hover:bg-black/5 hover:text-[#111]", textClassName),
+    "liquid-nav-item group relative flex h-11 w-11 items-center justify-center rounded-full",
+    isHighlighted && "liquid-nav-item--active",
+    emphasized && "liquid-nav-item--emphasized",
+    !isHighlighted && textClassName,
     className
   );
 
@@ -56,7 +84,7 @@ export function IconNavItem({
       {label && !active && !emphasized ? (
         <span
           className={cn(
-            "pointer-events-none absolute rounded bg-black px-2 py-1 font-mono text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 whitespace-nowrap",
+            "liquid-nav-tooltip pointer-events-none absolute whitespace-nowrap rounded px-2 py-1 font-mono text-[10px] text-white opacity-0",
             tooltipTopClassName
           )}
         >
@@ -67,8 +95,16 @@ export function IconNavItem({
   );
 
   if (href) {
-    return <Link href={href} className={baseClass}>{content}</Link>;
+    return (
+      <Link href={href} className={baseClass} aria-label={label}>
+        {content}
+      </Link>
+    );
   }
 
-  return <button type="button" className={baseClass}>{content}</button>;
+  return (
+    <button type="button" className={baseClass} aria-label={label}>
+      {content}
+    </button>
+  );
 }
