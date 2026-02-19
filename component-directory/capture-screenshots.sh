@@ -19,6 +19,10 @@ if ! curl -fsS "$BASE_URL/zh" >/dev/null; then
 fi
 
 routes=(
+  "en-home|/en"
+  "en-gallery|/en/gallery"
+  "en-moments|/en/moments"
+  "en-posts|/en/posts"
   "zh-home|/zh"
   "zh-about|/zh/about"
   "zh-gallery|/zh/gallery"
