@@ -30,8 +30,6 @@ routes=(
   "zh-posts|/zh/posts"
   "zh-search|/zh/search"
   "admin-login|/admin/login"
-  "test-moment-detail|/test/moment-detail"
-  "test-text-moment-detail|/test/text-moment-detail"
   "test-stitch-details|/test/stitch-details"
 )
 

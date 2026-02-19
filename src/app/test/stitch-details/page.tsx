@@ -99,7 +99,7 @@ function ComponentLabel({
   nodeId: string;
 }) {
   return (
-    <div className="lg-panel-medium rounded-xl border border-black/10 bg-white/70 p-4">
+    <div className="rounded-xl border border-black/10 bg-white/70 p-4 backdrop-blur">
       <p className="text-ink font-display text-lg font-semibold">{name}</p>
       <p className="text-ink-light mt-1 font-mono text-[11px]">
         file: <code>{file}</code>

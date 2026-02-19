@@ -24,8 +24,6 @@ So list pages such as `/zh/moments`, `/zh/posts`, `/zh/gallery` may appear "empt
 | `/zh/posts` | `src/app/[locale]/posts/page.tsx` | Posts list page (links to detail page) | [`zh-posts.png`](./screenshots/zh-posts.png) (currently mostly empty) |
 | `/zh/search` | `src/app/[locale]/search/page.tsx` | `SearchPageClient`, `BottomNav` | [`zh-search.png`](./screenshots/zh-search.png) |
 | `/admin/login` | `src/app/admin/login/page.tsx` | Admin login card | [`admin-login.png`](./screenshots/admin-login.png) |
-| `/test/moment-detail` | `src/app/test/moment-detail/page.tsx` | `MomentDetailCard` (legacy media detail card) | [`test-moment-detail.png`](./screenshots/test-moment-detail.png) |
-| `/test/text-moment-detail` | `src/app/test/text-moment-detail/page.tsx` | `TextMomentDetailCard` (legacy text detail card) | [`test-text-moment-detail.png`](./screenshots/test-text-moment-detail.png) |
 | `/test/stitch-details` | `src/app/test/stitch-details/page.tsx` | `ArticlePaperDetail`, `GalleryMomentDetail`, `MusicMomentDetail`, `TextMomentPaperDetail` | [`test-stitch-details.png`](./screenshots/test-stitch-details.png) |
 
 ## Parameterized / Data-dependent Routes
@@ -41,11 +39,11 @@ So list pages such as `/zh/moments`, `/zh/posts`, `/zh/gallery` may appear "empt
 
 ## Legacy Moment Detail Card (quick reference)
 
-If you want to check the old modal/detail-card style directly:
+Test routes for the two legacy detail cards were removed.
+Use these routes/components instead:
 
-1. Media detail card: `/test/moment-detail` -> `src/components/bento/cards/MomentDetailCard.tsx`
-2. Text detail card: `/test/text-moment-detail` -> `src/components/bento/cards/TextMomentDetailCard.tsx`
-3. Production detail route: `/[locale]/moments/[id]` -> uses the same two cards based on whether media exists
+1. Production detail route: `/[locale]/moments/[id]` -> `src/components/bento/cards/MomentDetailCard.tsx` / `src/components/bento/cards/TextMomentDetailCard.tsx`
+2. Preview detail route: `/preview/detail` (requires preview token params)
 
 ## Refresh screenshots
 

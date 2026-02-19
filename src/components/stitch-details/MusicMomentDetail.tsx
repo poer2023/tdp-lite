@@ -139,7 +139,7 @@ export function MusicMomentDetail({
                 </div>
 
                 {fileMeta && fileMeta.length > 0 ? (
-                  <div className="lg-panel-light text-ink-light absolute -right-4 -top-4 z-20 rounded border border-black/5 bg-white/80 px-3 py-2 font-mono text-[10px] shadow-sm">
+                  <div className="text-ink-light absolute -right-4 -top-4 z-20 rounded border border-black/5 bg-white/92 px-3 py-2 font-mono text-[10px] shadow-sm backdrop-blur-sm">
                     {fileMeta.map((line) => (
                       <p key={line}>{line}</p>
                     ))}

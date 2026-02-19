@@ -255,7 +255,7 @@ export function GalleryMomentDetail({
           {backHref ? (
             <Link
               href={backHref}
-              className="lg-chip-light text-ink/80 group inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-sm transition-all hover:bg-white"
+              className="text-ink/80 group inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-sm backdrop-blur-md transition-all hover:bg-white"
             >
               <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
               {backLabel}
@@ -263,7 +263,7 @@ export function GalleryMomentDetail({
           ) : (
             <button
               type="button"
-              className="lg-chip-light text-ink/80 group inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-sm transition-all hover:bg-white"
+              className="text-ink/80 group inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-sm backdrop-blur-md transition-all hover:bg-white"
             >
               <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
               {backLabel}
@@ -300,7 +300,7 @@ export function GalleryMomentDetail({
                       registerImageDimensions(currentImage.id, event.currentTarget)
                     }
                   />
-                  <div className="lg-chip-dark absolute right-6 top-6 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 font-mono text-[10px] tracking-tight text-white">
+                  <div className="absolute right-6 top-6 inline-flex items-center rounded-full border border-white/10 bg-black/20 px-3 py-1.5 font-mono text-[10px] tracking-tight text-white backdrop-blur-md">
                     {String(index + 1).padStart(2, "0")} /{" "}
                     {String(safeImages.length).padStart(2, "0")}
                   </div>
@@ -308,14 +308,14 @@ export function GalleryMomentDetail({
                     <button
                       type="button"
                       onClick={handlePrev}
-                      className="lg-chip-dark pointer-events-auto flex size-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-all hover:bg-white/20"
+                      className="pointer-events-auto flex size-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20"
                     >
                       <ChevronLeft className="h-6 w-6" />
                     </button>
                     <button
                       type="button"
                       onClick={handleNext}
-                      className="lg-chip-dark pointer-events-auto flex size-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition-all hover:bg-white/20"
+                      className="pointer-events-auto flex size-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition-all hover:bg-white/20"
                     >
                       <ChevronRight className="h-6 w-6" />
                     </button>
