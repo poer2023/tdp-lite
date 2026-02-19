@@ -1,5 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
+import { sql } from "drizzle-orm";
 import postgres from "postgres";
+import { createHash } from "crypto";
 import { posts, moments, gallery } from "../src/lib/schema";
 
 const connectionString = process.env.DATABASE_URL;
@@ -28,6 +30,24 @@ const photos = {
   cat: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=800&q=80",
   food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
 };
+
+function toZhText(value: string): string {
+  return `【中文】${value}`;
+}
+
+function stableUuid(seed: string): string {
+  const chars = createHash("sha256").update(seed).digest("hex").slice(0, 32).split("");
+  chars[12] = "4";
+  chars[16] = ((parseInt(chars[16]!, 16) & 0x3) | 0x8).toString(16);
+  const normalized = chars.join("");
+  return [
+    normalized.slice(0, 8),
+    normalized.slice(8, 12),
+    normalized.slice(12, 16),
+    normalized.slice(16, 20),
+    normalized.slice(20, 32),
+  ].join("-");
+}
 
 async function seed() {
   console.log("🌱 Seeding database...\n");
@@ -199,8 +219,44 @@ The phone became a tool again, not a slot machine.`,
     },
   ];
 
-  await db.insert(posts).values(postsData);
-  console.log(`  ✓ Inserted ${postsData.length} posts`);
+  const bilingualPostsData = postsData.flatMap((post) => {
+    const translationKey = stableUuid(`post:${post.slug}`);
+    return [
+      {
+        ...post,
+        locale: "en" as const,
+        translationKey,
+      },
+      {
+        ...post,
+        locale: "zh" as const,
+        translationKey,
+        title: toZhText(post.title),
+        excerpt: post.excerpt ? toZhText(post.excerpt) : post.excerpt,
+        content: toZhText(post.content),
+      },
+    ];
+  });
+
+  await db
+    .insert(posts)
+    .values(bilingualPostsData)
+    .onConflictDoUpdate({
+      target: [posts.locale, posts.slug],
+      set: {
+        translationKey: sql`excluded.translation_key`,
+        title: sql`excluded.title`,
+        excerpt: sql`excluded.excerpt`,
+        content: sql`excluded.content`,
+        coverUrl: sql`excluded.cover_url`,
+        tags: sql`excluded.tags`,
+        status: sql`excluded.status`,
+        publishedAt: sql`excluded.published_at`,
+        createdAt: sql`excluded.created_at`,
+        updatedAt: sql`excluded.updated_at`,
+      },
+    });
+  console.log(`  ✓ Upserted ${bilingualPostsData.length} posts`);
 
   // --- Moments ---
   console.log("💭 Inserting moments...");
@@ -265,8 +321,45 @@ The phone became a tool again, not a slot machine.`,
     },
   ];
 
-  await db.insert(moments).values(momentsData);
-  console.log(`  ✓ Inserted ${momentsData.length} moments`);
+  const bilingualMomentsData = momentsData.flatMap((moment, index) => {
+    const translationKey = stableUuid(
+      `moment:${index}:${moment.createdAt.toISOString()}:${moment.content}`
+    );
+    return [
+      {
+        ...moment,
+        locale: "en" as const,
+        translationKey,
+      },
+      {
+        ...moment,
+        locale: "zh" as const,
+        translationKey,
+        content: toZhText(moment.content),
+        location: moment.location
+          ? { ...moment.location, name: toZhText(moment.location.name) }
+          : undefined,
+      },
+    ];
+  });
+
+  await db
+    .insert(moments)
+    .values(bilingualMomentsData)
+    .onConflictDoUpdate({
+      target: [moments.translationKey, moments.locale],
+      set: {
+        content: sql`excluded.content`,
+        media: sql`excluded.media`,
+        visibility: sql`excluded.visibility`,
+        location: sql`excluded.location`,
+        status: sql`excluded.status`,
+        publishedAt: sql`excluded.published_at`,
+        createdAt: sql`excluded.created_at`,
+        updatedAt: sql`excluded.updated_at`,
+      },
+    });
+  console.log(`  ✓ Upserted ${bilingualMomentsData.length} moments`);
 
   // --- Gallery ---
   console.log("🖼️  Inserting gallery items...");
@@ -443,11 +536,209 @@ The phone became a tool again, not a slot machine.`,
     },
   ];
 
-  await db.insert(gallery).values(galleryData);
-  console.log(`  ✓ Inserted ${galleryData.length} gallery items`);
+  const bilingualGalleryData = galleryData.flatMap((item, index) => {
+    const translationKey = stableUuid(
+      `gallery:${index}:${item.createdAt.toISOString()}:${item.fileUrl}`
+    );
+    return [
+      {
+        ...item,
+        locale: "en" as const,
+        translationKey,
+      },
+      {
+        ...item,
+        locale: "zh" as const,
+        translationKey,
+        title: item.title ? toZhText(item.title) : item.title,
+      },
+    ];
+  });
+
+  await db
+    .insert(gallery)
+    .values(bilingualGalleryData)
+    .onConflictDoUpdate({
+      target: [gallery.translationKey, gallery.locale],
+      set: {
+        fileUrl: sql`excluded.file_url`,
+        thumbUrl: sql`excluded.thumb_url`,
+        title: sql`excluded.title`,
+        width: sql`excluded.width`,
+        height: sql`excluded.height`,
+        capturedAt: sql`excluded.captured_at`,
+        camera: sql`excluded.camera`,
+        lens: sql`excluded.lens`,
+        focalLength: sql`excluded.focal_length`,
+        aperture: sql`excluded.aperture`,
+        iso: sql`excluded.iso`,
+        latitude: sql`excluded.latitude`,
+        longitude: sql`excluded.longitude`,
+        status: sql`excluded.status`,
+        publishedAt: sql`excluded.published_at`,
+        createdAt: sql`excluded.created_at`,
+        updatedAt: sql`excluded.updated_at`,
+      },
+    });
+  console.log(`  ✓ Upserted ${bilingualGalleryData.length} gallery items`);
+
+  console.log("🔁 Backfilling zh variants for legacy en-only content...");
+
+  await db.execute(sql`
+    INSERT INTO posts (
+      translation_key,
+      slug,
+      locale,
+      title,
+      excerpt,
+      content,
+      cover_url,
+      tags,
+      status,
+      published_at,
+      created_at,
+      updated_at,
+      revision,
+      updated_by,
+      deleted_at
+    )
+    SELECT
+      p.translation_key,
+      p.slug,
+      'zh',
+      '【中文】' || p.title,
+      CASE WHEN p.excerpt IS NULL THEN NULL ELSE '【中文】' || p.excerpt END,
+      '【中文】' || p.content,
+      p.cover_url,
+      p.tags,
+      p.status,
+      p.published_at,
+      p.created_at,
+      p.updated_at,
+      p.revision,
+      p.updated_by,
+      p.deleted_at
+    FROM posts p
+    WHERE p.locale = 'en'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM posts z
+        WHERE z.translation_key = p.translation_key
+          AND z.locale = 'zh'
+      )
+    ON CONFLICT (locale, slug) DO NOTHING;
+  `);
+
+  await db.execute(sql`
+    INSERT INTO moments (
+      translation_key,
+      content,
+      media,
+      locale,
+      visibility,
+      location,
+      status,
+      published_at,
+      created_at,
+      updated_at,
+      deleted_at
+    )
+    SELECT
+      m.translation_key,
+      '【中文】' || m.content,
+      m.media,
+      'zh',
+      m.visibility,
+      CASE
+        WHEN m.location IS NULL THEN NULL
+        WHEN m.location ? 'name'
+          THEN jsonb_set(
+            m.location,
+            '{name}',
+            to_jsonb(('【中文】' || (m.location ->> 'name'))::text),
+            true
+          )
+        ELSE m.location
+      END,
+      m.status,
+      m.published_at,
+      m.created_at,
+      m.updated_at,
+      m.deleted_at
+    FROM moments m
+    WHERE m.locale = 'en'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM moments z
+        WHERE z.translation_key = m.translation_key
+          AND z.locale = 'zh'
+      )
+    ON CONFLICT (translation_key, locale) DO NOTHING;
+  `);
+
+  await db.execute(sql`
+    INSERT INTO gallery (
+      translation_key,
+      locale,
+      file_url,
+      thumb_url,
+      title,
+      width,
+      height,
+      captured_at,
+      camera,
+      lens,
+      focal_length,
+      aperture,
+      iso,
+      latitude,
+      longitude,
+      is_live_photo,
+      video_url,
+      status,
+      published_at,
+      created_at,
+      updated_at,
+      deleted_at
+    )
+    SELECT
+      g.translation_key,
+      'zh',
+      g.file_url,
+      g.thumb_url,
+      CASE WHEN g.title IS NULL THEN NULL ELSE '【中文】' || g.title END,
+      g.width,
+      g.height,
+      g.captured_at,
+      g.camera,
+      g.lens,
+      g.focal_length,
+      g.aperture,
+      g.iso,
+      g.latitude,
+      g.longitude,
+      g.is_live_photo,
+      g.video_url,
+      g.status,
+      g.published_at,
+      g.created_at,
+      g.updated_at,
+      g.deleted_at
+    FROM gallery g
+    WHERE g.locale = 'en'
+      AND NOT EXISTS (
+        SELECT 1
+        FROM gallery z
+        WHERE z.translation_key = g.translation_key
+          AND z.locale = 'zh'
+      )
+    ON CONFLICT (translation_key, locale) DO NOTHING;
+  `);
 
   console.log("\n✅ Seed complete!");
-  console.log(`   ${postsData.length} posts, ${momentsData.length} moments, ${galleryData.length} gallery items`);
+  console.log(
+    `   ${bilingualPostsData.length} posts, ${bilingualMomentsData.length} moments, ${bilingualGalleryData.length} gallery items`
+  );
 
   await client.end();
   process.exit(0);

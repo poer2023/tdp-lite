@@ -24,6 +24,15 @@ export interface ArticlePaperDetailProps {
   className?: string;
   showDock?: boolean;
   dockItems?: FloatingDockItem[];
+  backTitle?: string;
+  backSubtitle?: string;
+  publishedLabel?: string;
+  readingTimeLabel?: string;
+  categoryLabel?: string;
+  locationLabel?: string;
+  dateLabel?: string;
+  readLabel?: string;
+  authorLabel?: string;
 }
 
 const defaultDock: FloatingDockItem[] = [
@@ -50,6 +59,15 @@ export function ArticlePaperDetail({
   className,
   showDock = true,
   dockItems,
+  backTitle = "Moments",
+  backSubtitle = "Back to Feed",
+  publishedLabel = "Published",
+  readingTimeLabel = "Reading Time",
+  categoryLabel = "Category",
+  locationLabel = "Location",
+  dateLabel = "Date",
+  readLabel = "Read",
+  authorLabel = "Author",
 }: ArticlePaperDetailProps) {
   const titleParts = accentTitle ? [title, accentTitle] : [title];
   const skipAvatarOptimization =
@@ -76,10 +94,10 @@ export function ArticlePaperDetail({
             </div>
             <div className="flex flex-col">
               <h3 className="text-ink text-sm font-bold uppercase tracking-tight">
-                Moments
+                {backTitle}
               </h3>
               <span className="text-ink-light font-mono text-[10px]">
-                Back to Feed
+                {backSubtitle}
               </span>
             </div>
           </div>
@@ -109,19 +127,19 @@ export function ArticlePaperDetail({
           <aside className="hidden w-48 space-y-8 pt-8 text-right lg:sticky lg:top-32 lg:block">
             <div>
               <p className="text-ink-light mb-1 font-mono text-[10px] font-bold uppercase tracking-widest">
-                Published
+                {publishedLabel}
               </p>
               <p className="text-ink font-mono text-sm">{publishedDate}</p>
             </div>
             <div>
               <p className="text-ink-light mb-1 font-mono text-[10px] font-bold uppercase tracking-widest">
-                Reading Time
+                {readingTimeLabel}
               </p>
               <p className="text-ink font-mono text-sm">{readingTime}</p>
             </div>
             <div>
               <p className="text-ink-light mb-1 font-mono text-[10px] font-bold uppercase tracking-widest">
-                Category
+                {categoryLabel}
               </p>
               <span className="text-ink inline-block rounded border border-black/5 bg-white px-2 py-1 font-mono text-xs shadow-sm">
                 {category}
@@ -129,7 +147,7 @@ export function ArticlePaperDetail({
             </div>
             <div>
               <p className="text-ink-light mb-1 font-mono text-[10px] font-bold uppercase tracking-widest">
-                Location
+                {locationLabel}
               </p>
               <div className="text-ink flex items-center justify-end gap-1 opacity-80">
                 <MapPin className="h-3.5 w-3.5" />
@@ -185,7 +203,7 @@ export function ArticlePaperDetail({
                 <div className="mb-10 flex flex-wrap gap-4 border-b border-black/5 pb-8 lg:hidden">
                   <div className="flex items-center gap-2">
                     <span className="text-ink-light font-mono text-[10px] uppercase">
-                      Date
+                      {dateLabel}
                     </span>
                     <span className="text-ink font-mono text-xs">
                       {publishedDate}
@@ -193,7 +211,7 @@ export function ArticlePaperDetail({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-ink-light font-mono text-[10px] uppercase">
-                      Read
+                      {readLabel}
                     </span>
                     <span className="text-ink font-mono text-xs">
                       {readingTime}
@@ -208,7 +226,7 @@ export function ArticlePaperDetail({
                 <div className="mt-16 flex items-end justify-between border-t border-dashed border-black/10 pt-8">
                   <div>
                     <div className="text-ink-light mb-1 font-mono text-xs">
-                      Author
+                      {authorLabel}
                     </div>
                     <div className="text-ink font-serif text-lg italic">
                       {author}

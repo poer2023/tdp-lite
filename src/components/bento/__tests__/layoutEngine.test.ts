@@ -12,6 +12,7 @@ import {
 function createPost(id: string, options?: { withCover?: boolean }): FeedItem {
   const post: Post = {
     id,
+    translationKey: `translation-${id}`,
     slug: `slug-${id}`,
     locale: "en",
     title: `Post ${id}`,
@@ -36,6 +37,7 @@ function createMoment(
   const now = new Date("2026-02-16T00:00:00.000Z");
   const moment: Moment = {
     id,
+    translationKey: `translation-${id}`,
     content: "x".repeat(contentLength),
     media: options?.withMedia
       ? [{ type: "image", url: `https://example.com/${id}.jpg` }]
@@ -60,6 +62,7 @@ function createGallery(
   const now = new Date("2026-02-16T00:00:00.000Z");
   const gallery: GalleryItem = {
     id,
+    translationKey: `translation-${id}`,
     locale: "en",
     fileUrl: `https://example.com/${id}.jpg`,
     thumbUrl: null,

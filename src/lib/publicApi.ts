@@ -35,6 +35,14 @@ function asBoolean(value: unknown, fallback: boolean = false): boolean {
   return typeof value === "boolean" ? value : fallback;
 }
 
+function resolveTranslationKey(obj: RawObject): string {
+  const candidate =
+    asString(obj.translationKey) ||
+    asString(obj.translation_key) ||
+    asString(obj.id);
+  return candidate;
+}
+
 function resolveApiBaseUrl(): string {
   const explicitBase =
     process.env.TDP_API_BASE_URL || process.env.NEXT_PUBLIC_TDP_API_BASE_URL;
@@ -103,6 +111,7 @@ function toPost(raw: unknown): Post {
   const obj = asObject(raw);
   return {
     id: asString(obj.id),
+    translationKey: resolveTranslationKey(obj),
     slug: asString(obj.slug),
     locale: obj.locale === "zh" ? "zh" : "en",
     title: asString(obj.title),
@@ -153,6 +162,7 @@ function toMoment(raw: unknown): Moment {
 
   return {
     id: asString(obj.id),
+    translationKey: resolveTranslationKey(obj),
     content: asString(obj.content),
     media,
     locale: obj.locale === "zh" ? "zh" : "en",
@@ -173,6 +183,7 @@ function toGalleryItem(raw: unknown): GalleryItem {
 
   return {
     id: asString(obj.id),
+    translationKey: resolveTranslationKey(obj),
     locale: obj.locale === "zh" ? "zh" : "en",
     fileUrl: asString(obj.fileUrl),
     thumbUrl: asNullableString(obj.thumbUrl),

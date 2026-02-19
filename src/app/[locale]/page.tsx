@@ -25,6 +25,25 @@ const getHomeItems = unstable_cache(
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   const items = await getHomeItems(locale);
+  const t =
+    locale === "zh"
+      ? {
+          statusLabel: "状态",
+          statusValue: "在线 • 东京",
+          profileAlt: "个人头像",
+          heroMonth: "十月",
+          heroAccent: "回声",
+          heroDescription: "[001] 通过分层的棱镜，记录日常生活里稍纵即逝的片段。",
+        }
+      : {
+          statusLabel: "Status",
+          statusValue: "ONLINE • TOKYO",
+          profileAlt: "Profile portrait",
+          heroMonth: "October",
+          heroAccent: "Reflections",
+          heroDescription:
+            "[001] Capturing the ephemeral fragments of daily life through a layered prism.",
+        };
 
   return (
     <div
@@ -52,15 +71,15 @@ export default async function HomePage({ params }: HomePageProps) {
           <div className="flex items-center gap-6">
             <div className="hidden text-right font-mono sm:block">
               <p className="text-ink-light text-[10px] uppercase tracking-widest">
-                Status
+                {t.statusLabel}
               </p>
-              <p className="text-xs font-medium">ONLINE • TOKYO</p>
+              <p className="text-xs font-medium">{t.statusValue}</p>
             </div>
             {/* Avatar - links to about page */}
             <Link href={toLocalizedPath(locale, "/about")}>
               <Image
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1"
-                alt="Profile portrait"
+                alt={t.profileAlt}
                 width={48}
                 height={48}
                 sizes="48px"
@@ -74,14 +93,13 @@ export default async function HomePage({ params }: HomePageProps) {
         <section className="relative mb-14 px-2">
           <div className="absolute -left-4 top-0 hidden h-full w-1 rounded-full bg-black/5 md:block" />
           <h2 className="text-ink mb-6 text-6xl font-medium tracking-[-0.03em] md:text-8xl">
-            October{" "}
+            {t.heroMonth}{" "}
             <span className="text-ink-light font-serif italic">
-              Reflections
+              {t.heroAccent}
             </span>
           </h2>
           <p className="text-ink-light max-w-2xl pl-1 font-mono text-lg font-normal leading-relaxed md:text-xl">
-            [001] Capturing the ephemeral fragments of daily life through a
-            layered prism.
+            {t.heroDescription}
           </p>
         </section>
 

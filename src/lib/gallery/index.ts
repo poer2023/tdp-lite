@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import type { Moment } from "../schema";
 import { isVideoUrl } from "../media";
+import { toLocalizedPath } from "../locale-routing";
 import type {
   GalleryAggregationInput,
   GalleryFilterOptions,
@@ -99,6 +100,14 @@ export function extractImageUrlsFromPostContent(content: string): string[] {
 
 function stableImageId(normalizedUrl: string): string {
   return createHash("sha256").update(normalizedUrl).digest("hex").slice(0, 20);
+}
+
+export function getGalleryImageIdFromUrl(rawUrl: string): string | null {
+  const normalized = normalizeGalleryImageUrl(rawUrl);
+  if (!normalized) {
+    return null;
+  }
+  return stableImageId(normalized);
 }
 
 function sourceKey(source: GallerySourceEntry): string {
@@ -242,7 +251,7 @@ export function aggregateGalleryImages(
 
   for (const post of posts) {
     const sourceDate = post.publishedAt ?? post.createdAt;
-    const postPath = `/${locale}/posts/${post.slug}`;
+    const postPath = toLocalizedPath(locale, `/posts/${post.slug}`);
 
     if (post.coverUrl) {
       const normalized = normalizeGalleryImageUrl(post.coverUrl);
@@ -290,7 +299,7 @@ export function aggregateGalleryImages(
 
   for (const moment of moments) {
     const sourceDate = moment.publishedAt ?? moment.createdAt;
-    const momentPath = `/${locale}/moments/${moment.id}`;
+    const momentPath = toLocalizedPath(locale, `/moments/${moment.id}`);
     const title = pickPreferredMomentTitle(moment);
 
     (moment.media ?? []).forEach((media, mediaIndex) => {

@@ -7,15 +7,29 @@ import type { Moment } from "@/lib/schema";
 
 interface MomentDetailCardProps {
   moment: Moment;
+  locale?: "en" | "zh";
   index?: number;
   className?: string;
 }
 
 export function MomentDetailCard({
   moment,
+  locale = "en",
   index = 1,
   className,
 }: MomentDetailCardProps) {
+  const t =
+    locale === "zh"
+      ? {
+          noMedia: "暂无媒体内容",
+          reflection: "片段",
+          fallbackTitle: "在喧闹中寻找片刻静止",
+        }
+      : {
+          noMedia: "No media",
+          reflection: "Reflection",
+          fallbackTitle: "Finding Stillness in Chaos",
+        };
   const hasMedia = moment.media && moment.media.length > 0;
   const primaryMedia = hasMedia ? moment.media![0] : null;
   const skipOptimization =
@@ -77,7 +91,7 @@ export function MomentDetailCard({
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            No media
+            {t.noMedia}
           </div>
         )}
       </div>
@@ -87,7 +101,7 @@ export function MomentDetailCard({
         {/* Title row */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-sm tracking-wide text-muted-foreground">
-            Reflection // {String(index).padStart(3, "0")}
+            {t.reflection} // {String(index).padStart(3, "0")}
           </h2>
           <div
             className={cn(
@@ -106,7 +120,7 @@ export function MomentDetailCard({
         {/* Main title */}
         <div className="space-y-3 mb-6">
           <h1 className="font-display text-2xl md:text-3xl font-semibold leading-tight">
-            Finding Stillness in Chaos
+            {t.fallbackTitle}
           </h1>
           <div className="w-16 h-0.5 bg-black/10 dark:bg-white/10" />
         </div>

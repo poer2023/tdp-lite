@@ -6,12 +6,14 @@ interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  clearLabel?: string;
 }
 
 export function SearchInput({
   value,
   onChange,
   placeholder = "Search posts, moments, gallery metadata...",
+  clearLabel = "Clear search",
 }: SearchInputProps) {
   return (
     <div className="relative">
@@ -27,7 +29,7 @@ export function SearchInput({
           type="button"
           onClick={() => onChange("")}
           className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-[#666] transition-colors hover:bg-black/5 hover:text-[#111]"
-          aria-label="Clear search"
+          aria-label={clearLabel}
         >
           <X className="h-4 w-4" />
         </button>

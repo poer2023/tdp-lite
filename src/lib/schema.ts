@@ -16,6 +16,7 @@ export const posts = pgTable(
   "posts",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    translationKey: uuid("translation_key").notNull().defaultRandom(),
     slug: text("slug").notNull(),
     locale: text("locale").notNull().default("en"),
     title: text("title").notNull(),
@@ -32,7 +33,13 @@ export const posts = pgTable(
       .notNull()
       .defaultNow(),
   },
-  (table) => [uniqueIndex("idx_posts_locale_slug").on(table.locale, table.slug)]
+  (table) => [
+    uniqueIndex("idx_posts_locale_slug").on(table.locale, table.slug),
+    uniqueIndex("idx_posts_translation_locale").on(
+      table.translationKey,
+      table.locale
+    ),
+  ]
 );
 
 // Media type for moments
@@ -68,6 +75,7 @@ export const moments = pgTable(
   "moments",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    translationKey: uuid("translation_key").notNull().defaultRandom(),
     content: text("content").notNull(),
     media: jsonb("media").$type<MediaItem[]>().default([]),
     locale: text("locale").notNull().default("en"),
@@ -83,7 +91,13 @@ export const moments = pgTable(
       .defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
-  (table) => [index("idx_moments_created").on(table.createdAt)]
+  (table) => [
+    index("idx_moments_created").on(table.createdAt),
+    uniqueIndex("idx_moments_translation_locale").on(
+      table.translationKey,
+      table.locale
+    ),
+  ]
 );
 
 // Gallery - 图片相册
@@ -91,6 +105,7 @@ export const gallery = pgTable(
   "gallery",
   {
     id: uuid("id").primaryKey().defaultRandom(),
+    translationKey: uuid("translation_key").notNull().defaultRandom(),
     locale: text("locale").notNull().default("en"),
     fileUrl: text("file_url").notNull(),
     thumbUrl: text("thumb_url"),
@@ -123,6 +138,10 @@ export const gallery = pgTable(
   (table) => [
     index("idx_gallery_created").on(table.createdAt),
     index("idx_gallery_locale_created").on(table.locale, table.createdAt),
+    uniqueIndex("idx_gallery_translation_locale").on(
+      table.translationKey,
+      table.locale
+    ),
   ]
 );
 

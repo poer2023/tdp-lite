@@ -9,13 +9,28 @@ interface BottomNavProps {
   activeTab: Tab;
 }
 
-const tabs: { id: Tab; icon: typeof Home; label: string; path: string }[] = [
-  { id: "home", icon: Home, label: "Home", path: "" },
-  { id: "gallery", icon: Grid3X3, label: "Gallery", path: "/gallery" },
-  { id: "search", icon: Search, label: "Search", path: "/search" },
+const tabs: { id: Tab; icon: typeof Home; path: string }[] = [
+  { id: "home", icon: Home, path: "" },
+  { id: "gallery", icon: Grid3X3, path: "/gallery" },
+  { id: "search", icon: Search, path: "/search" },
 ];
 
 export function BottomNav({ locale, activeTab }: BottomNavProps) {
+  const labels =
+    locale === "zh"
+      ? {
+          home: "首页",
+          gallery: "画廊",
+          search: "搜索",
+          about: "关于",
+        }
+      : {
+          home: "Home",
+          gallery: "Gallery",
+          search: "Search",
+          about: "About",
+        };
+
   return (
     <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2">
       <IconNavShell>
@@ -27,7 +42,7 @@ export function BottomNav({ locale, activeTab }: BottomNavProps) {
               key={tab.id}
               href={toLocalizedPath(locale, tab.path || "/")}
               icon={<Icon className="h-5 w-5" />}
-              label={tab.label}
+              label={labels[tab.id]}
               active={isActive}
             />
           );
@@ -36,7 +51,7 @@ export function BottomNav({ locale, activeTab }: BottomNavProps) {
         <IconNavItem
           href={toLocalizedPath(locale, "/about")}
           icon={<User className="h-5 w-5" />}
-          label="About"
+          label={labels.about}
           active={activeTab === "about"}
         />
       </IconNavShell>

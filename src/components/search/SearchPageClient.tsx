@@ -124,6 +124,44 @@ function shouldSkipOptimization(src: string): boolean {
 }
 
 export function SearchPageClient({ locale }: SearchPageClientProps) {
+  const t =
+    locale === "zh"
+      ? {
+          placeholder: "搜索文章、动态和画廊元数据...",
+          clear: "清空搜索",
+          startHint: "输入关键词，检索全部已发布文章、公开动态与画廊元数据。",
+          minHint: `至少输入 ${MIN_QUERY_LENGTH} 个字符开始搜索。`,
+          emptyHint: "当前查询与筛选条件下没有结果。",
+          posts: "文章",
+          moments: "动态",
+          gallery: "画廊",
+          emptyPosts: "没有匹配的文章。",
+          emptyMoments: "没有匹配的动态。",
+          emptyGallery: "没有匹配的画廊内容。",
+          loading: "加载中...",
+          untitled: "未命名",
+          noMetadata: "无元数据",
+          requestFailed: "搜索请求失败",
+        }
+      : {
+          placeholder: "Search posts, moments, gallery metadata...",
+          clear: "Clear search",
+          startHint:
+            "Enter keywords to start searching all published posts, moments and gallery metadata.",
+          minHint: `Type at least ${MIN_QUERY_LENGTH} characters to start searching.`,
+          emptyHint: "No results found for current query and filters.",
+          posts: "Posts",
+          moments: "Moments",
+          gallery: "Gallery",
+          emptyPosts: "No matching posts.",
+          emptyMoments: "No matching moments.",
+          emptyGallery: "No matching gallery items.",
+          loading: "Loading...",
+          untitled: "Untitled",
+          noMetadata: "No metadata",
+          requestFailed: "Search request failed",
+        };
+
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [filters, setFilters] = useState<SearchFilterDraft>(defaultFilters);
@@ -188,7 +226,7 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
         });
 
         if (!response.ok) {
-          let message = `search request failed (${response.status})`;
+          let message = `${t.requestFailed} (${response.status})`;
           try {
             const errorBody = (await response.json()) as { message?: string; error?: string };
             if (typeof errorBody.message === "string" && errorBody.message.trim()) {
@@ -232,7 +270,7 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
           return;
         }
         const message =
-          error instanceof Error ? error.message : "Search request failed.";
+          error instanceof Error ? error.message : t.requestFailed;
         setSections((prev) => ({
           ...prev,
           [section]: {
@@ -243,7 +281,7 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
         }));
       }
     },
-    [filterPayload, locale]
+    [filterPayload, locale, t.requestFailed]
   );
 
   useEffect(() => {
@@ -304,20 +342,25 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
 
   return (
     <div className="space-y-5">
-      <SearchInput value={query} onChange={setQuery} />
+      <SearchInput
+        value={query}
+        onChange={setQuery}
+        placeholder={t.placeholder}
+        clearLabel={t.clear}
+      />
 
-      <SearchFilters value={filters} onChange={setFilters} />
+      <SearchFilters locale={locale} value={filters} onChange={setFilters} />
 
       {!hasActiveQuery ? (
         <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-8 text-center">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
-            Enter keywords to start searching all published posts, moments and gallery metadata.
+            {t.startHint}
           </p>
         </div>
       ) : !isQueryReady ? (
         <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-8 text-center">
           <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
-            Type at least {MIN_QUERY_LENGTH} characters to start searching.
+            {t.minHint}
           </p>
         </div>
       ) : (
@@ -325,19 +368,20 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
           {hasExecutedSearch && !isAnyLoading && !hasAnyResult ? (
             <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-8 text-center">
               <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
-                No results found for current query and filters.
+                {t.emptyHint}
               </p>
             </div>
           ) : null}
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
             <SearchSectionList<SearchPostItem>
-              title="Posts"
+              title={t.posts}
               items={sections.post.items}
               isLoading={sections.post.isLoading}
               hasMore={sections.post.hasMore}
               error={sections.post.error}
-              emptyLabel="No matching posts."
+              emptyLabel={t.emptyPosts}
+              loadingLabel={t.loading}
               onLoadMore={() => loadMore("post")}
               renderItem={(item) => (
                 <article
@@ -368,12 +412,13 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
             />
 
             <SearchSectionList<SearchMomentItem>
-              title="Moments"
+              title={t.moments}
               items={sections.moment.items}
               isLoading={sections.moment.isLoading}
               hasMore={sections.moment.hasMore}
               error={sections.moment.error}
-              emptyLabel="No matching moments."
+              emptyLabel={t.emptyMoments}
+              loadingLabel={t.loading}
               onLoadMore={() => loadMore("moment")}
               renderItem={(item) => (
                 <article
@@ -406,16 +451,20 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
             />
 
             <SearchSectionList<SearchGalleryItem>
-              title="Gallery"
+              title={t.gallery}
               items={sections.gallery.items}
               isLoading={sections.gallery.isLoading}
               hasMore={sections.gallery.hasMore}
               error={sections.gallery.error}
-              emptyLabel="No matching gallery items."
+              emptyLabel={t.emptyGallery}
+              loadingLabel={t.loading}
               onLoadMore={() => loadMore("gallery")}
               renderItem={(item) => {
                 const imageSrc = item.thumbUrl || item.fileUrl;
-                const title = item.title?.trim() || "Untitled";
+                const galleryHref = item.imageId
+                  ? `/gallery/${item.imageId}`
+                  : "/gallery";
+                const title = item.title?.trim() || t.untitled;
                 const metaParts = [
                   item.camera,
                   item.lens,
@@ -428,7 +477,7 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
                     className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
                   >
                     <Link
-                      href={toLocalizedPath(item.locale, `/gallery#gallery-${item.id}`)}
+                      href={toLocalizedPath(item.locale, galleryHref)}
                       className="group flex gap-3"
                     >
                       <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-black/8 bg-black/5">
@@ -454,7 +503,7 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
                                   {highlightText(part, debouncedQuery)}
                                 </span>
                               ))
-                            : "No metadata"}
+                            : t.noMetadata}
                         </div>
                         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#777]">
                           <span>{formatDate(item.sortAt, item.locale)}</span>

@@ -9,6 +9,7 @@ interface SearchSectionListProps<T extends { id: string }> {
   hasMore: boolean;
   error: string | null;
   emptyLabel: string;
+  loadingLabel: string;
   onLoadMore: () => void;
   renderItem: (item: T) => React.ReactNode;
 }
@@ -20,6 +21,7 @@ export function SearchSectionList<T extends { id: string }>({
   hasMore,
   error,
   emptyLabel,
+  loadingLabel,
   onLoadMore,
   renderItem,
 }: SearchSectionListProps<T>) {
@@ -70,7 +72,7 @@ export function SearchSectionList<T extends { id: string }>({
 
       {isLoading ? (
         <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-[#777]">
-          Loading...
+          {loadingLabel}
         </p>
       ) : null}
 

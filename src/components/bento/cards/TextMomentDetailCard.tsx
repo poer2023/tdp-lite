@@ -6,15 +6,25 @@ import type { Moment } from "@/lib/schema";
 
 interface TextMomentDetailCardProps {
   moment: Moment;
+  locale?: "en" | "zh";
   index?: number;
   className?: string;
 }
 
 export function TextMomentDetailCard({
   moment,
+  locale = "en",
   index = 1,
   className,
 }: TextMomentDetailCardProps) {
+  const t =
+    locale === "zh"
+      ? {
+          fragment: "片段",
+        }
+      : {
+          fragment: "Fragment",
+        };
   const locationName = moment.location?.name ?? null;
 
   return (
@@ -101,7 +111,7 @@ export function TextMomentDetailCard({
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5" />
-                <span>{formatRelativeTime(moment.createdAt)}</span>
+                <span>{formatRelativeTime(moment.createdAt, locale)}</span>
               </div>
               {locationName && (
                 <div className="flex items-center gap-2">
@@ -113,7 +123,9 @@ export function TextMomentDetailCard({
 
             {/* Right side - fragment number */}
             <div className="hidden md:block">
-              <span>Fragment {String(index).padStart(3, "0")}</span>
+              <span>
+                {t.fragment} {String(index).padStart(3, "0")}
+              </span>
             </div>
           </div>
         </footer>

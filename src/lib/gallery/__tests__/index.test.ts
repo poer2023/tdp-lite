@@ -9,6 +9,7 @@ import {
 function createPost(overrides: Partial<Post>): Post {
   return {
     id: overrides.id ?? "post-1",
+    translationKey: overrides.translationKey ?? `translation-${overrides.id ?? "post-1"}`,
     slug: overrides.slug ?? "post-1",
     locale: overrides.locale ?? "en",
     title: overrides.title ?? "Post Title",
@@ -26,6 +27,7 @@ function createPost(overrides: Partial<Post>): Post {
 function createMoment(overrides: Partial<Moment>): Moment {
   return {
     id: overrides.id ?? "moment-1",
+    translationKey: overrides.translationKey ?? `translation-${overrides.id ?? "moment-1"}`,
     content: overrides.content ?? "Moment content",
     media: overrides.media ?? [],
     locale: overrides.locale ?? "en",

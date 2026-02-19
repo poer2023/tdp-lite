@@ -1,14 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "@/lib/locale-routing";
+import { DEFAULT_LOCALE } from "@/lib/locale-routing";
 
 const NON_LOCALIZED_PREFIXES = ["/admin", "/preview", "/test"] as const;
-
-function hasLocalePrefix(pathname: string): boolean {
-  return SUPPORTED_LOCALES.some(
-    (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
-  );
-}
+type Locale = "en" | "zh";
 
 function isNonLocalizedPath(pathname: string): boolean {
   return NON_LOCALIZED_PREFIXES.some(
@@ -16,17 +11,29 @@ function isNonLocalizedPath(pathname: string): boolean {
   );
 }
 
+function detectLocale(pathname: string): Locale {
+  if (pathname === "/en" || pathname.startsWith("/en/")) {
+    return "en";
+  }
+  return "zh";
+}
+
+function nextWithLocaleHeader(request: NextRequest, locale: Locale) {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-tdp-locale", locale);
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const locale = detectLocale(pathname);
 
   if (isNonLocalizedPath(pathname)) {
-    return NextResponse.next();
-  }
-
-  if (!hasLocalePrefix(pathname)) {
-    const rewriteUrl = request.nextUrl.clone();
-    rewriteUrl.pathname = `/${DEFAULT_LOCALE}${pathname === "/" ? "" : pathname}`;
-    return NextResponse.rewrite(rewriteUrl);
+    return nextWithLocaleHeader(request, locale);
   }
 
   if (pathname === `/${DEFAULT_LOCALE}` || pathname.startsWith(`/${DEFAULT_LOCALE}/`)) {
@@ -36,7 +43,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  return NextResponse.next();
+  return nextWithLocaleHeader(request, locale);
 }
 
 export const config = {

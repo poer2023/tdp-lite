@@ -28,6 +28,7 @@ const getCachedGalleryItems = unstable_cache(
 export default async function GalleryPage({ params }: GalleryPageProps) {
   const { locale } = await params;
   const items = await getCachedGalleryItems(locale);
+  const heading = locale === "zh" ? "画廊" : "Gallery";
 
   return (
     <div
@@ -42,7 +43,7 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 py-12 md:px-12">
         <header className="mb-8">
           <h1 className="mb-4 font-serif text-6xl font-medium tracking-[-0.03em] text-[#111] md:text-8xl">
-            Gallery
+            {heading}
           </h1>
         </header>
 

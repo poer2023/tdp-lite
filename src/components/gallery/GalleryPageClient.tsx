@@ -9,6 +9,7 @@ import {
 } from "@/components/bento/layoutEngine";
 import type { FeedItem } from "@/components/bento/types";
 import { cn } from "@/lib/utils";
+import { toLocalizedPath } from "@/lib/locale-routing";
 import type { GalleryImageAggregateDTO } from "@/lib/gallery";
 
 interface GalleryPageClientProps {
@@ -26,6 +27,7 @@ function toLayoutItem(item: GalleryImageAggregateDTO): Extract<FeedItem, { type:
   return {
     type: "gallery",
     id: item.imageId,
+    translationKey: item.imageId,
     locale: item.locale,
     fileUrl: item.imageUrl,
     thumbUrl: item.thumbUrl,
@@ -51,6 +53,17 @@ function toLayoutItem(item: GalleryImageAggregateDTO): Extract<FeedItem, { type:
 }
 
 export function GalleryPageClient({ locale, items }: GalleryPageClientProps) {
+  const t =
+    locale === "zh"
+      ? {
+          empty: "还没有图片。",
+          imageAlt: "画廊图片",
+        }
+      : {
+          empty: "No images yet.",
+          imageAlt: "Gallery image",
+        };
+
   const cards = useMemo(() => {
     return items.map((item) => {
       const layoutItem = toLayoutItem(item);
@@ -69,7 +82,7 @@ export function GalleryPageClient({ locale, items }: GalleryPageClientProps) {
   return items.length === 0 ? (
     <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-16 text-center">
       <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
-        No images yet.
+        {t.empty}
       </p>
     </div>
   ) : (
@@ -81,12 +94,12 @@ export function GalleryPageClient({ locale, items }: GalleryPageClientProps) {
         return (
           <div key={item.imageId} className={cn("bento-card", spanClass)}>
             <Link
-              href={`/${locale}/gallery/${item.imageId}`}
+              href={toLocalizedPath(locale, `/gallery/${item.imageId}`)}
               className="group block h-full w-full"
             >
               <MomentImageOnly
                 src={imageSrc}
-                alt={item.title || "Gallery image"}
+                alt={item.title || t.imageAlt}
                 sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                 unoptimized={shouldSkipOptimization(imageSrc)}
                 className="paper-card"

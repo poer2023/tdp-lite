@@ -24,11 +24,14 @@ import {
   X,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
+import { toLocalizedPath } from "@/lib/locale-routing";
 import type { GalleryImageAggregateDTO } from "@/lib/gallery";
 
 interface GalleryImageDetailProps {
   locale: "en" | "zh";
   item: GalleryImageAggregateDTO;
+  alternateHref?: string | null;
+  alternateLabel?: string;
 }
 
 interface PointerPoint {
@@ -47,16 +50,30 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function sourcePositionLabel(position: string): string {
+function sourcePositionLabel(
+  position: string,
+  locale: "en" | "zh"
+): string {
   switch (position) {
     case "post_cover":
-      return "Post cover";
+      return locale === "zh" ? "文章封面" : "Post cover";
     case "post_body":
-      return "Post body";
+      return locale === "zh" ? "文章正文" : "Post body";
     case "moment_media":
-      return "Moment media";
+      return locale === "zh" ? "动态媒体" : "Moment media";
     default:
-      return "Source";
+      return locale === "zh" ? "来源" : "Source";
+  }
+}
+
+function sourceTypeLabel(type: string, locale: "en" | "zh"): string {
+  switch (type) {
+    case "post":
+      return locale === "zh" ? "文章" : "post";
+    case "moment":
+      return locale === "zh" ? "动态" : "moment";
+    default:
+      return type;
   }
 }
 
@@ -64,7 +81,52 @@ function distance(a: PointerPoint, b: PointerPoint): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
-export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
+export function GalleryImageDetail({
+  locale,
+  item,
+  alternateHref,
+  alternateLabel = "Switch",
+}: GalleryImageDetailProps) {
+  const t =
+    locale === "zh"
+      ? {
+          back: "返回画廊",
+          imageAlt: "画廊图片",
+          zoom: "放大",
+          titleFallback: "未命名图片",
+          sourceCount: "个来源",
+          latest: "最近",
+          imageInfo: "图片信息",
+          resolution: "分辨率",
+          capturedAt: "拍摄时间",
+          camera: "相机",
+          lens: "镜头",
+          exposure: "曝光",
+          coordinates: "坐标",
+          unknown: "未知",
+          sources: "来源",
+          reset: "重置",
+          zoomLabel: "缩放",
+        }
+      : {
+          back: "Back to Gallery",
+          imageAlt: "Gallery image",
+          zoom: "Zoom",
+          titleFallback: "Untitled image",
+          sourceCount: "source",
+          latest: "latest",
+          imageInfo: "Image Info",
+          resolution: "Resolution",
+          capturedAt: "Captured At",
+          camera: "Camera",
+          lens: "Lens",
+          exposure: "Exposure",
+          coordinates: "Coordinates",
+          unknown: "Unknown",
+          sources: "Sources",
+          reset: "Reset",
+          zoomLabel: "Zoom",
+        };
   const imageSrc = item.thumbUrl || item.imageUrl;
   const [isLightboxOpen, setLightboxOpen] = useState(false);
   const [scale, setScale] = useState(1);
@@ -223,14 +285,23 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
   return (
     <section className="relative overflow-hidden rounded-[2rem] bg-[#e8e8e6] px-6 py-8 md:px-10 md:py-10">
       <div className="mx-auto max-w-[1240px]">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between gap-3">
           <Link
-            href={`/${locale}/gallery`}
+            href={toLocalizedPath(locale, "/gallery")}
             className="lg-chip-light text-ink/80 group inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/70 px-4 py-2 text-[10px] font-bold uppercase tracking-widest shadow-sm transition-all hover:bg-white"
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
-            Back to Gallery
+            {t.back}
           </Link>
+
+          {alternateHref ? (
+            <Link
+              href={alternateHref}
+              className="rounded-full border border-black/10 bg-white/80 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-[#555] transition-colors hover:border-black/20 hover:text-[#111]"
+            >
+              {alternateLabel}
+            </Link>
+          ) : null}
         </div>
 
         <article className="overflow-hidden rounded-[2.25rem] border border-white/40 bg-paper-white shadow-[0_30px_60px_-15px_rgba(0,0,0,0.06),0_10px_20px_-5px_rgba(0,0,0,0.02)]">
@@ -244,7 +315,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
               >
                 <Image
                   src={imageSrc}
-                  alt={item.title || "Gallery image"}
+                  alt={item.title || t.imageAlt}
                   width={item.width || 1600}
                   height={item.height || 1000}
                   unoptimized={shouldSkipOptimization(imageSrc)}
@@ -254,7 +325,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
 
                 <div className="lg-chip-dark absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/25 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-white">
                   <Maximize2 className="h-3.5 w-3.5" />
-                  Zoom
+                  {t.zoom}
                 </div>
               </button>
             </div>
@@ -262,58 +333,66 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
             <div className="border-l border-black/5 bg-paper-white px-6 py-7 md:px-8 md:py-8">
               <header className="border-b border-black/5 pb-6">
                 <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#777]">
-                  Pure Gallery
+                  {locale === "zh" ? "纯粹画廊" : "Pure Gallery"}
                 </p>
                 <h1 className="mt-2 font-serif text-4xl italic leading-tight text-[#111]">
-                  {item.title || "Untitled image"}
+                  {item.title || t.titleFallback}
                 </h1>
                 <p className="mt-3 font-mono text-[11px] uppercase tracking-wider text-[#666]">
-                  {item.sourceCount} source{item.sourceCount === 1 ? "" : "s"} • latest {formatDate(item.latestAt, locale)}
+                  {item.sourceCount}{" "}
+                  {locale === "zh"
+                    ? t.sourceCount
+                    : `${t.sourceCount}${item.sourceCount === 1 ? "" : "s"}`}{" "}
+                  • {t.latest} {formatDate(item.latestAt, locale)}
                 </p>
               </header>
 
               <section className="mt-6 space-y-4 border-b border-black/5 pb-6">
                 <div className="mb-2 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#777]">
                   <Info className="h-3.5 w-3.5" />
-                  Image Info
+                  {t.imageInfo}
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-4">
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-widest text-[#888]">
-                      Resolution
+                      {t.resolution}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[#222]">
-                      {item.width && item.height ? `${item.width} × ${item.height}` : "Unknown"}
+                      {item.width && item.height
+                        ? `${item.width} × ${item.height}`
+                        : t.unknown}
                     </p>
                   </div>
 
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-widest text-[#888]">
-                      Captured At
+                      {t.capturedAt}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[#222]">
-                      {item.capturedAt ? formatDate(item.capturedAt, locale) : "Unknown"}
+                      {item.capturedAt
+                        ? formatDate(item.capturedAt, locale)
+                        : t.unknown}
                     </p>
                   </div>
 
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-widest text-[#888]">
-                      Camera
+                      {t.camera}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[#222]">{item.camera || "-"}</p>
                   </div>
 
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-widest text-[#888]">
-                      Lens
+                      {t.lens}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[#222]">{item.lens || "-"}</p>
                   </div>
 
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-widest text-[#888]">
-                      Exposure
+                      {t.exposure}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[#222]">
                       {[item.focalLength, item.aperture, item.iso ? `ISO ${item.iso}` : null]
@@ -324,7 +403,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
 
                   <div>
                     <p className="font-mono text-[9px] uppercase tracking-widest text-[#888]">
-                      Coordinates
+                      {t.coordinates}
                     </p>
                     <p className="mt-1 font-mono text-xs text-[#222]">
                       {typeof item.latitude === "number" && typeof item.longitude === "number"
@@ -338,7 +417,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
               <section className="mt-6 space-y-3">
                 <div className="mb-1 flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-[#777]">
                   <Calendar className="h-3.5 w-3.5" />
-                  Sources
+                  {t.sources}
                 </div>
 
                 <div className="space-y-2.5">
@@ -353,9 +432,9 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
                         <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#666]">
                           <span className="inline-flex items-center gap-1">
                             <CircleDot className="h-2.5 w-2.5" />
-                            {source.sourceType}
+                            {sourceTypeLabel(source.sourceType, locale)}
                           </span>
-                          <span>{sourcePositionLabel(source.position)}</span>
+                          <span>{sourcePositionLabel(source.position, locale)}</span>
                           <span>{formatDate(source.sourceDate, locale)}</span>
                         </div>
                       </div>
@@ -394,7 +473,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
                 }}
                 className="lg-chip-dark inline-flex h-10 items-center justify-center rounded-full border border-white/20 bg-white/10 px-4 font-mono text-[11px] uppercase tracking-wider text-white transition hover:bg-white/20"
               >
-              Reset
+              {t.reset}
             </button>
               <button
                 type="button"
@@ -424,7 +503,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
           >
             <Image
               src={item.imageUrl}
-              alt={item.title || "Gallery image"}
+              alt={item.title || t.imageAlt}
               width={item.width || 1920}
               height={item.height || 1080}
               unoptimized={shouldSkipOptimization(item.imageUrl)}
@@ -441,7 +520,7 @@ export function GalleryImageDetail({ locale, item }: GalleryImageDetailProps) {
           <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/20 bg-black/35 px-4 py-2 font-mono text-[11px] uppercase tracking-widest text-white">
             <span className="inline-flex items-center gap-2">
               <Camera className="h-3.5 w-3.5" />
-              Zoom {Math.round(scale * 100)}%
+              {t.zoomLabel} {Math.round(scale * 100)}%
             </span>
           </div>
         </div>

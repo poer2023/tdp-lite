@@ -79,6 +79,7 @@ export interface SearchMomentItem extends SearchResponseItemBase {
 
 export interface SearchGalleryItem extends SearchResponseItemBase {
   section: "gallery";
+  imageId?: string | null;
   title: string | null;
   camera: string | null;
   lens: string | null;

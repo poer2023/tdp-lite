@@ -13,6 +13,7 @@ export function toPreviewMoment(input: PublishMomentInput): Moment {
   const now = NOW();
   return {
     id: "preview-moment",
+    translationKey: "preview-moment",
     content: input.content,
     media: input.media,
     locale: input.locale,
@@ -30,6 +31,7 @@ export function toPreviewPost(input: PublishPostInput): Post {
   const now = NOW();
   return {
     id: "preview-post",
+    translationKey: "preview-post",
     slug: generateSlug(input.title) || "preview-post",
     locale: input.locale,
     title: input.title,
@@ -48,6 +50,7 @@ export function toPreviewGallery(input: PublishGalleryInput): GalleryItem {
   const now = NOW();
   return {
     id: "preview-gallery",
+    translationKey: "preview-gallery",
     locale: input.locale,
     fileUrl: input.fileUrl,
     thumbUrl: input.thumbUrl || null,

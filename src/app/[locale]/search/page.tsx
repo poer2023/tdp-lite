@@ -15,6 +15,19 @@ interface SearchPageProps {
 export default async function SearchPage({ params }: SearchPageProps) {
   const { locale } = await params;
   const validLocale = locales.includes(locale) ? locale : DEFAULT_LOCALE;
+  const t =
+    validLocale === "zh"
+      ? {
+          kicker: "探索",
+          title: "搜索",
+          description: "检索已发布文章、公开动态和画廊元数据。",
+        }
+      : {
+          kicker: "Discovery",
+          title: "Search",
+          description:
+            "Query all published posts, public moments and gallery metadata.",
+        };
 
   return (
     <div
@@ -31,15 +44,15 @@ export default async function SearchPage({ params }: SearchPageProps) {
           <div className="mb-4 inline-flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-[#111]" />
             <span className="font-mono text-xs uppercase tracking-widest text-[#999]">
-              Discovery
+              {t.kicker}
             </span>
             <span className="h-1.5 w-1.5 rounded-full bg-[#111]" />
           </div>
           <h1 className="mb-3 font-serif text-5xl font-medium tracking-[-0.03em] text-[#111] md:text-7xl">
-            Search
+            {t.title}
           </h1>
           <p className="max-w-2xl font-mono text-sm leading-relaxed text-[#777]">
-            Query all published posts, public moments and gallery metadata.
+            {t.description}
           </p>
         </header>
 

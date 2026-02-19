@@ -10,7 +10,7 @@
     "cli": "npx tsx cli/tdp.ts",
     "backend:api": "zsh -lc 'set -a; [ -f .env ] && source .env; [ -f .env.local ] && source .env.local; set +a; cd backend && go run ./cmd/tdp-api'",
     "backend:worker": "zsh -lc 'set -a; [ -f .env ] && source .env; [ -f .env.local ] && source .env.local; set +a; cd backend && go run ./cmd/tdp-worker'",
-    "backend:migrate": "zsh -lc 'set -a; [ -f .env ] && source .env; [ -f .env.local ] && source .env.local; set +a; psql \"$DATABASE_URL\" -f backend/migrations/0001_api_platform.sql && psql \"$DATABASE_URL\" -f backend/migrations/0002_search_fts_indexes.sql'",
+    "backend:migrate": "zsh -lc 'set -a; [ -f .env ] && source .env; [ -f .env.local ] && source .env.local; set +a; psql \"$DATABASE_URL\" -f backend/migrations/0001_api_platform.sql && psql \"$DATABASE_URL\" -f backend/migrations/0002_search_fts_indexes.sql && psql \"$DATABASE_URL\" -f backend/migrations/0003_translation_keys.sql && psql \"$DATABASE_URL\" -f backend/migrations/0004_posts_slug_locale_unique.sql'",
     "dev:all": "zsh -lc 'pnpm backend:api & API_PID=$!; pnpm backend:worker & WORKER_PID=$!; trap \"kill $API_PID $WORKER_PID 2>/dev/null || true\" EXIT INT TERM; pnpm dev'",
     "dev": "next dev --turbopack",
     "build": "next build",

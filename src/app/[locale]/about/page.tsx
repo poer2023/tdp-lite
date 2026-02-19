@@ -33,6 +33,52 @@ interface AboutPageProps {
 
 export default async function AboutPage({ params }: AboutPageProps) {
   const { locale } = await params;
+  const t =
+    locale === "zh"
+      ? {
+          profileAlt: "用户头像",
+          est: "始于 2024",
+          bio: "数字工匠与极简探索者。为喧闹世界设计安静的界面，现居东京，在比特与碎片化记忆中穿梭。",
+          hire: "可接受合作",
+          techStack: "技术栈",
+          activity: "活跃度",
+          activityArticles: "已发布文章",
+          activityMoments: "日常动态",
+          activityPhotos: "胶片影像",
+          reading: "正在阅读",
+          progress: "进度",
+          connectivity: "连接方式",
+          socialTwitter: "X / 推特",
+          socialGithub: "Github",
+          socialReadcv: "Read.cv",
+          socialEmail: "邮箱",
+          footprintTitle: "留下痕迹",
+          footprintSubtitle: "匿名留言 / 合作邀请",
+          footprintCta: "发起连接",
+          bookCoverAlt: "书籍封面",
+        }
+      : {
+          profileAlt: "User profile",
+          est: "EST. 2024",
+          bio: "Digital craftsman and minimalist explorer. Designing quiet interfaces for a loud world. Currently based in Tokyo, weaving together bits, bytes, and broken reflections.",
+          hire: "Available for hire",
+          techStack: "Tech Stack",
+          activity: "Activity",
+          activityArticles: "Articles Published",
+          activityMoments: "Daily Moments",
+          activityPhotos: "Analog Photos",
+          reading: "Currently Reading",
+          progress: "Progress",
+          connectivity: "Connectivity",
+          socialTwitter: "X / Twitter",
+          socialGithub: "Github",
+          socialReadcv: "Read.cv",
+          socialEmail: "Email",
+          footprintTitle: "Leave a footprint",
+          footprintSubtitle: "Anonymous Message / Collaboration Request",
+          footprintCta: "Initialize Transmission",
+          bookCoverAlt: "Book cover",
+        };
 
   // Query counts directly from local DB read layer
   const [postsCount, momentsCount, galleryItems] = await Promise.all([
@@ -51,16 +97,16 @@ export default async function AboutPage({ params }: AboutPageProps) {
   ];
 
   const activity = [
-    { value: String(postsCount.length), label: "Articles Published" },
-    { value: String(momentsCount.length), label: "Daily Moments" },
-    { value: String(galleryItems.length), label: "Analog Photos" },
+    { value: String(postsCount.length), label: t.activityArticles },
+    { value: String(momentsCount.length), label: t.activityMoments },
+    { value: String(galleryItems.length), label: t.activityPhotos },
   ];
 
   const socialLinks = [
-    { name: "X / Twitter", href: "https://twitter.com", icon: AtSign },
-    { name: "Github", href: "https://github.com", icon: Github },
-    { name: "Read.cv", href: "https://read.cv", icon: FileText },
-    { name: "Email", href: "mailto:hello@example.com", icon: Mail },
+    { name: t.socialTwitter, href: "https://twitter.com", icon: AtSign },
+    { name: t.socialGithub, href: "https://github.com", icon: Github },
+    { name: t.socialReadcv, href: "https://read.cv", icon: FileText },
+    { name: t.socialEmail, href: "mailto:hello@example.com", icon: Mail },
   ];
 
   return (
@@ -83,7 +129,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
               <div className="relative h-56 w-56 rotate-[-3deg] overflow-hidden rounded-[3rem] border-[14px] border-white paper-stack-shadow transition-transform duration-700 group-hover:rotate-0 md:h-64 md:w-64">
                 <Image
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1"
-                  alt="User profile"
+                  alt={t.profileAlt}
                   fill
                   unoptimized
                   sizes="(min-width: 768px) 16rem, 14rem"
@@ -91,7 +137,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 />
               </div>
               <div className="bg-ink absolute -bottom-6 -right-6 rotate-6 rounded-2xl px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-white paper-stack-shadow">
-                EST. 2024
+                {t.est}
               </div>
             </div>
 
@@ -104,15 +150,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 </span>
               </h1>
               <p className="text-ink-light max-w-3xl text-2xl font-light leading-[1.6] md:text-3xl">
-                Digital craftsman and minimalist explorer. Designing quiet
-                interfaces for a loud world. Currently based in Tokyo, weaving
-                together bits, bytes, and broken reflections.
+                {t.bio}
               </p>
               <div className="mt-10 flex flex-wrap justify-center gap-5 md:justify-start">
                 <div className="lg-chip-light flex items-center gap-3 rounded-full border border-white/50 bg-white/80 px-6 py-3 paper-stack-shadow">
                   <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
                   <span className="text-ink font-mono text-sm uppercase tracking-[0.15em]">
-                    Available for hire
+                    {t.hire}
                   </span>
                 </div>
               </div>
@@ -125,7 +169,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
             <div className="bento-card-about col-span-1 md:col-span-3 lg:col-span-5">
               <div className="mb-12 flex items-start justify-between">
                 <h3 className="text-ink-light font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                  Tech Stack
+                  {t.techStack}
                 </h3>
                 <Terminal className="h-7 w-7 text-black/15" />
               </div>
@@ -152,7 +196,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
             {/* Activity */}
             <div className="bento-card-about col-span-1 flex flex-col justify-between bg-gradient-to-br from-paper-off-white to-paper-grey md:col-span-3 lg:col-span-3">
               <h3 className="text-ink-light mb-10 font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                Activity
+                {t.activity}
               </h3>
               <div className="space-y-8">
                 {activity.map((item, index) => (
@@ -177,13 +221,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 <BookOpen className="h-12 w-12 text-black/5" />
               </div>
               <h3 className="text-ink-light mb-8 font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                Currently Reading
+                {t.reading}
               </h3>
               <div className="flex gap-6 items-start">
                 <div className="relative h-40 w-28 shrink-0 rotate-[-6deg] overflow-hidden rounded-2xl border border-black/5 bg-paper-grey transition-transform paper-stack-shadow group-hover:rotate-0">
                   <Image
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiAlc_Yk4SdPoZ6_R2pnELqovwoEgd4huXGJ7pH3cQD8Z7kLfVckop0Xm8E3uly53SSaExVIgxCvnjbLyMPfQgUoZDNxiJMrNNrf3O9hju-GLwGpwmlpTLfGAyZCNF53lOG6Ce70FSHXDpRa-HYQNJjqcpDV5jJhJy-gsmez6NMPuUwDLbSxmiCMpJ6Ci4475ZsYptBDkfyeuz8CMFzkA2vTMxYx5kCT2EV8H7rSRopWd42Ewky4nyGrL8dSzhuXdOfKkZZhl5C4oJ"
-                    alt="Book cover"
+                    alt={t.bookCoverAlt}
                     fill
                     unoptimized
                     sizes="7rem"
@@ -203,7 +247,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                     </div>
                     <div className="mt-2 flex justify-between">
                       <span className="text-ink-light font-mono text-[11px] font-bold uppercase tracking-widest">
-                        Progress
+                        {t.progress}
                       </span>
                       <span className="text-ink font-mono text-[11px] font-bold">
                         65%
@@ -217,7 +261,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
             {/* Connectivity */}
             <div className="bento-card-about col-span-1 bg-gradient-to-br from-white to-paper-off-white md:col-span-3 lg:col-span-4">
               <h3 className="text-ink-light mb-10 font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                Connectivity
+                {t.connectivity}
               </h3>
               <div className="grid grid-cols-1 gap-4">
                 {socialLinks.map((link) => {
@@ -248,13 +292,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 <Plus className="text-ink h-8 w-8" />
               </div>
               <h3 className="text-ink mb-4 font-serif text-4xl italic">
-                Leave a footprint
+                {t.footprintTitle}
               </h3>
               <p className="text-ink-light font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                Anonymous Message / Collaboration Request
+                {t.footprintSubtitle}
               </p>
               <div className="bg-ink mt-10 rounded-full px-8 py-4 font-mono text-xs uppercase tracking-[0.25em] text-white transition-transform hover:scale-105">
-                Initialize Transmission
+                {t.footprintCta}
               </div>
             </div>
           </div>

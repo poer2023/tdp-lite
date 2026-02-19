@@ -1,5 +1,6 @@
 import { and, desc, eq, isNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { getGalleryImageIdFromUrl } from "@/lib/gallery";
 import { gallery, moments, posts } from "@/lib/schema";
 import type {
   SearchCursorPayload,
@@ -319,6 +320,7 @@ async function searchGallery(
     section: "gallery",
     locale: normalizeLocale(row.locale),
     sortAt: normalizeDate(row.sortAt),
+    imageId: getGalleryImageIdFromUrl(row.fileUrl),
     title: row.title,
     camera: row.camera,
     lens: row.lens,

@@ -14,6 +14,7 @@ export function mapMomentDraftToPreview(
 
   return {
     id: "preview-moment",
+    translationKey: "preview-moment",
     content: resolvedContent,
     media,
     locale: draft.locale,
@@ -38,6 +39,7 @@ export function mapPostDraftToPreview(
 
   return {
     id: "preview-post",
+    translationKey: "preview-post",
     slug: generateSlug(title) || "untitled-post",
     locale: draft.locale,
     title,
