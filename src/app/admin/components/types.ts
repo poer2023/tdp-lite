@@ -1,5 +1,7 @@
-export type Tab = "moment" | "post";
-export type Locale = "en" | "zh";
+import { type AppLocale } from "@/lib/locale";
+
+export type Tab = "moment" | "post" | "gallery";
+export type Locale = AppLocale;
 
 export interface MomentDraft {
   content: string;
@@ -19,6 +21,11 @@ export interface PostDraft {
   cover: File | null;
 }
 
+export interface GalleryDraft {
+  title: string;
+  image: File | null;
+}
+
 export const defaultMomentDraft: MomentDraft = {
   content: "",
   locale: "en",
@@ -35,4 +42,9 @@ export const defaultPostDraft: PostDraft = {
   locale: "en",
   status: "draft",
   cover: null,
+};
+
+export const defaultGalleryDraft: GalleryDraft = {
+  title: "",
+  image: null,
 };

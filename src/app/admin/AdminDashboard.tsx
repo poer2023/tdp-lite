@@ -60,6 +60,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   const [errors, setErrors] = useState<Record<Tab, string | null>>({
     moment: null,
     post: null,
+    gallery: null,
   });
 
   const isSubmitting = submittingTab !== null;

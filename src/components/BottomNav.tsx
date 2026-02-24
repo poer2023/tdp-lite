@@ -1,5 +1,4 @@
 import { Home, Grid3X3, Search, User } from "lucide-react";
-import { toLocalizedPath } from "@/lib/locale-routing";
 import { IconNavItem, IconNavShell } from "@/components/ui/IconNav";
 
 type Tab = "home" | "gallery" | "search" | "about";
@@ -9,28 +8,13 @@ interface BottomNavProps {
   activeTab: Tab;
 }
 
-const tabs: { id: Tab; icon: typeof Home; path: string }[] = [
-  { id: "home", icon: Home, path: "" },
-  { id: "gallery", icon: Grid3X3, path: "/gallery" },
-  { id: "search", icon: Search, path: "/search" },
+const tabs: { id: Tab; icon: typeof Home; label: string; path: string }[] = [
+  { id: "home", icon: Home, label: "Home", path: "" },
+  { id: "gallery", icon: Grid3X3, label: "Gallery", path: "/gallery" },
+  { id: "search", icon: Search, label: "Search", path: "/search" },
 ];
 
 export function BottomNav({ locale, activeTab }: BottomNavProps) {
-  const labels =
-    locale === "zh"
-      ? {
-          home: "首页",
-          gallery: "画廊",
-          search: "搜索",
-          about: "关于",
-        }
-      : {
-          home: "Home",
-          gallery: "Gallery",
-          search: "Search",
-          about: "About",
-        };
-
   return (
     <div className="fixed bottom-8 left-1/2 z-50 -translate-x-1/2">
       <IconNavShell>
@@ -40,18 +24,18 @@ export function BottomNav({ locale, activeTab }: BottomNavProps) {
           return (
             <IconNavItem
               key={tab.id}
-              href={toLocalizedPath(locale, tab.path || "/")}
+              href={`/${locale}${tab.path}`}
               icon={<Icon className="h-5 w-5" />}
-              label={labels[tab.id]}
+              label={tab.label}
               active={isActive}
             />
           );
         })}
-        <div className="liquid-nav-divider" />
+        <div className="mx-1 h-5 w-px bg-black/10" />
         <IconNavItem
-          href={toLocalizedPath(locale, "/about")}
+          href={`/${locale}/about`}
           icon={<User className="h-5 w-5" />}
-          label={labels.about}
+          label="About"
           active={activeTab === "about"}
         />
       </IconNavShell>

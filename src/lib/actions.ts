@@ -3,7 +3,7 @@
 import { createHash, createHmac, randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { auth } from "./auth";
-import { isMomentPublishable } from "./momentValidation";
+import { normalizeLocale } from "./locale";
 
 type ContentType = "moment" | "post" | "gallery";
 
@@ -225,24 +225,25 @@ export async function createMoment(formData: FormData) {
   await requireAuth();
 
   const content = String(formData.get("content") || "").trim();
-  const locale = formData.get("locale") === "zh" ? "zh" : "en";
+  if (!content) {
+    throw new Error("Content is required");
+  }
+
+  const locale = normalizeLocale(String(formData.get("locale") || ""));
   const visibility = formData.get("visibility") === "private" ? "private" : "public";
   const locationName = String(formData.get("locationName") || "").trim();
 
   const files = formData.getAll("images") as File[];
-  const validFiles = files.filter((file) => file && file.size > 0);
-  if (!isMomentPublishable(content, validFiles.length)) {
-    throw new Error("Moment content or media is required");
-  }
-
   const media = [] as Array<{ type: "image" | "video"; url: string }>;
 
-  for (const file of validFiles) {
-    const upload = await uploadFile(file);
-    media.push({
-      type: upload.mimeType.startsWith("video/") ? "video" : "image",
-      url: upload.url,
-    });
+  for (const file of files) {
+    if (file && file.size > 0) {
+      const upload = await uploadFile(file);
+      media.push({
+        type: upload.mimeType.startsWith("video/") ? "video" : "image",
+        url: upload.url,
+      });
+    }
   }
 
   const response = await signedRequest("/v1/moments", {
@@ -274,7 +275,7 @@ export async function createPost(formData: FormData) {
     throw new Error("Title and content are required");
   }
 
-  const locale = formData.get("locale") === "zh" ? "zh" : "en";
+  const locale = normalizeLocale(String(formData.get("locale") || ""));
   const status = formData.get("status") === "published" ? "published" : "draft";
   const excerpt = String(formData.get("excerpt") || "").trim();
   const tags = String(formData.get("tags") || "")
@@ -319,7 +320,7 @@ export async function createGallery(formData: FormData) {
   }
 
   const title = String(formData.get("title") || "").trim();
-  const locale = formData.get("locale") === "zh" ? "zh" : "en";
+  const locale = normalizeLocale(String(formData.get("locale") || ""));
 
   const upload = await uploadFile(imageFile);
 

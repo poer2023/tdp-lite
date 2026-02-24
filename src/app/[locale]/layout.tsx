@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { notFound } from "next/navigation";
 
-import { APP_LOCALES, isAppLocale, type AppLocale } from "@/lib/locale";
+import { APP_LOCALES, type AppLocale } from "@/lib/locale";
 
 type Locale = AppLocale;
 
@@ -23,15 +22,13 @@ export function generateViewport(): Viewport {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale: string }>;
+  params: Promise<{ locale: Locale }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const resolvedLocale: Locale = isAppLocale(locale) ? locale : "en";
   return {
-    title:
-      resolvedLocale === "zh" ? "TDP Lite - 极简博客" : "TDP Lite - Minimal Blog",
+    title: locale === "zh" ? "TDP Lite - 极简博客" : "TDP Lite - Minimal Blog",
     description:
-      resolvedLocale === "zh"
+      locale === "zh"
         ? "一个极简的个人博客平台"
         : "A minimal personal blog platform",
     manifest: "/manifest.json",
@@ -45,12 +42,6 @@ export async function generateMetadata({
 
 export default async function LocaleLayout({
   children,
-  params,
 }: LocaleLayoutProps) {
-  const { locale } = await params;
-  if (!isAppLocale(locale)) {
-    notFound();
-  }
-
   return <>{children}</>;
 }

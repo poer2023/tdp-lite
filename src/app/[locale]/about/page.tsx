@@ -20,7 +20,6 @@ import {
   getPublicPosts,
 } from "@/lib/content/read";
 import { getAggregatedGalleryImages } from "@/lib/gallery";
-
 import { type AppLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";

@@ -72,7 +72,7 @@ function StitchIcon({
 export function FloatingDock({ items, className }: FloatingDockProps) {
   return (
     <div className={cn("mt-8 flex justify-center", className)}>
-      <IconNavShell>
+      <IconNavShell className="bg-white/85">
         {items.map((item) => (
           <div key={item.id} className="flex items-center">
             <IconNavItem
@@ -85,7 +85,7 @@ export function FloatingDock({ items, className }: FloatingDockProps) {
               tooltipTopClassName="-top-10"
               className="size-11"
             />
-            {item.dividerAfter ? <div className="liquid-nav-divider" /> : null}
+            {item.dividerAfter ? <div className="mx-1 h-5 w-px bg-black/10" /> : null}
           </div>
         ))}
       </IconNavShell>

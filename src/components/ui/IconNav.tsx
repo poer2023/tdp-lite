@@ -8,11 +8,10 @@ import { Vaso } from "vaso";
 interface IconNavShellProps {
   children: React.ReactNode;
   className?: string;
+  variant?: "solid" | "liquid";
 }
 
-export function IconNavShell({ children, className }: IconNavShellProps) {
-  const shellId = useId();
-
+function useVasoRefraction(shellId: string) {
   useEffect(() => {
     const shell = document.getElementById(shellId);
     if (!shell) return;
@@ -34,6 +33,14 @@ export function IconNavShell({ children, className }: IconNavShellProps) {
 
     return () => observer.disconnect();
   }, [shellId]);
+}
+
+export function LiquidGlassIconNavShell({
+  children,
+  className,
+}: Omit<IconNavShellProps, "variant">) {
+  const shellId = useId();
+  useVasoRefraction(shellId);
 
   return (
     <Vaso
@@ -50,6 +57,31 @@ export function IconNavShell({ children, className }: IconNavShellProps) {
     >
       <div className="liquid-nav-content">{children}</div>
     </Vaso>
+  );
+}
+
+export function IconNavShell({
+  children,
+  className,
+  variant = "solid",
+}: IconNavShellProps) {
+  if (variant === "liquid") {
+    return (
+      <LiquidGlassIconNavShell className={className}>
+        {children}
+      </LiquidGlassIconNavShell>
+    );
+  }
+
+  return (
+    <nav
+      className={cn(
+        "flex items-center gap-1 rounded-full border border-white/50 bg-white/90 px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-black/5 backdrop-blur-md",
+        className
+      )}
+    >
+      {children}
+    </nav>
   );
 }
 
@@ -74,12 +106,13 @@ export function IconNavItem({
   tooltipTopClassName = "-top-12",
   className,
 }: IconNavItemProps) {
-  const isHighlighted = active || emphasized;
   const baseClass = cn(
-    "liquid-nav-item group relative flex h-11 w-11 items-center justify-center rounded-full",
-    isHighlighted && "liquid-nav-item--active",
-    emphasized && "liquid-nav-item--emphasized",
-    !isHighlighted && textClassName,
+    "group relative flex h-11 w-11 items-center justify-center rounded-full transition-all",
+    emphasized
+      ? "h-12 w-12 bg-black text-white shadow-md hover:scale-[1.03]"
+      : active
+        ? "bg-black text-white shadow-md"
+        : cn("text-[#666] hover:bg-black/5 hover:text-[#111]", textClassName),
     className
   );
 
@@ -89,10 +122,9 @@ export function IconNavItem({
       {label && !active && !emphasized ? (
         <span
           className={cn(
-            "liquid-nav-tooltip pointer-events-none absolute whitespace-nowrap rounded px-2 py-1 font-mono text-[10px] text-white opacity-0",
+            "pointer-events-none absolute rounded bg-black px-2 py-1 font-mono text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100 whitespace-nowrap",
             tooltipTopClassName
           )}
-          data-lg-profile="tooltip"
         >
           {label}
         </span>
@@ -102,14 +134,14 @@ export function IconNavItem({
 
   if (href) {
     return (
-      <Link href={href} className={baseClass} aria-label={label}>
+      <Link href={href} className={baseClass}>
         {content}
       </Link>
     );
   }
 
   return (
-    <button type="button" className={baseClass} aria-label={label}>
+    <button type="button" className={baseClass}>
       {content}
     </button>
   );
