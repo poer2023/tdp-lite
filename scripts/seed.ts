@@ -319,6 +319,25 @@ The phone became a tool again, not a slot machine.`,
       location: { name: "Shimokitazawa, Tokyo" },
       createdAt: new Date("2026-01-30T09:20:00Z"),
     },
+    {
+      content: "[MOCK_MULTI] Morning walk sequence: first light at the tower, then coffee steam, then late-afternoon crosswalk. Testing multi-image moment rendering on home and preview.",
+      media: [
+        { type: "image" as const, url: photos.tokyo, width: 800, height: 533 },
+        { type: "image" as const, url: photos.coffee, width: 800, height: 600 },
+        { type: "image" as const, url: photos.city, width: 800, height: 1200 },
+      ],
+      locale: "en",
+      visibility: "public",
+      location: { name: "Shinjuku → Shibuya, Tokyo" },
+      createdAt: new Date("2026-02-18T06:40:00Z"),
+    },
+    {
+      content: "[MOCK_TEXT] No photo today. Just notes from the train: the window shook at every station, someone kept reading the same paragraph, and the city felt slower than usual.",
+      locale: "en",
+      visibility: "public",
+      location: { name: "JR Yamanote Line" },
+      createdAt: new Date("2026-02-17T12:10:00Z"),
+    },
   ];
 
   const bilingualMomentsData = momentsData.flatMap((moment, index) => {

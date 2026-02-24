@@ -17,7 +17,12 @@ export const BENTO_SPAN_CLASS: Record<BentoSpanKey, string> = {
 const LARGE_SPANS = new Set<BentoSpanKey>(["1x2", "2x1", "2x2"]);
 
 export function getFeedItemLayoutKey(item: FeedItem): string {
-  return `${item.type}:${item.id}`;
+  if (item.type === "action") {
+    return `${item.type}:${item.id}`;
+  }
+
+  const stableId = item.translationKey || item.id;
+  return `${item.type}:${stableId}`;
 }
 
 function hashString(input: string): number {

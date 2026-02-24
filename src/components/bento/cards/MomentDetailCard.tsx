@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Music2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Moment } from "@/lib/schema";
 
@@ -30,10 +31,30 @@ export function MomentDetailCard({
           reflection: "Reflection",
           fallbackTitle: "Finding Stillness in Chaos",
         };
-  const hasMedia = moment.media && moment.media.length > 0;
-  const primaryMedia = hasMedia ? moment.media![0] : null;
+  const mediaList = moment.media ?? [];
+  const hasMedia = mediaList.length > 0;
+  const hasMultipleMedia = mediaList.length > 1;
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveMediaIndex(0);
+  }, [moment.id]);
+
+  const primaryMedia = hasMedia
+    ? mediaList[Math.min(activeMediaIndex, mediaList.length - 1)] ?? mediaList[0]
+    : null;
   const skipOptimization =
     primaryMedia?.url.startsWith("blob:") || primaryMedia?.url.startsWith("data:");
+
+  const handlePrevMedia = () => {
+    if (!hasMultipleMedia) return;
+    setActiveMediaIndex((prev) => (prev - 1 + mediaList.length) % mediaList.length);
+  };
+
+  const handleNextMedia = () => {
+    if (!hasMultipleMedia) return;
+    setActiveMediaIndex((prev) => (prev + 1) % mediaList.length);
+  };
 
   return (
     <div
@@ -64,7 +85,7 @@ export function MomentDetailCard({
                 sizes="(min-width: 768px) 60vw, 100vw"
                 className="object-cover"
               />
-            ) : (
+            ) : primaryMedia.type === "video" ? (
               <video
                 src={primaryMedia.url}
                 crossOrigin="anonymous"
@@ -72,7 +93,21 @@ export function MomentDetailCard({
                 muted
                 loop
                 playsInline
+                autoPlay
               />
+            ) : (
+              <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#111] via-[#1f2937] to-[#111827] text-white/90">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium">
+                  <Music2 className="h-3.5 w-3.5" />
+                  Music
+                </span>
+                <p className="px-8 text-center font-display text-xl font-medium">
+                  {primaryMedia.title || moment.content}
+                </p>
+                {primaryMedia.artist ? (
+                  <p className="font-mono text-xs text-white/70">{primaryMedia.artist}</p>
+                ) : null}
+              </div>
             )}
 
             {/* Camera parameters badge */}
@@ -88,6 +123,30 @@ export function MomentDetailCard({
               <span>📷</span>
               <span>35MM • F/2.8</span>
             </div>
+
+            {hasMultipleMedia ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrevMedia}
+                  aria-label="Previous media"
+                  className="absolute left-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm transition-colors hover:bg-black/70"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextMedia}
+                  aria-label="Next media"
+                  className="absolute right-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm transition-colors hover:bg-black/70"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <div className="absolute right-4 top-4 z-20 rounded-full border border-white/55 bg-black/55 px-2.5 py-1 font-mono text-[11px] text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm">
+                  {activeMediaIndex + 1}/{mediaList.length}
+                </div>
+              </>
+            ) : null}
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">

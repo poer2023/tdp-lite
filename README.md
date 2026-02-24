@@ -69,12 +69,18 @@
 - Full stack (frontend + Go API + worker):
   - `pnpm dev:all`
 
+### Lightweight Frontend Mode
+
+- Display routes read public content from `TDP_API_BASE_URL` / `NEXT_PUBLIC_TDP_API_BASE_URL`.
+- `src/lib/content/read.ts` is API-backed and degrades to empty results on backend errors.
+- Default search source is Go (`TDP_SEARCH_PRIMARY=go`); keep `TDP_SEARCH_ALLOW_FALLBACK_TO_NEXT=false` to avoid DB fallback in frontend-only mode.
+
 
 ## Lightweight Frontend Build
 
 - `pnpm build` can run without `DATABASE_URL` for frontend-only packaging.
-- Dynamic routes that query Postgres still require `DATABASE_URL` at runtime.
-- For pure frontend smoke checks, prefer static routes and client components that do not call server-side DB readers.
+- Display routes are API-backed and do not require local Postgres when running.
+- `DATABASE_URL` is only needed for DB-backed internals (legacy search-next fallback / publish-side paths).
 
 ## Backend
 

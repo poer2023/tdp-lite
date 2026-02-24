@@ -1,10 +1,6 @@
 import type { FeedItem } from "@/components/bento/types";
 import type { GalleryItem, Moment, Post } from "@/lib/schema";
 
-/**
- * @deprecated Frontend display pages should read from DB via `src/lib/content/read.ts`.
- * This module is retained for compatibility paths that still need Go public APIs.
- */
 import { type AppLocale } from "@/lib/locale";
 
 export type Locale = AppLocale;

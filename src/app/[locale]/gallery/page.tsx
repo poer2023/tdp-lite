@@ -32,7 +32,7 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
 
   return (
     <div
-      className="text-ink relative min-h-screen overflow-x-hidden bg-[#e9e9e7] pb-32 font-display selection:bg-black/10 selection:text-black"
+      className="text-ink relative min-h-screen overflow-x-hidden bg-page-surface pb-32 font-display selection:bg-black/10 selection:text-black"
       data-lg-bg-layer="gallery-root"
     >
       <div

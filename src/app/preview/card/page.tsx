@@ -17,8 +17,8 @@ interface PreviewCardPageProps {
 
 function PreviewError({ message }: { message: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#e9e9e7] p-6 font-display">
-      <div className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 text-center shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-page-surface p-6 font-display">
+      <div className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 text-center shadow-sm dark:border-white/14 dark:bg-[#2c3541]">
         <p className="font-mono text-[10px] uppercase tracking-widest text-[#999]">
           Preview Unavailable
         </p>
@@ -39,7 +39,7 @@ export default async function PreviewCardPage({ searchParams }: PreviewCardPageP
   const payload = resolved.payload;
 
   return (
-    <div className="min-h-screen bg-[#e9e9e7] p-6 font-display">
+    <div className="min-h-screen bg-page-surface p-6 font-display">
       <div className="mx-auto max-w-3xl">
         {payload.kind === "moment" ? (
           <MomentCard

@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { MomentDetailCard } from "@/components/bento/cards/MomentDetailCard";
-import { TextMomentDetailCard } from "@/components/bento/cards/TextMomentDetailCard";
 import { ArrowLeft } from "lucide-react";
 import { getPublicMoment } from "@/lib/content/read";
 import { type AppLocale } from "@/lib/locale";
+import { toLocalizedPath } from "@/lib/locale-routing";
+import { BottomNav } from "@/components/BottomNav";
+import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
+import { MomentDetailPreviewClient } from "@/components/bento/MomentDetailPreviewClient";
 
 export const dynamic = "force-dynamic";
 
@@ -25,34 +27,27 @@ export default async function MomentDetailPage({
     notFound();
   }
 
-  const hasMedia = moment.media && moment.media.length > 0;
-
   return (
-    <div className="min-h-screen bg-[#e9e9e7] font-display">
-      {/* Noise overlay */}
+    <div className="relative min-h-screen overflow-x-hidden bg-page-surface font-display">
       <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
 
-      <div className="relative z-10">
-        {/* Back navigation */}
-        <div className="mx-auto max-w-5xl px-6 pt-8">
-          <Link
-            href={`/${locale}`}
-            className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 font-mono text-xs uppercase tracking-widest text-[#666] shadow-sm backdrop-blur transition-all hover:bg-white hover:text-[#111]"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Back
-          </Link>
+      <PreviewDockProvider>
+        <div className="relative z-10 min-h-screen">
+          <div className="mx-auto max-w-5xl px-6 pt-8 md:px-8">
+            <Link
+              href={toLocalizedPath(locale, "/")}
+              className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 font-mono text-xs uppercase tracking-widest text-[#666] shadow-sm backdrop-blur transition-all hover:bg-white hover:text-[#111] dark:bg-[#364151]/72 dark:text-[#c4cfde] dark:hover:bg-[#3d4858] dark:hover:text-[#eff4fb]"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back
+            </Link>
+          </div>
+
+          <MomentDetailPreviewClient locale={locale} moment={moment} />
         </div>
 
-        {/* Detail card */}
-        <div className="flex min-h-[80vh] items-center justify-center px-6 py-12">
-          {hasMedia ? (
-            <MomentDetailCard moment={moment} />
-          ) : (
-            <TextMomentDetailCard moment={moment} />
-          )}
-        </div>
-      </div>
+        <BottomNav locale={locale} activeTab="home" />
+      </PreviewDockProvider>
     </div>
   );
 }

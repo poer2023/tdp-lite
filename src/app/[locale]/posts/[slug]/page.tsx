@@ -3,6 +3,7 @@ import { formatDate } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDetail";
+import { BottomNav } from "@/components/BottomNav";
 import { getPublicPost } from "@/lib/content/read";
 import { type AppLocale } from "@/lib/locale";
 
@@ -39,9 +40,9 @@ export default async function PostPage({ params }: PostPageProps) {
   const category = post.tags && post.tags.length > 0 ? post.tags[0] : "Journal";
 
   return (
-    <div className="min-h-screen bg-[#e8e8e6]">
+    <div className="min-h-screen bg-page-surface">
       <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
-      <div className="relative z-10 p-6 md:p-10">
+      <div className="relative z-10 p-6 pb-32 md:p-10 md:pb-36">
         <ArticlePaperDetail
           title={post.title}
           excerpt={post.excerpt || undefined}
@@ -50,6 +51,7 @@ export default async function PostPage({ params }: PostPageProps) {
           readingTime={readingTime}
           category={category}
           backHref={`/${locale}`}
+          showDock={false}
           avatarSrc={avatar}
           content={
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -58,6 +60,7 @@ export default async function PostPage({ params }: PostPageProps) {
           }
         />
       </div>
+      <BottomNav locale={locale} activeTab="home" />
     </div>
   );
 }

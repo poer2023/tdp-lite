@@ -9,6 +9,7 @@ interface IconNavShellProps {
   children: React.ReactNode;
   className?: string;
   variant?: "solid" | "liquid";
+  style?: React.CSSProperties;
 }
 
 function useVasoRefraction(shellId: string) {
@@ -38,6 +39,7 @@ function useVasoRefraction(shellId: string) {
 export function LiquidGlassIconNavShell({
   children,
   className,
+  style,
 }: Omit<IconNavShellProps, "variant">) {
   const shellId = useId();
   useVasoRefraction(shellId);
@@ -47,6 +49,7 @@ export function LiquidGlassIconNavShell({
       id={shellId}
       component="nav"
       className={cn("liquid-nav-shell", className)}
+      style={style}
       data-lg-profile="nav"
       px={0}
       py={0}
@@ -64,10 +67,11 @@ export function IconNavShell({
   children,
   className,
   variant = "solid",
+  style,
 }: IconNavShellProps) {
   if (variant === "liquid") {
     return (
-      <LiquidGlassIconNavShell className={className}>
+      <LiquidGlassIconNavShell className={className} style={style}>
         {children}
       </LiquidGlassIconNavShell>
     );
@@ -76,9 +80,10 @@ export function IconNavShell({
   return (
     <nav
       className={cn(
-        "flex items-center gap-1 rounded-full border border-white/50 bg-white/90 px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-black/5 backdrop-blur-md",
+        "flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.38)] bg-[rgba(255,255,255,0.78)] px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-[rgba(0,0,0,0.05)] backdrop-blur-md",
         className
       )}
+      style={style}
     >
       {children}
     </nav>
@@ -112,7 +117,10 @@ export function IconNavItem({
       ? "h-12 w-12 bg-black text-white shadow-md hover:scale-[1.03]"
       : active
         ? "bg-black text-white shadow-md"
-        : cn("text-[#666] hover:bg-black/5 hover:text-[#111]", textClassName),
+        : cn(
+            "text-[rgb(102,102,102)] hover:bg-black/5 hover:text-[rgb(17,17,17)]",
+            textClassName
+          ),
     className
   );
 

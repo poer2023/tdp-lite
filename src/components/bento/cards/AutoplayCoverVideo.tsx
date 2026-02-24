@@ -13,12 +13,14 @@ interface AutoplayCoverVideoProps {
   src: string;
   className?: string;
   poster?: string;
+  eager?: boolean;
 }
 
 export function AutoplayCoverVideo({
   src,
   className,
   poster,
+  eager = false,
 }: AutoplayCoverVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isReady, setIsReady] = useState(false);
@@ -28,6 +30,11 @@ export function AutoplayCoverVideo({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    if (eager) {
+      setIsInView(true);
+      setShouldLoad(true);
+      return;
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -53,7 +60,7 @@ export function AutoplayCoverVideo({
       observer.disconnect();
       video.pause();
     };
-  }, [src]);
+  }, [eager, src]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -84,7 +91,7 @@ export function AutoplayCoverVideo({
       muted
       loop
       playsInline
-      preload="none"
+      preload={eager ? "metadata" : "none"}
       disablePictureInPicture
       aria-hidden="true"
       className={cn(

@@ -132,6 +132,15 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
           startHint: "输入关键词，检索全部已发布文章、公开动态与画廊元数据。",
           minHint: `至少输入 ${MIN_QUERY_LENGTH} 个字符开始搜索。`,
           emptyHint: "当前查询与筛选条件下没有结果。",
+          quickLabel: "快速开始",
+          searchStatus: "检索状态",
+          idleState: "等待输入关键词",
+          typingState: "继续输入以开始检索",
+          searchingState: "正在检索中...",
+          resultState: "结果已更新",
+          resultSummary: "检索结果",
+          filterSummary: "筛选条件",
+          noFilter: "无",
           posts: "文章",
           moments: "动态",
           gallery: "画廊",
@@ -150,6 +159,15 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
             "Enter keywords to start searching all published posts, moments and gallery metadata.",
           minHint: `Type at least ${MIN_QUERY_LENGTH} characters to start searching.`,
           emptyHint: "No results found for current query and filters.",
+          quickLabel: "Quick Start",
+          searchStatus: "Search Status",
+          idleState: "Waiting for keyword input",
+          typingState: "Keep typing to start searching",
+          searchingState: "Searching...",
+          resultState: "Results updated",
+          resultSummary: "Search Results",
+          filterSummary: "Filters",
+          noFilter: "None",
           posts: "Posts",
           moments: "Moments",
           gallery: "Gallery",
@@ -339,190 +357,256 @@ export function SearchPageClient({ locale }: SearchPageClientProps) {
     sections.gallery.items.length > 0;
   const isAnyLoading =
     sections.post.isLoading || sections.moment.isLoading || sections.gallery.isLoading;
+  const totalResults =
+    sections.post.items.length + sections.moment.items.length + sections.gallery.items.length;
+  const quickQueries =
+    locale === "zh"
+      ? ["东京", "咖啡", "街头", "夜景"]
+      : ["tokyo", "coffee", "street", "night"];
+  const activeFilterCount = useMemo(() => {
+    const keywordFilters = [
+      filters.dateFrom,
+      filters.dateTo,
+      filters.tags,
+      filters.location,
+      filters.camera,
+      filters.lens,
+      filters.focalLength,
+      filters.aperture,
+      filters.isoMin,
+      filters.isoMax,
+    ].filter((value) => value.trim().length > 0).length;
+    return keywordFilters + (filters.localeScope === "current" ? 1 : 0);
+  }, [filters]);
+  const searchStateText = !hasActiveQuery
+    ? t.idleState
+    : !isQueryReady
+      ? t.typingState
+      : isAnyLoading
+        ? t.searchingState
+        : hasAnyResult
+          ? t.resultState
+          : t.emptyHint;
 
   return (
-    <div className="space-y-5">
-      <SearchInput
-        value={query}
-        onChange={setQuery}
-        placeholder={t.placeholder}
-        clearLabel={t.clear}
-      />
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,370px)_minmax(0,1fr)] xl:gap-6">
+      <aside className="space-y-4 xl:sticky xl:top-8 xl:self-start">
+        <section className="lg-panel-medium rounded-2xl border border-black/10 bg-white/80 p-4 shadow-sm">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder={t.placeholder}
+            clearLabel={t.clear}
+          />
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#777]">
+              {t.quickLabel}
+            </span>
+            {quickQueries.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => setQuery(term)}
+                className="rounded-full border border-black/10 bg-white/90 px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-[#666] transition-colors hover:border-black/20 hover:bg-black/5 hover:text-[#111]"
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+        </section>
 
-      <SearchFilters locale={locale} value={filters} onChange={setFilters} />
+        <SearchFilters locale={locale} value={filters} onChange={setFilters} />
 
-      {!hasActiveQuery ? (
-        <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-8 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
-            {t.startHint}
+        <section className="lg-panel-medium rounded-2xl border border-black/10 bg-white/80 p-4 shadow-sm">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#777]">
+            {t.searchStatus}
           </p>
-        </div>
-      ) : !isQueryReady ? (
-        <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-8 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
-            {t.minHint}
-          </p>
-        </div>
-      ) : (
-        <>
-          {hasExecutedSearch && !isAnyLoading && !hasAnyResult ? (
-            <div className="rounded-2xl border border-dashed border-black/15 bg-white/60 px-5 py-8 text-center">
-              <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
-                {t.emptyHint}
-              </p>
-            </div>
-          ) : null}
+          <p className="mt-1 text-sm text-[#333]">{searchStateText}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#666]">
+            <span className="rounded-full bg-black/5 px-2.5 py-1">
+              {t.resultSummary}: {totalResults}
+            </span>
+            <span className="rounded-full bg-black/5 px-2.5 py-1">
+              {t.filterSummary}: {activeFilterCount > 0 ? activeFilterCount : t.noFilter}
+            </span>
+          </div>
+        </section>
+      </aside>
 
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
-            <SearchSectionList<SearchPostItem>
-              title={t.posts}
-              items={sections.post.items}
-              isLoading={sections.post.isLoading}
-              hasMore={sections.post.hasMore}
-              error={sections.post.error}
-              emptyLabel={t.emptyPosts}
-              loadingLabel={t.loading}
-              onLoadMore={() => loadMore("post")}
-              renderItem={(item) => (
-                <article
-                  key={item.id}
-                  className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
-                >
-                  <Link
-                    href={toLocalizedPath(item.locale, `/posts/${item.slug}`)}
-                    className="group block space-y-2"
-                  >
-                    <h4 className="line-clamp-2 text-base font-semibold text-[#111] transition-colors group-hover:text-[#000]">
-                      {highlightText(item.title, debouncedQuery)}
-                    </h4>
-                    <p className="line-clamp-3 text-sm text-[#666]">
-                      {highlightText(item.excerpt, debouncedQuery)}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#777]">
-                      <span>{formatDate(item.sortAt, item.locale)}</span>
-                      {item.tags.slice(0, 2).map((tag) => (
-                        <span key={tag} className="rounded-full bg-black/5 px-2 py-0.5">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </Link>
-                </article>
-              )}
-            />
+      <section className="space-y-4">
+        {!hasActiveQuery ? (
+          <div className="lg-panel-medium rounded-2xl border border-dashed border-black/15 bg-white/60 px-6 py-10 text-center">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
+              {t.startHint}
+            </p>
+          </div>
+        ) : !isQueryReady ? (
+          <div className="lg-panel-medium rounded-2xl border border-dashed border-black/15 bg-white/60 px-6 py-10 text-center">
+            <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
+              {t.minHint}
+            </p>
+          </div>
+        ) : (
+          <>
+            {hasExecutedSearch && !isAnyLoading && !hasAnyResult ? (
+              <div className="lg-panel-medium rounded-2xl border border-dashed border-black/15 bg-white/60 px-6 py-10 text-center">
+                <p className="font-mono text-xs uppercase tracking-[0.22em] text-[#777]">
+                  {t.emptyHint}
+                </p>
+              </div>
+            ) : null}
 
-            <SearchSectionList<SearchMomentItem>
-              title={t.moments}
-              items={sections.moment.items}
-              isLoading={sections.moment.isLoading}
-              hasMore={sections.moment.hasMore}
-              error={sections.moment.error}
-              emptyLabel={t.emptyMoments}
-              loadingLabel={t.loading}
-              onLoadMore={() => loadMore("moment")}
-              renderItem={(item) => (
-                <article
-                  key={item.id}
-                  className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
-                >
-                  <Link
-                    href={toLocalizedPath(item.locale, `/moments/${item.id}`)}
-                    className="group block space-y-2"
-                  >
-                    <p className="line-clamp-5 text-sm leading-relaxed text-[#333]">
-                      {highlightText(item.content, debouncedQuery)}
-                    </p>
-                    <div className="flex flex-wrap items-center gap-2 text-xs text-[#777]">
-                      <span className="font-mono uppercase tracking-wider">
-                        {formatRelativeTime(item.sortAt, item.locale)}
-                      </span>
-                      {item.locationName ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-black/5 px-2 py-0.5">
-                          <MapPin className="h-3 w-3" />
-                          <span className="text-[11px]">
-                            {highlightText(item.locationName, debouncedQuery)}
-                          </span>
-                        </span>
-                      ) : null}
-                    </div>
-                  </Link>
-                </article>
-              )}
-            />
-
-            <SearchSectionList<SearchGalleryItem>
-              title={t.gallery}
-              items={sections.gallery.items}
-              isLoading={sections.gallery.isLoading}
-              hasMore={sections.gallery.hasMore}
-              error={sections.gallery.error}
-              emptyLabel={t.emptyGallery}
-              loadingLabel={t.loading}
-              onLoadMore={() => loadMore("gallery")}
-              renderItem={(item) => {
-                const imageSrc = item.thumbUrl || item.fileUrl;
-                const galleryHref = item.imageId
-                  ? `/gallery/${item.imageId}`
-                  : "/gallery";
-                const title = item.title?.trim() || t.untitled;
-                const metaParts = [
-                  item.camera,
-                  item.lens,
-                  item.focalLength,
-                  item.aperture,
-                ].filter((part): part is string => Boolean(part));
-                return (
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 2xl:grid-cols-3">
+              <SearchSectionList<SearchPostItem>
+                title={t.posts}
+                items={sections.post.items}
+                isLoading={sections.post.isLoading}
+                hasMore={sections.post.hasMore}
+                error={sections.post.error}
+                emptyLabel={t.emptyPosts}
+                loadingLabel={t.loading}
+                onLoadMore={() => loadMore("post")}
+                renderItem={(item) => (
                   <article
                     key={item.id}
                     className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
                   >
                     <Link
-                      href={toLocalizedPath(item.locale, galleryHref)}
-                      className="group flex gap-3"
+                      href={toLocalizedPath(item.locale, `/posts/${item.slug}`)}
+                      className="group block space-y-2"
                     >
-                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-black/8 bg-black/5">
-                        <Image
-                          src={imageSrc}
-                          alt={title}
-                          fill
-                          unoptimized={shouldSkipOptimization(imageSrc)}
-                          sizes="64px"
-                          className="object-cover"
-                        />
-                      </div>
-
-                      <div className="min-w-0 space-y-1.5">
-                        <h4 className="line-clamp-1 text-sm font-semibold text-[#111]">
-                          {highlightText(title, debouncedQuery)}
-                        </h4>
-                        <div className="line-clamp-2 text-xs text-[#666]">
-                          {metaParts.length > 0
-                            ? metaParts.map((part, index) => (
-                                <span key={`${item.id}-${part}-${index}`}>
-                                  {index > 0 ? " • " : ""}
-                                  {highlightText(part, debouncedQuery)}
-                                </span>
-                              ))
-                            : t.noMetadata}
-                        </div>
-                        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#777]">
-                          <span>{formatDate(item.sortAt, item.locale)}</span>
-                          {item.iso ? (
-                            <span className="inline-flex items-center gap-1">
-                              <Camera className="h-3 w-3" />
-                              ISO {item.iso}
-                            </span>
-                          ) : null}
-                        </div>
+                      <h4 className="line-clamp-2 text-base font-semibold text-[#111] transition-colors group-hover:text-[#000]">
+                        {highlightText(item.title, debouncedQuery)}
+                      </h4>
+                      <p className="line-clamp-3 text-sm text-[#666]">
+                        {highlightText(item.excerpt, debouncedQuery)}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#777]">
+                        <span>{formatDate(item.sortAt, item.locale)}</span>
+                        {item.tags.slice(0, 2).map((tag) => (
+                          <span key={tag} className="rounded-full bg-black/5 px-2 py-0.5">
+                            {tag}
+                          </span>
+                        ))}
                       </div>
                     </Link>
                   </article>
-                );
-              }}
-            />
-          </div>
-        </>
-      )}
+                )}
+              />
+
+              <SearchSectionList<SearchMomentItem>
+                title={t.moments}
+                items={sections.moment.items}
+                isLoading={sections.moment.isLoading}
+                hasMore={sections.moment.hasMore}
+                error={sections.moment.error}
+                emptyLabel={t.emptyMoments}
+                loadingLabel={t.loading}
+                onLoadMore={() => loadMore("moment")}
+                renderItem={(item) => (
+                  <article
+                    key={item.id}
+                    className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
+                  >
+                    <Link
+                      href={toLocalizedPath(item.locale, `/moments/${item.id}`)}
+                      className="group block space-y-2"
+                    >
+                      <p className="line-clamp-5 text-sm leading-relaxed text-[#333]">
+                        {highlightText(item.content, debouncedQuery)}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 text-xs text-[#777]">
+                        <span className="font-mono uppercase tracking-wider">
+                          {formatRelativeTime(item.sortAt, item.locale)}
+                        </span>
+                        {item.locationName ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-black/5 px-2 py-0.5">
+                            <MapPin className="h-3 w-3" />
+                            <span className="text-[11px]">
+                              {highlightText(item.locationName, debouncedQuery)}
+                            </span>
+                          </span>
+                        ) : null}
+                      </div>
+                    </Link>
+                  </article>
+                )}
+              />
+
+              <SearchSectionList<SearchGalleryItem>
+                title={t.gallery}
+                items={sections.gallery.items}
+                isLoading={sections.gallery.isLoading}
+                hasMore={sections.gallery.hasMore}
+                error={sections.gallery.error}
+                emptyLabel={t.emptyGallery}
+                loadingLabel={t.loading}
+                onLoadMore={() => loadMore("gallery")}
+                renderItem={(item) => {
+                  const imageSrc = item.thumbUrl || item.fileUrl;
+                  const galleryHref = item.imageId
+                    ? `/gallery/${item.imageId}`
+                    : "/gallery";
+                  const title = item.title?.trim() || t.untitled;
+                  const metaParts = [
+                    item.camera,
+                    item.lens,
+                    item.focalLength,
+                    item.aperture,
+                  ].filter((part): part is string => Boolean(part));
+                  return (
+                    <article
+                      key={item.id}
+                      className="rounded-xl border border-black/8 bg-white px-3 py-3 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
+                    >
+                      <Link
+                        href={toLocalizedPath(item.locale, galleryHref)}
+                        className="group flex gap-3"
+                      >
+                        <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-black/8 bg-black/5">
+                          <Image
+                            src={imageSrc}
+                            alt={title}
+                            fill
+                            unoptimized={shouldSkipOptimization(imageSrc)}
+                            sizes="64px"
+                            className="object-cover"
+                          />
+                        </div>
+
+                        <div className="min-w-0 space-y-1.5">
+                          <h4 className="line-clamp-1 text-sm font-semibold text-[#111]">
+                            {highlightText(title, debouncedQuery)}
+                          </h4>
+                          <div className="line-clamp-2 text-xs text-[#666]">
+                            {metaParts.length > 0
+                              ? metaParts.map((part, index) => (
+                                  <span key={`${item.id}-${part}-${index}`}>
+                                    {index > 0 ? " • " : ""}
+                                    {highlightText(part, debouncedQuery)}
+                                  </span>
+                                ))
+                              : t.noMetadata}
+                          </div>
+                          <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#777]">
+                            <span>{formatDate(item.sortAt, item.locale)}</span>
+                            {item.iso ? (
+                              <span className="inline-flex items-center gap-1">
+                                <Camera className="h-3 w-3" />
+                                ISO {item.iso}
+                              </span>
+                            ) : null}
+                          </div>
+                        </div>
+                      </Link>
+                    </article>
+                  );
+                }}
+              />
+            </div>
+          </>
+        )}
+      </section>
     </div>
   );
 }

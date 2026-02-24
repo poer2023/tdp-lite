@@ -258,7 +258,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
             </div>
 
             {/* Connectivity */}
-            <div className="bento-card-about col-span-1 bg-gradient-to-br from-white to-paper-off-white md:col-span-3 lg:col-span-4">
+            <div className="bento-card-about col-span-1 bg-gradient-to-br from-paper-white to-paper-off-white md:col-span-3 lg:col-span-4">
               <h3 className="text-ink-light mb-10 font-mono text-sm font-bold uppercase tracking-[0.25em]">
                 {t.connectivity}
               </h3>

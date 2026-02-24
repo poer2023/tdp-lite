@@ -1,7 +1,6 @@
 import type { SearchRequest, SearchSection, SearchSectionResponse } from "./contracts";
 import { SearchDualSourceError, SearchSourceError, type SearchSource } from "./errors";
 import { searchBySectionInGo } from "./searchGo";
-import { searchBySectionInNext } from "./searchNext";
 
 export interface RoutedSearchResult<S extends SearchSection> {
   payload: SearchSectionResponse<S>;
@@ -10,7 +9,11 @@ export interface RoutedSearchResult<S extends SearchSection> {
 }
 
 function resolvePrimarySource(): SearchSource {
-  return process.env.TDP_SEARCH_PRIMARY === "go" ? "go" : "next";
+  return process.env.TDP_SEARCH_PRIMARY === "next" ? "next" : "go";
+}
+
+function isNextFallbackEnabled(): boolean {
+  return process.env.TDP_SEARCH_ALLOW_FALLBACK_TO_NEXT === "true";
 }
 
 function fallbackSource(source: SearchSource): SearchSource {
@@ -24,6 +27,7 @@ async function executeSearch<S extends SearchSection>(
   if (source === "go") {
     return searchBySectionInGo(input);
   }
+  const { searchBySectionInNext } = await import("./searchNext");
   return searchBySectionInNext(input);
 }
 
@@ -39,12 +43,16 @@ export async function routeSearchWithFallback<S extends SearchSection>(
 ): Promise<RoutedSearchResult<S>> {
   const primary = resolvePrimarySource();
   const secondary = fallbackSource(primary);
+  const allowFallbackToNext = isNextFallbackEnabled();
 
   try {
     const payload = await executeSearch<S>(primary, input);
     return { payload, source: primary, fallback: false };
   } catch (primaryError) {
     if (!canFallback(primaryError)) {
+      throw primaryError;
+    }
+    if (secondary === "next" && !allowFallbackToNext) {
       throw primaryError;
     }
 

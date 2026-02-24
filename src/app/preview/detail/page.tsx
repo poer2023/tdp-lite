@@ -20,8 +20,8 @@ interface PreviewDetailPageProps {
 
 function PreviewError({ message }: { message: string }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#e9e9e7] p-6 font-display">
-      <div className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 text-center shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-page-surface p-6 font-display">
+      <div className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 text-center shadow-sm dark:border-white/14 dark:bg-[#2c3541]">
         <p className="font-mono text-[10px] uppercase tracking-widest text-[#999]">
           Preview Unavailable
         </p>
@@ -47,7 +47,7 @@ export default async function PreviewDetailPage({
     const post = toPreviewPost(payload.data);
     const postTags = post.tags ?? [];
     return (
-      <div className="min-h-screen bg-[#e8e8e6] p-6">
+      <div className="min-h-screen bg-page-surface p-6">
         <ArticlePaperDetail
           title={post.title}
           excerpt={post.excerpt || undefined}
@@ -70,7 +70,7 @@ export default async function PreviewDetailPage({
     const moment = toPreviewMoment(payload.data);
     const hasMedia = (moment.media ?? []).length > 0;
     return (
-      <div className="min-h-screen bg-[#e9e9e7] p-6 font-display">
+      <div className="min-h-screen bg-page-surface p-6 font-display">
         <div className="mx-auto flex min-h-[80vh] max-w-5xl items-center justify-center">
           {hasMedia ? (
             <MomentDetailCard moment={moment} />
@@ -86,7 +86,7 @@ export default async function PreviewDetailPage({
   const src = item.thumbUrl || item.fileUrl;
 
   return (
-    <div className="min-h-screen bg-[#e8e8e6] p-6 font-display">
+    <div className="min-h-screen bg-page-surface p-6 font-display">
       <GalleryMomentDetail
         title={item.title || "Gallery Preview"}
         author="Preview"

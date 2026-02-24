@@ -8,8 +8,7 @@ export default async function AdminPage() {
     redirect("/admin/login");
   }
 
-  const publisherBaseUrl =
-    process.env.PUBLISHER_BASE_URL || process.env.TDP_API_BASE_URL;
+  const publisherBaseUrl = process.env.PUBLISHER_BASE_URL;
 
   if (!publisherBaseUrl) {
     redirect("/");

@@ -5,7 +5,7 @@ import { Layers } from "lucide-react";
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#e9e9e7] px-4 font-display">
+    <div className="flex min-h-screen items-center justify-center bg-page-surface px-4 font-display">
       <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
 
       <div className="relative z-10 w-full max-w-sm">

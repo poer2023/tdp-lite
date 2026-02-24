@@ -12,7 +12,7 @@ import {
 function createPost(id: string, options?: { withCover?: boolean }): FeedItem {
   const post: Post = {
     id,
-    translationKey: `translation-${id}`,
+    translationKey: id,
     slug: `slug-${id}`,
     locale: "en",
     title: `Post ${id}`,
@@ -37,7 +37,7 @@ function createMoment(
   const now = new Date("2026-02-16T00:00:00.000Z");
   const moment: Moment = {
     id,
-    translationKey: `translation-${id}`,
+    translationKey: id,
     content: "x".repeat(contentLength),
     media: options?.withMedia
       ? [{ type: "image", url: `https://example.com/${id}.jpg` }]
@@ -62,7 +62,7 @@ function createGallery(
   const now = new Date("2026-02-16T00:00:00.000Z");
   const gallery: GalleryItem = {
     id,
-    translationKey: `translation-${id}`,
+    translationKey: id,
     locale: "en",
     fileUrl: `https://example.com/${id}.jpg`,
     thumbUrl: null,
@@ -130,6 +130,56 @@ describe("layoutEngine", () => {
     const first = computeBentoSpans(items);
     const second = computeBentoSpans(items);
     expect(first).toEqual(second);
+  });
+
+  it("keeps zh/en layout consistent for translated content", () => {
+    const zhItems: FeedItem[] = [
+      createPost("zh-post-1"),
+      createMoment("zh-moment-1", { withMedia: true }),
+      createGallery("zh-gallery-1", { width: 900, height: 1200 }),
+      createPost("zh-post-2", { withCover: false }),
+      createMoment("zh-moment-2", { contentLength: 160 }),
+    ].map((item, index) => {
+      if (item.type === "action") {
+        return item;
+      }
+
+      return {
+        ...item,
+        locale: "zh",
+        translationKey: `shared-translation-${index}`,
+      };
+    });
+
+    const enItems: FeedItem[] = zhItems.map((item) => {
+      if (item.type === "action") {
+        return item;
+      }
+
+      return {
+        ...item,
+        id: `${item.id}-en`,
+        locale: "en",
+      };
+    });
+
+    const zhLayout = computeBentoSpans(zhItems);
+    const enLayout = computeBentoSpans(enItems);
+
+    zhItems.forEach((zhItem, index) => {
+      if (zhItem.type === "action") {
+        return;
+      }
+
+      const enItem = enItems[index];
+      if (!enItem || enItem.type === "action") {
+        throw new Error("Translated item mismatch");
+      }
+
+      const zhSpan = zhLayout[getFeedItemLayoutKey(zhItem)];
+      const enSpan = enLayout[getFeedItemLayoutKey(enItem)];
+      expect(enSpan).toBe(zhSpan);
+    });
   });
 
   it("keeps existing items stable when prepending a non-content card", () => {

@@ -180,7 +180,7 @@ export function AdminDashboard({ user }: AdminDashboardProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#e9e9e7] font-display">
+    <div className="min-h-screen bg-page-surface font-display">
       <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-30 mix-blend-multiply" />
 
       <div className="relative z-10 mx-auto max-w-7xl px-4 py-6">
