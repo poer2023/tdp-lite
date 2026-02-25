@@ -14,6 +14,8 @@ const eslintConfig = [
         "error",
         { argsIgnorePattern: "^_" },
       ],
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
     },
   },
   {

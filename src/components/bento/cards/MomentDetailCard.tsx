@@ -160,7 +160,7 @@ export function MomentDetailCard({
         {/* Title row */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-sm tracking-wide text-muted-foreground">
-            {t.reflection} // {String(index).padStart(3, "0")}
+            {t.reflection} {"//"} {String(index).padStart(3, "0")}
           </h2>
           <div
             className={cn(
