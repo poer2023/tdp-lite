@@ -2,8 +2,8 @@
 
 Go backend for TDP Lite unified API.
 
-This backend is responsible for operation capabilities (write lifecycle/media/AI/preview).
-Frontend display pages in Next.js read from PostgreSQL directly and do not depend on Go public read APIs.
+This backend is responsible for operation capabilities (write lifecycle/media/AI/preview)
+and public read APIs used by Lite display routes.
 
 ## Requirements
 
@@ -15,6 +15,9 @@ Frontend display pages in Next.js read from PostgreSQL directly and do not depen
 ```bash
 psql "$DATABASE_URL" -f backend/migrations/0001_api_platform.sql
 psql "$DATABASE_URL" -f backend/migrations/0002_search_fts_indexes.sql
+psql "$DATABASE_URL" -f backend/migrations/0003_translation_keys.sql
+psql "$DATABASE_URL" -f backend/migrations/0004_posts_slug_locale_unique.sql
+psql "$DATABASE_URL" -f backend/migrations/0005_preview_sessions_and_translation_defaults.sql
 ```
 
 ## Environment

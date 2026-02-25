@@ -1,0 +1,61 @@
+name: Publisher CI
+
+on:
+  push:
+    branches:
+      - main
+      - macdev
+      - codex/**
+    paths:
+      - "publisher/**"
+      - ".github/workflows/publisher-ci.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "publisher/**"
+      - ".github/workflows/publisher-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: publisher-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "20"
+  PNPM_VERSION: "9.15.0"
+
+jobs:
+  quality:
+    name: Publisher Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install publisher dependencies
+        run: pnpm -C publisher install --frozen-lockfile
+
+      - name: Type check publisher
+        run: pnpm -C publisher type-check
+
+      - name: Lint publisher
+        run: pnpm -C publisher lint
+
+      - name: Build publisher
+        run: pnpm -C publisher build

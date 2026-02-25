@@ -1,0 +1,174 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tdp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tdp}
+      POSTGRES_DB: ${POSTGRES_DB:-tdp_lite}
+    ports:
+      - "${TDP_DB_BIND_HOST:-127.0.0.1}:${TDP_DB_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-tdp} -d ${POSTGRES_DB:-tdp_lite}",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  lite-migrate:
+    image: postgres:16-alpine
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tdp}:${POSTGRES_PASSWORD:-tdp}@db:5432/${POSTGRES_DB:-tdp_lite}
+    volumes:
+      - ./backend/migrations:/migrations:ro
+      - ./drizzle:/drizzle:ro
+      - ./docker/scripts:/docker-scripts:ro
+    entrypoint: ["/bin/sh", "/docker-scripts/migrate.sh"]
+
+  lite-api:
+    build:
+      context: .
+      dockerfile: docker/lite-go.Dockerfile
+      target: api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      lite-migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tdp}:${POSTGRES_PASSWORD:-tdp}@db:5432/${POSTGRES_DB:-tdp_lite}
+      TDP_API_ADDR: :8080
+      TDP_APP_BASE_URL: ${TDP_APP_BASE_URL:-http://localhost:3000}
+      TDP_PREVIEW_SECRET: ${TDP_PREVIEW_SECRET:?TDP_PREVIEW_SECRET is required}
+      TDP_TIMESTAMP_SKEW: ${TDP_TIMESTAMP_SKEW:-5m}
+      TDP_NONCE_TTL: ${TDP_NONCE_TTL:-10m}
+      TDP_PREVIEW_TTL: ${TDP_PREVIEW_TTL:-2h}
+      TDP_JOB_POLL_INTERVAL: ${TDP_JOB_POLL_INTERVAL:-3s}
+      TDP_INTERNAL_KEY_ID: ${TDP_INTERNAL_KEY_ID:?TDP_INTERNAL_KEY_ID is required}
+      TDP_INTERNAL_KEY_SECRET: ${TDP_INTERNAL_KEY_SECRET:?TDP_INTERNAL_KEY_SECRET is required}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_REGION: ${S3_REGION:-auto}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_CDN_URL: ${S3_CDN_URL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "${TDP_API_BIND_HOST:-127.0.0.1}:${TDP_API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  lite-worker:
+    build:
+      context: .
+      dockerfile: docker/lite-go.Dockerfile
+      target: worker
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      lite-migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tdp}:${POSTGRES_PASSWORD:-tdp}@db:5432/${POSTGRES_DB:-tdp_lite}
+      TDP_APP_BASE_URL: ${TDP_APP_BASE_URL:-http://localhost:3000}
+      TDP_PREVIEW_SECRET: ${TDP_PREVIEW_SECRET:?TDP_PREVIEW_SECRET is required}
+      TDP_TIMESTAMP_SKEW: ${TDP_TIMESTAMP_SKEW:-5m}
+      TDP_NONCE_TTL: ${TDP_NONCE_TTL:-10m}
+      TDP_PREVIEW_TTL: ${TDP_PREVIEW_TTL:-2h}
+      TDP_JOB_POLL_INTERVAL: ${TDP_JOB_POLL_INTERVAL:-3s}
+      TDP_INTERNAL_KEY_ID: ${TDP_INTERNAL_KEY_ID:?TDP_INTERNAL_KEY_ID is required}
+      TDP_INTERNAL_KEY_SECRET: ${TDP_INTERNAL_KEY_SECRET:?TDP_INTERNAL_KEY_SECRET is required}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+
+  lite-web:
+    build:
+      context: .
+      dockerfile: docker/lite-web.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      lite-api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?NEXTAUTH_SECRET is required}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-placeholder.apps.googleusercontent.com}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-placeholder}
+      ALLOWED_EMAILS: ${ALLOWED_EMAILS:-}
+      TDP_API_BASE_URL: http://lite-api:8080
+      NEXT_PUBLIC_TDP_API_BASE_URL: http://lite-api:8080
+      TDP_SEARCH_PRIMARY: go
+      TDP_SEARCH_ALLOW_FALLBACK_TO_NEXT: "false"
+      PUBLISHER_BASE_URL: ${PUBLISHER_BASE_URL:-http://localhost:3100}
+    ports:
+      - "${TDP_WEB_BIND_HOST:-0.0.0.0}:${TDP_WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+  publisher-key-sync:
+    profiles: ["publisher"]
+    image: postgres:16-alpine
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+      lite-migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-tdp}:${POSTGRES_PASSWORD:-tdp}@db:5432/${POSTGRES_DB:-tdp_lite}
+      TDP_INTERNAL_KEY_ID: ${TDP_INTERNAL_KEY_ID:?TDP_INTERNAL_KEY_ID is required}
+      TDP_INTERNAL_KEY_SECRET: ${TDP_INTERNAL_KEY_SECRET:?TDP_INTERNAL_KEY_SECRET is required}
+    volumes:
+      - ./docker/scripts:/docker-scripts:ro
+    entrypoint: ["/bin/sh", "/docker-scripts/sync-publisher-key.sh"]
+
+  publisher:
+    profiles: ["publisher"]
+    build:
+      context: .
+      dockerfile: docker/publisher.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      lite-api:
+        condition: service_healthy
+      publisher-key-sync:
+        condition: service_completed_successfully
+    environment:
+      NEXT_PUBLIC_PUBLISHER_URL: ${NEXT_PUBLIC_PUBLISHER_URL:-http://localhost:3100}
+      PUBLISH_TARGET_BASE_URL: http://lite-api:8080
+      TDP_INTERNAL_KEY_ID: ${TDP_INTERNAL_KEY_ID:?TDP_INTERNAL_KEY_ID is required}
+      TDP_INTERNAL_KEY_SECRET: ${TDP_INTERNAL_KEY_SECRET:?TDP_INTERNAL_KEY_SECRET is required}
+    ports:
+      - "${PUBLISHER_BIND_HOST:-127.0.0.1}:${PUBLISHER_PORT:-3100}:3100"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3100/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+volumes:
+  postgres-data:

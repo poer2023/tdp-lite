@@ -76,6 +76,9 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f drizzle/0000_famous_captain_marvel.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/0001_api_platform.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/0002_search_fts_indexes.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/0003_translation_keys.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/0004_posts_slug_locale_unique.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/0005_preview_sessions_and_translation_defaults.sql
 
       - name: Seed smoke data
         run: |

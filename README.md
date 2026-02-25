@@ -69,6 +69,65 @@
 - Full stack (frontend + Go API + worker):
   - `pnpm dev:all`
 
+### Publisher App (same repo)
+
+- Publisher source now lives in `publisher/` and is deployed as an independent service.
+- Lite runtime never depends on publisher process health.
+- `/admin` is non-blocking: it only shows publisher entry link when configured.
+
+## Docker Compose（单仓库、双服务隔离）
+
+1. 复制 compose 环境变量模板：
+   - `cp docker/.env.compose.example .env.compose`
+   - 必填强密钥：`NEXTAUTH_SECRET`、`TDP_PREVIEW_SECRET`、`TDP_INTERNAL_KEY_SECRET`
+2. 启动 Lite 主链路（默认不启动 publisher）：
+   - `docker compose --env-file .env.compose up -d`
+3. 若需要发布工具，再启 publisher profile：
+   - `docker compose --env-file .env.compose --profile publisher up -d`
+
+默认端口：
+
+- Lite Web: `3000`
+- Go API: `8080`
+- Publisher: `3100`（仅在 `publisher` profile 启动时）
+
+隔离保证：
+
+- `lite-web` / `lite-api` / `lite-worker` 没有对 `publisher` 的运行依赖。
+- `publisher` 挂掉、重启失败或关闭时，不影响 Lite 展示链路。
+- `publisher` 仅在发布动作触发时调用 API；失败只影响发布动作本身。
+- Compose 已启用 `lite-api` / `lite-web` / `publisher` 健康检查。
+- `db` / `api` / `publisher` 默认仅绑定到 `127.0.0.1`（可通过 `*.BIND_HOST` 覆盖）。
+
+## Coolify 发布（推荐）
+
+目标：尽可能统一为 Coolify CLI/API 发布，减少手动操作。
+
+1. 初始化配置：
+   - `cp .env.coolify.example .env.coolify`
+   - 按需修改 `COOLIFY_CONTEXT`、`COOLIFY_LITE_UUID`、健康检查 URL 等。
+2. 如果 publisher 还没单独建应用，先执行：
+   - `pnpm deploy:coolify:ensure-publisher`
+   - 该命令会在 Coolify 创建独立 `tdp-publisher`（`base-directory=/publisher`）并同步核心 env。
+   - 若创建时 `environment-uuid` 不兼容，会自动回退到 `environment-name`（可在 `.env.coolify` 配置 `COOLIFY_ENVIRONMENT_NAME`）。
+3. 发布 Lite：
+   - `pnpm deploy:coolify:lite`
+4. 发布全部目标（lite + publisher，publisher 若未配置会自动跳过）：
+   - `pnpm deploy:coolify:all`
+   - 默认 `COOLIFY_PUBLISHER_OPTIONAL_IN_ALL=true`，即 publisher 失败不会阻断 lite 发布。
+5. 发布前预演：
+   - `pnpm deploy:coolify:dry-run`
+6. 发布前硬化检查（建议）：
+   - `pnpm release:preflight`
+
+脚本说明（`scripts/deploy-coolify.sh`）：
+
+- 默认 `cli` 模式：调用 `coolify deploy uuid`。
+- 可切换 `api` 模式：`COOLIFY_DEPLOY_MODE=api`（使用 `/api/v1/deploy?uuid=`）。
+- 支持按 UUID 或按名称自动发现应用。
+- 支持等待部署完成、失败即退出、部署后健康检查。
+- `scripts/coolify-ensure-publisher.sh` 用于自动创建 publisher 独立应用。
+
 ### Lightweight Frontend Mode
 
 - Display routes read public content from `TDP_API_BASE_URL` / `NEXT_PUBLIC_TDP_API_BASE_URL`.
@@ -94,6 +153,8 @@
   - `pnpm type-check`, `pnpm lint`, `pnpm test:layout`, `pnpm build`
 - Backend CI: `.github/workflows/backend-ci.yml`
   - `cd backend && go test ./... && go build ./...`
+- Publisher CI: `.github/workflows/publisher-ci.yml`
+  - `pnpm -C publisher type-check`, `pnpm -C publisher lint`, `pnpm -C publisher build`
 - Integration E2E (nightly/manual): `.github/workflows/integration-e2e.yml`
   - 启动 PostgreSQL + Next + Go API + worker，做端到端 smoke 验证。
 - CD workflow: `.github/workflows/cd.yml`
