@@ -105,19 +105,23 @@
 
 1. 初始化配置：
    - `cp .env.coolify.example .env.coolify`
-   - 按需修改 `COOLIFY_CONTEXT`、`COOLIFY_LITE_UUID`、健康检查 URL 等。
+   - 按需修改 `COOLIFY_CONTEXT`、`COOLIFY_LITE_UUID`、`COOLIFY_API_APP_UUID`、健康检查 URL 等。
 2. 如果 publisher 还没单独建应用，先执行：
    - `pnpm deploy:coolify:ensure-publisher`
    - 该命令会在 Coolify 创建独立 `tdp-publisher`（`base-directory=/publisher`）并同步核心 env。
+   - `PUBLISH_TARGET_BASE_URL` 会默认自动解析到 `tdp-lite-api`（而不是 `tdp-lite` 前端 URL），并在写入前校验 `/healthz` 与 `/v1/previews/sessions`。
+   - 当 env 有更新时，会自动触发 publisher 重部署，确保新变量立即生效。
    - 若创建时 `environment-uuid` 不兼容，会自动回退到 `environment-name`（可在 `.env.coolify` 配置 `COOLIFY_ENVIRONMENT_NAME`）。
-3. 发布 Lite：
+3. 发布 API（推荐先发 API）：
+   - `pnpm deploy:coolify:api`
+4. 发布 Lite：
    - `pnpm deploy:coolify:lite`
-4. 发布全部目标（lite + publisher，publisher 若未配置会自动跳过）：
+5. 发布全部目标（api + lite + publisher，publisher 若未配置会自动跳过）：
    - `pnpm deploy:coolify:all`
    - 默认 `COOLIFY_PUBLISHER_OPTIONAL_IN_ALL=true`，即 publisher 失败不会阻断 lite 发布。
-5. 发布前预演：
+6. 发布前预演：
    - `pnpm deploy:coolify:dry-run`
-6. 发布前硬化检查（建议）：
+7. 发布前硬化检查（建议）：
    - `pnpm release:preflight`
 
 脚本说明（`scripts/deploy-coolify.sh`）：
@@ -125,6 +129,7 @@
 - 默认 `cli` 模式：调用 `coolify deploy uuid`。
 - 可切换 `api` 模式：`COOLIFY_DEPLOY_MODE=api`（使用 `/api/v1/deploy?uuid=`）。
 - 支持按 UUID 或按名称自动发现应用。
+- 支持 `api|lite|publisher|all` 多目标发布；`all` 会按 `api -> lite -> publisher` 顺序执行。
 - 支持等待部署完成、失败即退出、部署后健康检查。
 - `scripts/coolify-ensure-publisher.sh` 用于自动创建 publisher 独立应用。
 

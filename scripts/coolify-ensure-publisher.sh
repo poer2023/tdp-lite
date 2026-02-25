@@ -17,9 +17,12 @@ COOLIFY_REPO_BRANCH="${COOLIFY_REPO_BRANCH:-main}"
 COOLIFY_PUBLISHER_BASE_DIRECTORY="${COOLIFY_PUBLISHER_BASE_DIRECTORY:-/publisher}"
 COOLIFY_PUBLISHER_PORT="${COOLIFY_PUBLISHER_PORT:-3100}"
 COOLIFY_PUBLISHER_HEALTH_PATH="${COOLIFY_PUBLISHER_HEALTH_PATH:-/}"
+COOLIFY_REDEPLOY_ON_ENV_SYNC="${COOLIFY_REDEPLOY_ON_ENV_SYNC:-true}"
 
 COOLIFY_LITE_UUID="${COOLIFY_LITE_UUID:-}"
 COOLIFY_LITE_NAME="${COOLIFY_LITE_NAME:-tdp-lite}"
+COOLIFY_API_APP_UUID="${COOLIFY_API_APP_UUID:-}"
+COOLIFY_API_APP_NAME="${COOLIFY_API_APP_NAME:-tdp-lite-api,lite-api}"
 COOLIFY_PUBLISH_TARGET_BASE_URL="${COOLIFY_PUBLISH_TARGET_BASE_URL:-}"
 NEXT_PUBLIC_PUBLISHER_URL="${NEXT_PUBLIC_PUBLISHER_URL:-}"
 TDP_INTERNAL_KEY_ID="${TDP_INTERNAL_KEY_ID:-}"
@@ -113,6 +116,64 @@ resolve_lite_fqdn() {
   lite_uuid="$(resolve_lite_uuid)"
   [[ -z "$lite_uuid" ]] && return 1
   run_coolify app get "$lite_uuid" --format json | jq -r '.fqdn // ""'
+}
+
+resolve_api_uuid() {
+  if [[ -n "$COOLIFY_API_APP_UUID" ]]; then
+    printf '%s' "$COOLIFY_API_APP_UUID"
+    return 0
+  fi
+  local name
+  IFS=',' read -r -a names_arr <<< "$COOLIFY_API_APP_NAME"
+  for name in "${names_arr[@]}"; do
+    name="$(echo "$name" | xargs)"
+    [[ -z "$name" ]] && continue
+    local uuid
+    uuid="$(jq -r --arg n "$name" '.[] | select(.name == $n) | .uuid' <<<"$app_list_json" | head -n1)"
+    if [[ -n "$uuid" && "$uuid" != "null" ]]; then
+      printf '%s' "$uuid"
+      return 0
+    fi
+  done
+  return 1
+}
+
+resolve_api_fqdn() {
+  local api_uuid
+  api_uuid="$(resolve_api_uuid || true)"
+  [[ -z "$api_uuid" ]] && return 1
+  run_coolify app get "$api_uuid" --format json | jq -r '.fqdn // ""'
+}
+
+verify_publish_target() {
+  local base_url="$1"
+  local health_url="${base_url%/}/healthz"
+
+  local health_body=""
+  set +e
+  health_body="$(curl -fsS "$health_url" 2>/dev/null)"
+  local health_status=$?
+  set -e
+
+  if [[ "$health_status" -ne 0 ]] || ! grep -q '"service":"tdp-api"' <<<"$health_body"; then
+    die "PUBLISH_TARGET_BASE_URL must point to Go API service. Probe failed: ${health_url}"
+  fi
+
+  local preview_probe_code=""
+  set +e
+  preview_probe_code="$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${base_url%/}/v1/previews/sessions" -H 'content-type: application/json' --data '{}')"
+  local preview_probe_status=$?
+  set -e
+
+  if [[ "$preview_probe_status" -ne 0 ]]; then
+    die "Cannot reach preview API on publish target: ${base_url%/}/v1/previews/sessions"
+  fi
+
+  if [[ "$preview_probe_code" == "404" ]]; then
+    die "PUBLISH_TARGET_BASE_URL points to a service without /v1 API routes (likely frontend URL)."
+  fi
+
+  log "Verified publish target API endpoint: ${base_url%/}"
 }
 
 resolve_environment_name() {
@@ -237,10 +298,15 @@ if [[ "$DRY_RUN" == "true" ]]; then
   exit 0
 fi
 
-[[ -z "$COOLIFY_PUBLISH_TARGET_BASE_URL" ]] && COOLIFY_PUBLISH_TARGET_BASE_URL="$(resolve_lite_fqdn || true)"
+[[ -z "$COOLIFY_PUBLISH_TARGET_BASE_URL" ]] && COOLIFY_PUBLISH_TARGET_BASE_URL="$(resolve_api_fqdn || true)"
+if [[ -z "$COOLIFY_PUBLISH_TARGET_BASE_URL" ]]; then
+  die "Missing COOLIFY_PUBLISH_TARGET_BASE_URL. Set it explicitly or ensure API app exists (default names: $COOLIFY_API_APP_NAME)."
+fi
 if [[ -z "$NEXT_PUBLIC_PUBLISHER_URL" ]]; then
   NEXT_PUBLIC_PUBLISHER_URL="$(run_coolify app get "$COOLIFY_PUBLISHER_UUID" --format json | jq -r '.fqdn // ""')"
 fi
+
+verify_publish_target "$COOLIFY_PUBLISH_TARGET_BASE_URL"
 
 tmp_env="$(mktemp)"
 tmp_updates="$(mktemp)"
@@ -248,6 +314,8 @@ cleanup() {
   rm -f "$tmp_env" "$tmp_updates"
 }
 trap cleanup EXIT
+
+env_changed=0
 
 {
   [[ -n "$NEXT_PUBLIC_PUBLISHER_URL" ]] && printf 'NEXT_PUBLIC_PUBLISHER_URL=%s\n' "$NEXT_PUBLIC_PUBLISHER_URL"
@@ -263,7 +331,7 @@ fi
 
 log "Syncing publisher env vars..."
 sync_failed=0
-app_env_list_json="$(run_coolify app env list "$COOLIFY_PUBLISHER_UUID" --format json)"
+app_env_list_json="$(run_coolify --show-sensitive app env list "$COOLIFY_PUBLISHER_UUID" --format json)"
 
 while IFS= read -r line || [[ -n "$line" ]]; do
   [[ -z "$line" ]] && continue
@@ -272,11 +340,17 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   [[ -z "$key" ]] && continue
 
   if jq -e --arg k "$key" '.[] | select(.key == $k and (.is_preview | not))' >/dev/null <<<"$app_env_list_json"; then
+    existing_value="$(jq -r --arg k "$key" '.[] | select(.key == $k and (.is_preview | not)) | .value' <<<"$app_env_list_json" | head -n1)"
+    if [[ "$existing_value" == "$value" ]]; then
+      log "Env unchanged: $key"
+      continue
+    fi
     printf '%s=%s\n' "$key" "$value" >>"$tmp_updates"
     log "Queued env update: $key"
   else
     if run_coolify app env create "$COOLIFY_PUBLISHER_UUID" --key "$key" --value "$value" >/dev/null; then
       log "Created env: $key"
+      env_changed=1
     else
       warn "Failed to create env: $key"
       sync_failed=$((sync_failed + 1))
@@ -319,6 +393,7 @@ if [[ -s "$tmp_updates" ]]; then
 
   if [[ "$update_status" -eq 0 ]]; then
     log "Updated existing env vars via API bulk patch."
+    env_changed=1
   else
     warn "Failed to update existing env vars via API bulk patch."
     sync_failed=$((sync_failed + 1))
@@ -327,6 +402,11 @@ fi
 
 if [[ "$sync_failed" -gt 0 ]]; then
   warn "Publisher app is available, but env sync had ${sync_failed} issue(s). Re-run ensure command later or set envs manually in Coolify."
+fi
+
+if [[ "$env_changed" -eq 1 && "$COOLIFY_REDEPLOY_ON_ENV_SYNC" == "true" ]]; then
+  log "Publisher env changed. Triggering redeploy so new values take effect..."
+  run_coolify deploy uuid "$COOLIFY_PUBLISHER_UUID" --format json >/dev/null 2>&1 || run_coolify deploy uuid "$COOLIFY_PUBLISHER_UUID" >/dev/null
 fi
 
 log "Publisher app is ready: uuid=$COOLIFY_PUBLISHER_UUID"

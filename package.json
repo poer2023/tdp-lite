@@ -30,6 +30,7 @@
     "r2:check": "tsx scripts/check-r2-config.ts",
     "deploy:coolify": "bash scripts/deploy-coolify.sh",
     "deploy:coolify:lite": "bash scripts/deploy-coolify.sh --targets lite",
+    "deploy:coolify:api": "bash scripts/deploy-coolify.sh --targets api",
     "deploy:coolify:all": "bash scripts/deploy-coolify.sh --targets all",
     "deploy:coolify:dry-run": "bash scripts/deploy-coolify.sh --dry-run",
     "deploy:coolify:ensure-publisher": "bash scripts/coolify-ensure-publisher.sh",

@@ -6,7 +6,7 @@ DEFAULT_ENV_FILE="${ROOT_DIR}/.env.coolify"
 
 ENV_FILE="${COOLIFY_ENV_FILE:-$DEFAULT_ENV_FILE}"
 DEPLOY_MODE="${COOLIFY_DEPLOY_MODE:-cli}" # cli | api
-TARGETS="${COOLIFY_TARGETS:-lite}"        # lite | publisher | all | lite,publisher
+TARGETS="${COOLIFY_TARGETS:-lite}"        # lite | api | publisher | all | lite,api,publisher
 COOLIFY_CONTEXT="${COOLIFY_CONTEXT:-}"
 COOLIFY_FORCE="${COOLIFY_FORCE:-false}"
 COOLIFY_WAIT="${COOLIFY_WAIT:-true}"
@@ -17,10 +17,13 @@ COOLIFY_PUBLISHER_OPTIONAL_IN_ALL="${COOLIFY_PUBLISHER_OPTIONAL_IN_ALL:-true}"
 DRY_RUN="false"
 
 COOLIFY_LITE_NAME="${COOLIFY_LITE_NAME:-tdp-lite}"
+COOLIFY_API_APP_NAME="${COOLIFY_API_APP_NAME:-tdp-lite-api,lite-api}"
 COOLIFY_PUBLISHER_NAME="${COOLIFY_PUBLISHER_NAME:-tdp-publisher,publisher}"
 COOLIFY_LITE_UUID="${COOLIFY_LITE_UUID:-}"
+COOLIFY_API_APP_UUID="${COOLIFY_API_APP_UUID:-}"
 COOLIFY_PUBLISHER_UUID="${COOLIFY_PUBLISHER_UUID:-}"
 COOLIFY_LITE_HEALTH_URL="${COOLIFY_LITE_HEALTH_URL:-}"
+COOLIFY_API_HEALTH_URL="${COOLIFY_API_HEALTH_URL:-}"
 COOLIFY_PUBLISHER_HEALTH_URL="${COOLIFY_PUBLISHER_HEALTH_URL:-}"
 COOLIFY_API_URL="${COOLIFY_API_URL:-}"
 COOLIFY_API_TOKEN="${COOLIFY_API_TOKEN:-}"
@@ -33,7 +36,7 @@ Usage:
   scripts/deploy-coolify.sh [options]
 
 Options:
-  --targets <lite|publisher|all|lite,publisher>  Deploy targets (default: lite)
+  --targets <lite|api|publisher|all|lite,api,publisher>  Deploy targets (default: lite)
   --mode <cli|api>                                Deploy mode (default: cli)
   --context <name>                                Coolify context name (CLI mode)
   --force                                         Force deployment
@@ -139,10 +142,13 @@ COOLIFY_POLL_SECONDS="${COOLIFY_POLL_SECONDS:-$COOLIFY_POLL_SECONDS}"
 COOLIFY_HEALTH_STRICT="${COOLIFY_HEALTH_STRICT:-$COOLIFY_HEALTH_STRICT}"
 COOLIFY_PUBLISHER_OPTIONAL_IN_ALL="${COOLIFY_PUBLISHER_OPTIONAL_IN_ALL:-$COOLIFY_PUBLISHER_OPTIONAL_IN_ALL}"
 COOLIFY_LITE_NAME="${COOLIFY_LITE_NAME:-$COOLIFY_LITE_NAME}"
+COOLIFY_API_APP_NAME="${COOLIFY_API_APP_NAME:-$COOLIFY_API_APP_NAME}"
 COOLIFY_PUBLISHER_NAME="${COOLIFY_PUBLISHER_NAME:-$COOLIFY_PUBLISHER_NAME}"
 COOLIFY_LITE_UUID="${COOLIFY_LITE_UUID:-$COOLIFY_LITE_UUID}"
+COOLIFY_API_APP_UUID="${COOLIFY_API_APP_UUID:-$COOLIFY_API_APP_UUID}"
 COOLIFY_PUBLISHER_UUID="${COOLIFY_PUBLISHER_UUID:-$COOLIFY_PUBLISHER_UUID}"
 COOLIFY_LITE_HEALTH_URL="${COOLIFY_LITE_HEALTH_URL:-$COOLIFY_LITE_HEALTH_URL}"
+COOLIFY_API_HEALTH_URL="${COOLIFY_API_HEALTH_URL:-$COOLIFY_API_HEALTH_URL}"
 COOLIFY_PUBLISHER_HEALTH_URL="${COOLIFY_PUBLISHER_HEALTH_URL:-$COOLIFY_PUBLISHER_HEALTH_URL}"
 COOLIFY_API_URL="${COOLIFY_API_URL:-$COOLIFY_API_URL}"
 COOLIFY_API_TOKEN="${COOLIFY_API_TOKEN:-$COOLIFY_API_TOKEN}"
@@ -327,7 +333,7 @@ deploy_one() {
 normalize_targets() {
   case "$TARGETS" in
     all)
-      printf '%s\n' "lite" "publisher"
+      printf '%s\n' "api" "lite" "publisher"
       ;;
     *)
       IFS=',' read -r -a arr <<< "$TARGETS"
@@ -342,6 +348,9 @@ normalize_targets() {
 if [[ -z "$COOLIFY_LITE_UUID" ]]; then
   COOLIFY_LITE_UUID="$(find_uuid_by_names "$COOLIFY_LITE_NAME" || true)"
 fi
+if [[ -z "$COOLIFY_API_APP_UUID" ]]; then
+  COOLIFY_API_APP_UUID="$(find_uuid_by_names "$COOLIFY_API_APP_NAME" || true)"
+fi
 if [[ -z "$COOLIFY_PUBLISHER_UUID" ]]; then
   COOLIFY_PUBLISHER_UUID="$(find_uuid_by_names "$COOLIFY_PUBLISHER_NAME" || true)"
 fi
@@ -352,6 +361,12 @@ log "Mode: $DEPLOY_MODE"
 
 while IFS= read -r target; do
   case "$target" in
+    api)
+      if [[ -z "$COOLIFY_API_APP_UUID" ]]; then
+        die "API app UUID not found."
+      fi
+      deploy_one "api" "$COOLIFY_API_APP_UUID" "$COOLIFY_API_HEALTH_URL"
+      ;;
     lite)
       deploy_one "lite" "$COOLIFY_LITE_UUID" "$COOLIFY_LITE_HEALTH_URL"
       ;;
@@ -372,7 +387,7 @@ while IFS= read -r target; do
       fi
       ;;
     *)
-      die "Unsupported target: $target (expected lite|publisher|all)"
+      die "Unsupported target: $target (expected lite|api|publisher|all)"
       ;;
   esac
 done < <(normalize_targets)
