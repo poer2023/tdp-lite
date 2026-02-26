@@ -20,10 +20,11 @@ type Config struct {
 	S3Bucket          string
 	S3PublicURL       string
 
-	TimestampSkew   time.Duration
-	NonceTTL        time.Duration
-	PreviewTTL      time.Duration
-	JobPollInterval time.Duration
+	TimestampSkew        time.Duration
+	NonceTTL             time.Duration
+	PreviewTTL           time.Duration
+	JobPollInterval      time.Duration
+	PresenceOnlineWindow time.Duration
 
 	OpenAIAPIKey    string
 	AnthropicAPIKey string
@@ -82,10 +83,11 @@ func Load() Config {
 		S3Bucket:          envOrDefault("S3_BUCKET", os.Getenv("CLOUDFLARE_R2_BUCKET")),
 		S3PublicURL:       envOrDefault("S3_CDN_URL", os.Getenv("R2_PUBLIC_URL")),
 
-		TimestampSkew:   durationOrDefault("TDP_TIMESTAMP_SKEW", 5*time.Minute),
-		NonceTTL:        durationOrDefault("TDP_NONCE_TTL", 10*time.Minute),
-		PreviewTTL:      previewTTL,
-		JobPollInterval: jobPoll,
+		TimestampSkew:        durationOrDefault("TDP_TIMESTAMP_SKEW", 5*time.Minute),
+		NonceTTL:             durationOrDefault("TDP_NONCE_TTL", 10*time.Minute),
+		PreviewTTL:           previewTTL,
+		JobPollInterval:      jobPoll,
+		PresenceOnlineWindow: durationOrDefault("TDP_PRESENCE_ONLINE_WINDOW", 3*time.Minute),
 
 		OpenAIAPIKey:    os.Getenv("OPENAI_API_KEY"),
 		AnthropicAPIKey: os.Getenv("ANTHROPIC_API_KEY"),

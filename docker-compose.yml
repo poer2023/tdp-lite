@@ -128,6 +128,33 @@ services:
       retries: 10
       start_period: 15s
 
+  profile-sync:
+    profiles: ["sync"]
+    build:
+      context: .
+      dockerfile: docker/profile-sync.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      lite-api:
+        condition: service_healthy
+      lite-migrate:
+        condition: service_completed_successfully
+    environment:
+      TDP_API_BASE_URL: http://lite-api:8080
+      TDP_INTERNAL_KEY_ID: ${TDP_INTERNAL_KEY_ID:?TDP_INTERNAL_KEY_ID is required}
+      TDP_INTERNAL_KEY_SECRET: ${TDP_INTERNAL_KEY_SECRET:?TDP_INTERNAL_KEY_SECRET is required}
+      PROFILE_SYNC_INTERVAL_HOURS: ${PROFILE_SYNC_INTERVAL_HOURS:-24}
+      PROFILE_SYNC_TIMEOUT_MS: ${PROFILE_SYNC_TIMEOUT_MS:-20000}
+      GITHUB_SYNC_USERNAME: ${GITHUB_SYNC_USERNAME:-}
+      GITHUB_SYNC_TOKEN: ${GITHUB_SYNC_TOKEN:-}
+      GITHUB_SYNC_WINDOW_DAYS: ${GITHUB_SYNC_WINDOW_DAYS:-36}
+      GITHUB_SYNC_MAX_PAGES: ${GITHUB_SYNC_MAX_PAGES:-4}
+      APPLE_MUSIC_API_BASE: ${APPLE_MUSIC_API_BASE:-https://api.music.apple.com/v1}
+      APPLE_MUSIC_DEVELOPER_TOKEN: ${APPLE_MUSIC_DEVELOPER_TOKEN:-}
+      APPLE_MUSIC_USER_TOKEN: ${APPLE_MUSIC_USER_TOKEN:-}
+      APPLE_MUSIC_STOREFRONT: ${APPLE_MUSIC_STOREFRONT:-us}
+      APPLE_MUSIC_SYNC_LIMIT: ${APPLE_MUSIC_SYNC_LIMIT:-25}
+
   publisher-key-sync:
     profiles: ["publisher"]
     image: postgres:16-alpine

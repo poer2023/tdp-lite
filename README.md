@@ -84,6 +84,8 @@
    - `docker compose --env-file .env.compose up -d`
 3. 若需要发布工具，再启 publisher profile：
    - `docker compose --env-file .env.compose --profile publisher up -d`
+4. 若需要每日同步 GitHub / Apple Music 快照，再启 sync profile：
+   - `docker compose --env-file .env.compose --profile sync up -d profile-sync`
 
 默认端口：
 
@@ -151,6 +153,42 @@
 - Start API: `pnpm backend:api`
 - Start worker: `pnpm backend:worker`
 - Run migrations: `pnpm backend:migrate`
+
+## Realtime Presence
+
+- Public read endpoint: `GET /v1/public/presence`
+- Internal heartbeat write endpoint (signed key): `POST /v1/internal/presence`
+- Online/offline is derived by heartbeat freshness (`TDP_PRESENCE_ONLINE_WINDOW`, default `3m`).
+- Update presence quickly:
+  - `pnpm presence:heartbeat -- --city Tokyo --country Japan --country-code JP --source manual`
+
+## Profile Snapshot Sync (GitHub + Apple Music)
+
+- Sync worker only writes snapshot to API:
+  - pull source data -> normalize -> `POST /v1/internal/profile-snapshot`
+- Frontend (`tdp-lite`) only reads:
+  - `GET /v1/public/profile-snapshot`
+- Failure isolation:
+  - sync failure only affects data freshness, never blocks page rendering.
+  - source partial failure preserves previous snapshot fields (no destructive overwrite).
+
+Local run:
+
+- One-shot sync:
+  - `pnpm profile:sync`
+- Loop mode (default 24h interval):
+  - `pnpm profile:sync:loop`
+
+Required env:
+
+- `TDP_INTERNAL_KEY_ID`, `TDP_INTERNAL_KEY_SECRET`
+- GitHub:
+  - `GITHUB_SYNC_USERNAME` (required for GitHub sync)
+  - `GITHUB_SYNC_TOKEN` (optional, recommended to avoid low rate limits)
+- Apple Music:
+  - `APPLE_MUSIC_DEVELOPER_TOKEN`
+  - `APPLE_MUSIC_USER_TOKEN`
+  - `APPLE_MUSIC_STOREFRONT` (default `us`)
 
 ## CI/CD
 

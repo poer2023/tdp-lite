@@ -138,6 +138,43 @@ components:
           type: object
           nullable: true
           additionalProperties: true
+    Presence:
+      type: object
+      properties:
+        online: { type: boolean }
+        status: { type: string, enum: [online, offline, unknown] }
+        city: { type: string, nullable: true }
+        region: { type: string, nullable: true }
+        country: { type: string, nullable: true }
+        countryCode: { type: string, nullable: true }
+        timezone: { type: string, nullable: true }
+        source: { type: string, nullable: true }
+        locationLabel: { type: string }
+        lastHeartbeatAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+        staleAfterSec: { type: integer, nullable: true }
+    ProfileSnapshot:
+      type: object
+      properties:
+        github:
+          type: object
+          nullable: true
+          additionalProperties: true
+        music:
+          type: object
+          nullable: true
+          additionalProperties: true
+        derived:
+          type: object
+          nullable: true
+          additionalProperties: true
+        sourceStatus:
+          type: object
+          nullable: true
+          additionalProperties: true
+        syncedAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+        createdAt: { type: string, format: date-time, nullable: true }
 paths:
   /healthz:
     get:
@@ -201,6 +238,16 @@ paths:
           required: true
           schema: { type: string }
       responses: { '200': { description: Gallery detail }, '404': { description: Not found } }
+  /v1/public/presence:
+    get:
+      security: []
+      responses:
+        '200': { description: Presence status }
+  /v1/public/profile-snapshot:
+    get:
+      security: []
+      responses:
+        '200': { description: Profile snapshot }
   /v1/public/search:
     post:
       security: []
@@ -235,6 +282,50 @@ paths:
                     isoMax: { type: integer, minimum: 0 }
       responses:
         '200': { description: Section search results }
+  /v1/internal/presence:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [city]
+              properties:
+                city: { type: string, minLength: 1, maxLength: 120 }
+                region: { type: string, maxLength: 120 }
+                country: { type: string, maxLength: 120 }
+                countryCode: { type: string, maxLength: 8 }
+                timezone: { type: string, maxLength: 80 }
+                source: { type: string, maxLength: 80 }
+      responses:
+        '200': { description: Presence updated }
+  /v1/internal/profile-snapshot:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                github:
+                  type: object
+                  additionalProperties: true
+                music:
+                  type: object
+                  additionalProperties: true
+                derived:
+                  type: object
+                  additionalProperties: true
+                sourceStatus:
+                  type: object
+                  additionalProperties: true
+                syncedAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200': { description: Profile snapshot updated }
   /v1/media/uploads:
     post:
       parameters:

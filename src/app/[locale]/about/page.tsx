@@ -1,25 +1,20 @@
-import {
-  Terminal,
-  Wind,
-  Atom,
-  Hexagon,
-  Cloud,
-  Figma,
-  Box,
-  BookOpen,
-  AtSign,
-  Github,
-  FileText,
-  Mail,
-  Plus,
-} from "lucide-react";
 import Image from "next/image";
-import { BottomNav } from "@/components/BottomNav";
 import {
-  getPublicMoments,
-  getPublicPosts,
-} from "@/lib/content/read";
-import { getAggregatedGalleryImages } from "@/lib/gallery";
+  Aperture,
+  ArrowUpRight,
+  AudioLines,
+  Brush,
+  Circle,
+  Code2,
+  Contrast,
+  Palette,
+  Play,
+  Sparkles,
+  Terminal,
+  Camera,
+} from "lucide-react";
+import { BottomNav } from "@/components/BottomNav";
+import { getPublicProfileSnapshot } from "@/lib/content/read";
 import { type AppLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
@@ -32,277 +27,465 @@ interface AboutPageProps {
 
 export default async function AboutPage({ params }: AboutPageProps) {
   const { locale } = await params;
-  const t =
-    locale === "zh"
-      ? {
-          profileAlt: "用户头像",
-          est: "始于 2024",
-          bio: "数字工匠与极简探索者。为喧闹世界设计安静的界面，现居东京，在比特与碎片化记忆中穿梭。",
-          hire: "可接受合作",
-          techStack: "技术栈",
-          activity: "活跃度",
-          activityArticles: "已发布文章",
-          activityMoments: "日常动态",
-          activityPhotos: "胶片影像",
-          reading: "正在阅读",
-          progress: "进度",
-          connectivity: "连接方式",
-          socialTwitter: "X / 推特",
-          socialGithub: "Github",
-          socialReadcv: "Read.cv",
-          socialEmail: "邮箱",
-          footprintTitle: "留下痕迹",
-          footprintSubtitle: "匿名留言 / 合作邀请",
-          footprintCta: "发起连接",
-          bookCoverAlt: "书籍封面",
-        }
-      : {
-          profileAlt: "User profile",
-          est: "EST. 2024",
-          bio: "Digital craftsman and minimalist explorer. Designing quiet interfaces for a loud world. Currently based in Tokyo, weaving together bits, bytes, and broken reflections.",
-          hire: "Available for hire",
-          techStack: "Tech Stack",
-          activity: "Activity",
-          activityArticles: "Articles Published",
-          activityMoments: "Daily Moments",
-          activityPhotos: "Analog Photos",
-          reading: "Currently Reading",
-          progress: "Progress",
-          connectivity: "Connectivity",
-          socialTwitter: "X / Twitter",
-          socialGithub: "Github",
-          socialReadcv: "Read.cv",
-          socialEmail: "Email",
-          footprintTitle: "Leave a footprint",
-          footprintSubtitle: "Anonymous Message / Collaboration Request",
-          footprintCta: "Initialize Transmission",
-          bookCoverAlt: "Book cover",
-        };
+  const isZh = locale === "zh";
+  const t = isZh
+    ? {
+        title: "工作室",
+        subtitle: "与实验室",
+        intro:
+          "一个让理性与感性并行的混合空间。以严谨的代码与克制的美学，持续制作可被使用的数字作品。",
+        chipA: "前端架构",
+        chipB: "视觉设计",
+        sectionLab: "实验室",
+        sectionAtelier: "工作室",
+        commitFrequency: "提交频率",
+        year: "2024",
+        less: "少",
+        more: "多",
+        techStack: "技术栈",
+        latestShip: "最新发布",
+        projectLabel: "项目 01",
+        projectName: "流体模拟",
+        quote: "“没有美感的功能只是工具；没有功能的美感只是装饰。”",
+        quoteBody:
+          "我追求两者的交汇点：让干净的代码承载流动的体验，让审慎的设计引导复杂交互。",
+        currentPalette: "当前配色",
+        palettePrefix: "项目：",
+        paletteProjectName: "新瑞士海报系列",
+        glass: "镜头",
+        lensAType: "街拍",
+        lensBType: "人像",
+        musicName: "Deep Focus 24'",
+        musicArtist: "Ambient Works",
+      }
+    : {
+        title: "Atelier",
+        subtitle: "& Lab",
+        intro:
+          "A hybrid space where logic meets emotion. Creating digital artifacts through rigourous code and curated aesthetics.",
+        chipA: "Frontend Arch.",
+        chipB: "Visual Design",
+        sectionLab: "The Lab",
+        sectionAtelier: "The Atelier",
+        commitFrequency: "Commit Frequency",
+        year: "2024",
+        less: "Less",
+        more: "More",
+        techStack: "Tech Stack",
+        latestShip: "Latest Ship",
+        projectLabel: "Project 01",
+        projectName: "Fluid Simulations",
+        quote:
+          '"Function without beauty is utilitarian. Beauty without function is decoration."',
+        quoteBody:
+          "I strive for the intersection. Where clean code enables fluid motion, and thoughtful design guides complex interactions.",
+        currentPalette: "Current Palette",
+        palettePrefix: "Project:",
+        paletteProjectName: "Neo-Swiss Poster Series",
+        glass: "Glass",
+        lensAType: "Street",
+        lensBType: "Portrait",
+        musicName: "Deep Focus 24'",
+        musicArtist: "Ambient Works",
+      };
 
-  // Query counts directly from local DB read layer
-  const [postsCount, momentsCount, galleryItems] = await Promise.all([
-    getPublicPosts(locale),
-    getPublicMoments(locale),
-    getAggregatedGalleryImages(locale),
-  ]);
-
-  const techStack = [
-    { name: "Tailwind", icon: Wind },
-    { name: "React", icon: Atom },
-    { name: "Next.js", icon: Hexagon },
-    { name: "Vercel", icon: Cloud },
-    { name: "Figma", icon: Figma },
-    { name: "Three.js", icon: Box },
+  const defaultHeatmapCells = [
+    "bg-paper-grey",
+    "bg-ink/20",
+    "bg-ink/40",
+    "bg-ink/80",
+    "bg-ink",
+    "bg-paper-grey",
+    "bg-ink/60",
+    "bg-ink/20",
+    "bg-ink/90",
+    "bg-paper-grey",
+    "bg-ink/10",
+    "bg-ink/50",
+    "bg-ink/30",
+    "bg-ink/70",
+    "bg-paper-grey",
+    "bg-ink",
+    "bg-ink/40",
+    "bg-ink/20",
+    "bg-paper-grey",
+    "bg-ink/80",
+    "bg-ink/60",
+    "bg-ink/10",
+    "bg-paper-grey",
+    "bg-ink/90",
+    "bg-ink",
+    "bg-ink/20",
+    "bg-paper-grey",
+    "bg-ink/50",
+    "bg-ink/80",
+    "bg-ink/30",
+    "bg-paper-grey",
+    "bg-ink/60",
+    "bg-ink/90",
+    "bg-ink/10",
+    "bg-paper-grey",
+    "bg-ink",
   ];
 
-  const activity = [
-    { value: String(postsCount.length), label: t.activityArticles },
-    { value: String(momentsCount.length), label: t.activityMoments },
-    { value: String(galleryItems.length), label: t.activityPhotos },
+  const techPills = [
+    "TypeScript",
+    "React Three Fiber",
+    "Next.js 14",
+    "Tailwind",
+    "WebGL",
+    "Node.js",
+    "Rust",
+    "GraphQL",
   ];
 
-  const socialLinks = [
-    { name: t.socialTwitter, href: "https://twitter.com", icon: AtSign },
-    { name: t.socialGithub, href: "https://github.com", icon: Github },
-    { name: t.socialReadcv, href: "https://read.cv", icon: FileText },
-    { name: t.socialEmail, href: "mailto:hello@example.com", icon: Mail },
+  const palette = [
+    { code: "#2C3E50", bg: "bg-[#2C3E50]", textClass: "text-white" },
+    { code: "#E74C3C", bg: "bg-[#E74C3C]", textClass: "text-white" },
+    { code: "#ECF0F1", bg: "bg-[#ECF0F1]", textClass: "text-ink" },
+    { code: "#3498DB", bg: "bg-[#3498DB]", textClass: "text-white" },
   ];
+
+  const profileSnapshot = await getPublicProfileSnapshot();
+  const heatmapPalette = [
+    "bg-paper-grey",
+    "bg-ink/20",
+    "bg-ink/40",
+    "bg-ink/70",
+    "bg-ink",
+  ];
+  const snapshotLevels = profileSnapshot?.github?.heatmapLevels ?? [];
+  const heatmapCells =
+    snapshotLevels.length === 0
+      ? defaultHeatmapCells
+      : (() => {
+          const normalized = snapshotLevels
+            .map((level) => {
+              const safe = Number.isFinite(level) ? Math.trunc(level) : 0;
+              if (safe < 0) return 0;
+              if (safe > 4) return 4;
+              return safe;
+            })
+            .slice(-36);
+          while (normalized.length < 36) {
+            normalized.unshift(0);
+          }
+          return normalized.map((level) => heatmapPalette[level] ?? heatmapPalette[0]);
+        })();
+  const yearLabel =
+    profileSnapshot?.syncedAt instanceof Date
+      ? String(profileSnapshot.syncedAt.getUTCFullYear())
+      : t.year;
+  const latestTrack = profileSnapshot?.music?.recentTracks?.[0] ?? null;
+  const musicName = latestTrack?.name || t.musicName;
+  const musicArtist = latestTrack?.artist || t.musicArtist;
 
   return (
     <>
-      {/* Noise overlay */}
       <div
         className="bg-noise pointer-events-none fixed inset-0 z-0 mix-blend-multiply"
         data-lg-bg-layer="about-noise"
       />
-
       <div
-        className="pearlescent text-ink min-h-screen overflow-x-hidden pb-32 font-display selection:bg-black/10 selection:text-black"
+        className="about-soft-bg text-ink min-h-screen overflow-x-hidden pb-40 font-display selection:bg-black/10 selection:text-black"
         data-lg-bg-layer="about-root"
       >
-        <div className="relative z-10 mx-auto max-w-[1240px] px-8 pt-24 md:px-16">
-          {/* Header */}
-          <header className="mb-24 flex flex-col items-center gap-16 md:flex-row md:items-start">
-            {/* Avatar */}
-            <div className="group relative">
-              <div className="relative h-56 w-56 rotate-[-3deg] overflow-hidden rounded-[3rem] border-[14px] border-white paper-stack-shadow transition-transform duration-700 group-hover:rotate-0 md:h-64 md:w-64">
-                <Image
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1"
-                  alt={t.profileAlt}
-                  fill
-                  unoptimized
-                  sizes="(min-width: 768px) 16rem, 14rem"
-                  className="object-cover contrast-[1.05] brightness-[0.98] grayscale-[0.05]"
-                />
+        <div className="relative z-10 mx-auto max-w-[1400px] px-6 pb-8 pt-12 md:px-12 md:pt-20">
+          <header className="mb-16 flex flex-col items-end justify-between gap-8 lg:flex-row">
+            <div className="invisible" aria-hidden="true">
+              <div className="mb-4 flex items-center gap-4">
+                <span className="inline-flex size-8 items-center justify-center rounded-full bg-ink text-white">
+                  <Code2 className="h-4 w-4" />
+                </span>
+                <span className="h-px w-12 bg-ink/20" />
+                <span className="inline-flex size-8 items-center justify-center rounded-full border border-ink/10 bg-white text-ink">
+                  <Palette className="h-4 w-4" />
+                </span>
               </div>
-              <div className="bg-ink absolute -bottom-6 -right-6 rotate-6 rounded-2xl px-5 py-2.5 font-mono text-[11px] uppercase tracking-[0.2em] text-white paper-stack-shadow">
-                {t.est}
-              </div>
-            </div>
-
-            {/* Info */}
-            <div className="flex-1 pt-6 text-center md:text-left">
-              <h1 className="mb-8 font-serif text-7xl font-bold tracking-tight md:text-8xl">
-                Alex{" "}
-                <span className="text-ink-light italic font-normal">
-                  Rivers
+              <h1
+                className={
+                  isZh
+                    ? "font-display text-6xl font-semibold leading-[0.95] tracking-tight md:text-8xl"
+                    : "font-serif text-6xl font-bold leading-[0.9] tracking-tight md:text-8xl"
+                }
+              >
+                {t.title}
+                <br />
+                <span
+                  className={
+                    isZh
+                      ? "pl-10 text-[0.82em] font-medium text-ink-light md:pl-16"
+                      : "pl-16 font-light italic text-ink-light"
+                  }
+                >
+                  {t.subtitle}
                 </span>
               </h1>
-              <p className="text-ink-light max-w-3xl text-2xl font-light leading-[1.6] md:text-3xl">
-                {t.bio}
+            </div>
+
+            <div className="max-w-md text-right">
+              <p
+                className={
+                  isZh
+                    ? "mb-6 text-base font-normal leading-relaxed text-ink-light md:text-lg"
+                    : "mb-6 text-lg font-light leading-relaxed text-ink-light md:text-xl"
+                }
+              >
+                {t.intro}
               </p>
-              <div className="mt-10 flex flex-wrap justify-center gap-5 md:justify-start">
-                <div className="lg-chip-light flex items-center gap-3 rounded-full border border-white/50 bg-white/80 px-6 py-3 paper-stack-shadow">
-                  <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-green-500" />
-                  <span className="text-ink font-mono text-sm uppercase tracking-[0.15em]">
-                    {t.hire}
-                  </span>
-                </div>
+              <div className="flex justify-end gap-3">
+                <span
+                  className={
+                    isZh
+                      ? "rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-display tracking-[0.12em] shadow-sm"
+                      : "rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-mono uppercase tracking-widest shadow-sm"
+                  }
+                >
+                  {t.chipA}
+                </span>
+                <span
+                  className={
+                    isZh
+                      ? "rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-display tracking-[0.12em] shadow-sm"
+                      : "rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-mono uppercase tracking-widest shadow-sm"
+                  }
+                >
+                  {t.chipB}
+                </span>
               </div>
             </div>
           </header>
 
-          {/* Bento Grid */}
-          <div className="grid auto-rows-min grid-cols-1 gap-8 md:grid-cols-6 lg:grid-cols-12">
-            {/* Tech Stack */}
-            <div className="bento-card-about col-span-1 md:col-span-3 lg:col-span-5">
-              <div className="mb-12 flex items-start justify-between">
-                <h3 className="text-ink-light font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                  {t.techStack}
-                </h3>
-                <Terminal className="h-7 w-7 text-black/15" />
+          <div className="grid auto-rows-min grid-cols-1 gap-6 md:grid-cols-12">
+            <div className="col-span-1 flex flex-col gap-6 md:col-span-4">
+              <div className="invisible mb-2 flex items-center justify-between px-2" aria-hidden="true">
+                <h2
+                  className={
+                    isZh
+                      ? "text-xs font-semibold tracking-[0.18em] text-ink-light"
+                      : "font-mono text-xs font-bold uppercase tracking-[0.2em] text-ink-light"
+                  }
+                >
+                  {t.sectionLab}
+                </h2>
+                <span className="mx-4 h-px flex-1 bg-ink/10" />
+                <Terminal className="h-[18px] w-[18px] text-ink/40" />
               </div>
-              <div className="grid grid-cols-3 gap-x-6 gap-y-10">
-                {techStack.map((tech) => {
-                  const Icon = tech.icon;
-                  return (
-                    <div
-                      key={tech.name}
-                      className="group flex cursor-default flex-col items-center gap-4"
-                    >
-                      <div className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-paper-grey shadow-sm transition-all duration-300 group-hover:bg-[#111] group-hover:text-white">
-                        <Icon className="h-7 w-7" />
-                      </div>
-                      <span className="text-ink-light font-mono text-[11px] font-semibold uppercase tracking-widest group-hover:text-[#111]">
-                        {tech.name}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Activity */}
-            <div className="bento-card-about col-span-1 flex flex-col justify-between bg-gradient-to-br from-paper-off-white to-paper-grey md:col-span-3 lg:col-span-3">
-              <h3 className="text-ink-light mb-10 font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                {t.activity}
-              </h3>
-              <div className="space-y-8">
-                {activity.map((item, index) => (
-                  <div key={item.label}>
-                    <span className="text-ink font-serif text-5xl font-bold">
-                      {item.value}
-                    </span>
-                    <p className="text-ink-light mt-2 font-mono text-[11px] font-semibold uppercase tracking-[0.2em]">
-                      {item.label}
-                    </p>
-                    {index < activity.length - 1 && (
-                      <div className="mt-8 h-px bg-black/10" />
-                    )}
+              <div className="about-bento-card min-h-[200px] bg-white">
+                <div className="mb-6 flex items-start justify-between">
+                  <h3 className="font-serif text-xl font-bold">{t.commitFrequency}</h3>
+                  <span className="rounded bg-paper-grey px-2 py-1 font-mono text-xs text-ink-light">
+                    {yearLabel}
+                  </span>
+                </div>
+                <div className="flex h-full flex-wrap content-center justify-center gap-1">
+                  <div className="grid w-full grid-cols-12 gap-1">
+                    {heatmapCells.map((cellColor, index) => (
+                      <div
+                        key={`${cellColor}-${index}`}
+                        className={`about-heatmap-cell aspect-square ${cellColor}`}
+                      />
+                    ))}
                   </div>
-                ))}
+                </div>
+                <div
+                  className={
+                    isZh
+                      ? "mt-4 flex justify-between text-[10px] text-ink-light"
+                      : "mt-4 flex justify-between font-mono text-[10px] uppercase text-ink-light"
+                  }
+                >
+                  <span>{t.less}</span>
+                  <span>{t.more}</span>
+                </div>
+              </div>
+
+              <div className="about-bento-card bg-white">
+                <h3 className="mb-4 font-serif text-xl font-bold">{t.techStack}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {techPills.map((pill) => (
+                    <div key={pill} className="about-code-pill">
+                      {pill}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="about-bento-card group cursor-pointer bg-ink text-white">
+                <div className="mb-8 flex items-start justify-between">
+                  <div className="flex size-8 items-center justify-center rounded-full border border-white/20">
+                    <ArrowUpRight className="h-4 w-4" />
+                  </div>
+                  <span
+                    className={
+                      isZh
+                        ? "rounded-full border border-white/20 px-2 py-0.5 text-[10px]"
+                        : "rounded-full border border-white/20 px-2 py-0.5 font-mono text-[10px] uppercase"
+                    }
+                  >
+                    {t.latestShip}
+                  </span>
+                </div>
+                <div className="mt-auto">
+                  <h4
+                    className={
+                      isZh ? "mb-1 text-xs text-white/60" : "mb-1 font-mono text-xs text-white/60"
+                    }
+                  >
+                    {t.projectLabel}
+                  </h4>
+                  <h3
+                    className={
+                      isZh
+                        ? "font-display text-[1.65rem] font-semibold tracking-wide underline-offset-4 group-hover:underline"
+                        : "font-serif text-2xl font-bold underline-offset-4 group-hover:underline"
+                    }
+                  >
+                    {t.projectName}
+                  </h3>
+                </div>
               </div>
             </div>
 
-            {/* Currently Reading */}
-            <div className="bento-card-about group relative col-span-1 md:col-span-6 lg:col-span-4 overflow-hidden">
-              <div className="absolute right-0 top-0 p-10">
-                <BookOpen className="h-12 w-12 text-black/5" />
-              </div>
-              <h3 className="text-ink-light mb-8 font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                {t.reading}
-              </h3>
-              <div className="flex gap-6 items-start">
-                <div className="relative h-40 w-28 shrink-0 rotate-[-6deg] overflow-hidden rounded-2xl border border-black/5 bg-paper-grey transition-transform paper-stack-shadow group-hover:rotate-0">
+            <div className="col-span-1 flex flex-col gap-6 md:col-span-4">
+              <div className="mb-2 hidden h-7 items-center justify-center md:flex" />
+
+              <div className="about-bento-card min-h-[500px] items-center justify-center bg-paper-off-white py-16 text-center md:row-span-3 md:min-h-0 md:py-0">
+                <Sparkles className="mb-8 h-10 w-10 text-ink-light" />
+                <div className="mx-auto max-w-xs space-y-8 md:max-w-sm">
+                  <p
+                    className={
+                      isZh
+                        ? "font-display text-[2rem] font-semibold leading-[1.35] text-ink md:text-[2.15rem]"
+                        : "font-serif text-3xl font-bold leading-tight text-ink md:text-4xl"
+                    }
+                  >
+                    {t.quote}
+                  </p>
+                  <div className="mx-auto h-px w-12 bg-ink" />
+                  <p
+                    className={
+                      isZh
+                        ? "text-sm leading-relaxed tracking-[0.02em] text-ink-light"
+                        : "font-mono text-sm leading-relaxed text-ink-light"
+                    }
+                  >
+                    {t.quoteBody}
+                  </p>
+                </div>
+                <div className="mt-12">
                   <Image
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiAlc_Yk4SdPoZ6_R2pnELqovwoEgd4huXGJ7pH3cQD8Z7kLfVckop0Xm8E3uly53SSaExVIgxCvnjbLyMPfQgUoZDNxiJMrNNrf3O9hju-GLwGpwmlpTLfGAyZCNF53lOG6Ce70FSHXDpRa-HYQNJjqcpDV5jJhJy-gsmez6NMPuUwDLbSxmiCMpJ6Ci4475ZsYptBDkfyeuz8CMFzkA2vTMxYx5kCT2EV8H7rSRopWd42Ewky4nyGrL8dSzhuXdOfKkZZhl5C4oJ"
-                    alt={t.bookCoverAlt}
-                    fill
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRiOBGnDPua7ZxTcz9X6XGT5-nFqYq77OpHNohFukSRhcj4sr9S9eBcxe7Bu3xbucEsedOX5rs3v21s3qFYCx471U_94jIg5RWYIPnt0duD9u1vgWTQV4xMwnVHvNfaAdOm2rdGtZSM7CJE68S1HM9QPSrU51dCy8rSW4IcOrY5q28cf8sdGfbdfKgYoqP7GUKW1XXThQAOhPEqy6lNWMUg8jcXjZxZei5NS01MxSsly_wSznzz-5BDiFgC1MYYjh79iVSjTuWZGID"
+                    alt="Signature"
+                    width={168}
+                    height={48}
                     unoptimized
-                    sizes="7rem"
-                    className="object-cover"
+                    className="h-12 w-auto opacity-60 mix-blend-multiply"
                   />
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-ink mb-2 text-xl font-bold leading-tight">
-                    The Architecture of Happiness
-                  </h4>
-                  <p className="text-ink-light font-mono text-sm font-bold">
-                    Alain de Botton
-                  </p>
-                  <div className="mt-5">
-                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-paper-grey shadow-inner">
-                      <div className="bg-ink h-full w-[65%] rounded-full" />
+              </div>
+            </div>
+
+            <div className="col-span-1 flex flex-col gap-6 md:col-span-4">
+              <div className="invisible mb-2 flex items-center justify-between px-2" aria-hidden="true">
+                <Brush className="h-[18px] w-[18px] text-ink/40" />
+                <span className="mx-4 h-px flex-1 bg-ink/10" />
+                <h2
+                  className={
+                    isZh
+                      ? "text-xs font-semibold tracking-[0.18em] text-ink-light"
+                      : "font-mono text-xs font-bold uppercase tracking-[0.2em] text-ink-light"
+                  }
+                >
+                  {t.sectionAtelier}
+                </h2>
+              </div>
+
+              <div className="about-bento-card bg-white">
+                <div className="mb-6 flex items-center justify-between">
+                  <h3 className="font-serif text-xl font-bold">{t.currentPalette}</h3>
+                  <Contrast className="h-[18px] w-[18px] text-ink-light" />
+                </div>
+                <div className="grid h-24 grid-cols-4 gap-2">
+                  {palette.map((swatch, index) => (
+                    <div
+                      key={swatch.code}
+                      className={`group relative h-full ${swatch.bg} ${index === 0 ? "rounded-l-xl" : ""} ${index === palette.length - 1 ? "rounded-r-xl" : ""}`}
+                    >
+                      <span
+                        className={`absolute bottom-2 left-1 text-[8px] font-mono opacity-0 transition-opacity group-hover:opacity-100 ${swatch.textClass}`}
+                      >
+                        {swatch.code}
+                      </span>
                     </div>
-                    <div className="mt-2 flex justify-between">
-                      <span className="text-ink-light font-mono text-[11px] font-bold uppercase tracking-widest">
-                        {t.progress}
-                      </span>
-                      <span className="text-ink font-mono text-[11px] font-bold">
-                        65%
-                      </span>
+                  ))}
+                </div>
+                <p className="mt-4 text-xs font-mono text-ink-light">
+                  {t.palettePrefix} <span className="text-ink">{t.paletteProjectName}</span>
+                </p>
+              </div>
+
+              <div className="about-bento-card bg-[#111] text-white">
+                <div className="mb-6 flex items-start justify-between">
+                  <h3 className="font-serif text-xl font-bold">{t.glass}</h3>
+                  <Camera className="h-[18px] w-[18px] text-white/50" />
+                </div>
+                <div className="space-y-4">
+                  <div className="group flex cursor-pointer items-center gap-4">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-white/10 transition-colors group-hover:bg-white group-hover:text-black">
+                      <Circle className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-mono text-sm font-bold">35mm f/1.4</p>
+                      <p className="text-[10px] uppercase tracking-wider text-white/50">
+                        {t.lensAType}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="group flex cursor-pointer items-center gap-4">
+                    <div className="flex size-10 items-center justify-center rounded-full bg-white/10 transition-colors group-hover:bg-white group-hover:text-black">
+                      <Aperture className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="font-mono text-sm font-bold">85mm f/1.8</p>
+                      <p className="text-[10px] uppercase tracking-wider text-white/50">
+                        {t.lensBType}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Connectivity */}
-            <div className="bento-card-about col-span-1 bg-gradient-to-br from-paper-white to-paper-off-white md:col-span-3 lg:col-span-4">
-              <h3 className="text-ink-light mb-10 font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                {t.connectivity}
-              </h3>
-              <div className="grid grid-cols-1 gap-4">
-                {socialLinks.map((link) => {
-                  const Icon = link.icon;
-                  return (
-                    <a
-                      key={link.name}
-                      className="group flex items-center gap-5 rounded-[1.5rem] bg-paper-grey p-5 shadow-sm transition-all hover:bg-[#111] hover:text-white"
-                      href={link.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span className="pill-icon h-12 w-12 group-hover:bg-white group-hover:text-[#111]">
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <span className="font-mono text-xs font-bold uppercase tracking-[0.2em]">
-                        {link.name}
-                      </span>
-                    </a>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Leave a footprint */}
-            <div className="bento-card-about col-span-1 flex cursor-pointer flex-col items-center justify-center border-4 border-dashed border-black/5 bg-paper-grey py-16 text-center transition-colors hover:border-black/10 md:col-span-3 lg:col-span-8">
-              <div className="group mb-8 flex h-20 w-20 items-center justify-center rounded-full bg-white transition-transform duration-500 paper-stack-shadow hover:scale-110">
-                <Plus className="text-ink h-8 w-8" />
-              </div>
-              <h3 className="text-ink mb-4 font-serif text-4xl italic">
-                {t.footprintTitle}
-              </h3>
-              <p className="text-ink-light font-mono text-sm font-bold uppercase tracking-[0.25em]">
-                {t.footprintSubtitle}
-              </p>
-              <div className="bg-ink mt-10 rounded-full px-8 py-4 font-mono text-xs uppercase tracking-[0.25em] text-white transition-transform hover:scale-105">
-                {t.footprintCta}
+              <div className="about-bento-card bg-gradient-to-br from-[#f8f8f8] to-[#eee]">
+                <div className="flex items-start gap-4">
+                  <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-ink shadow-lg">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <AudioLines className="h-7 w-7 animate-pulse text-white" />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate text-sm font-bold">{musicName}</h4>
+                    <p className="mt-1 font-mono text-xs text-ink-light">{musicArtist}</p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="flex size-6 items-center justify-center rounded-full bg-ink text-white transition-transform hover:scale-110"
+                        aria-label="Play"
+                      >
+                        <Play className="h-[14px] w-[14px] fill-white text-white" />
+                      </button>
+                      <div className="h-1 flex-1 overflow-hidden rounded-full bg-black/10">
+                        <div className="h-full w-1/3 rounded-full bg-ink" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
+        </div>
         <BottomNav locale={locale} activeTab="about" />
       </div>
     </>

@@ -1,6 +1,6 @@
 import { BentoGrid } from "@/components/bento/BentoGrid";
 import { FeedItem } from "@/components/bento/types";
-import { getPublicFeed } from "@/lib/content/read";
+import { getPublicFeed, getPublicPresence } from "@/lib/content/read";
 import Link from "next/link";
 import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
@@ -24,14 +24,21 @@ const getHomeItems = unstable_cache(
   { revalidate: 60 }
 );
 
+const getPresence = unstable_cache(async () => getPublicPresence(), ["presence-v1"], {
+  revalidate: 10,
+});
+
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
-  const items = await getHomeItems(locale);
+  const [items, presence] = await Promise.all([getHomeItems(locale), getPresence()]);
   const t =
     locale === "zh"
       ? {
           statusLabel: "状态",
-          statusValue: "在线 • 东京",
+          statusOnlinePrefix: "在线",
+          statusOfflinePrefix: "离线",
+          statusUnknown: "未知",
+          fallbackLocation: "东京",
           profileAlt: "个人头像",
           heroMonth: "十月",
           heroAccent: "回声",
@@ -39,13 +46,25 @@ export default async function HomePage({ params }: HomePageProps) {
         }
       : {
           statusLabel: "Status",
-          statusValue: "ONLINE • TOKYO",
+          statusOnlinePrefix: "ONLINE",
+          statusOfflinePrefix: "OFFLINE",
+          statusUnknown: "UNKNOWN",
+          fallbackLocation: "TOKYO",
           profileAlt: "Profile portrait",
           heroMonth: "October",
           heroAccent: "Reflections",
           heroDescription:
             "[001] Capturing the ephemeral fragments of daily life through a layered prism.",
         };
+
+  const locationLabel = (presence?.locationLabel || t.fallbackLocation).trim();
+  const onlinePrefix =
+    presence?.status === "online"
+      ? t.statusOnlinePrefix
+      : presence?.status === "offline"
+        ? t.statusOfflinePrefix
+        : t.statusUnknown;
+  const statusValue = `${onlinePrefix} • ${locationLabel}`;
 
   return (
     <div
@@ -80,7 +99,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   <p className="text-ink-light text-[10px] uppercase tracking-widest">
                     {t.statusLabel}
                   </p>
-                  <p className="text-xs font-medium">{t.statusValue}</p>
+                  <p className="text-xs font-medium">{statusValue}</p>
                 </div>
                 {/* Avatar - links to about page */}
                 <Link href={toLocalizedPath(locale, "/about")}>

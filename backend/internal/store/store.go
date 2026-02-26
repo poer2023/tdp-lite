@@ -84,6 +84,20 @@ func parseMomentLocation(raw []byte) (*MomentLocation, error) {
 	return &loc, nil
 }
 
+func parseJSONMap(raw []byte) (map[string]any, error) {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil, nil
+	}
+	var value map[string]any
+	if err := json.Unmarshal(raw, &value); err != nil {
+		return nil, err
+	}
+	if value == nil {
+		return nil, nil
+	}
+	return value, nil
+}
+
 func nullableTime(input sql.NullTime) *time.Time {
 	if !input.Valid {
 		return nil
@@ -1836,4 +1850,213 @@ func (s *Store) ApplyAIResultToContent(ctx context.Context, job AIJob) error {
 	default:
 		return fmt.Errorf("unsupported content kind: %s", job.Kind)
 	}
+}
+
+func scanPresence(scanner interface{ Scan(dest ...any) error }) (PresenceStatus, error) {
+	var item PresenceStatus
+	var region sql.NullString
+	var country sql.NullString
+	var countryCode sql.NullString
+	var timezone sql.NullString
+	var source sql.NullString
+
+	if err := scanner.Scan(
+		&item.City,
+		&region,
+		&country,
+		&countryCode,
+		&timezone,
+		&source,
+		&item.LastHeartbeatAt,
+		&item.UpdatedAt,
+		&item.CreatedAt,
+	); err != nil {
+		return PresenceStatus{}, err
+	}
+
+	item.Region = nullableString(region)
+	item.Country = nullableString(country)
+	item.CountryCode = nullableString(countryCode)
+	item.Timezone = nullableString(timezone)
+	item.Source = nullableString(source)
+	return item, nil
+}
+
+func (s *Store) GetPresence(ctx context.Context) (PresenceStatus, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT city, region, country, country_code, timezone, source, last_heartbeat_at, updated_at, created_at
+		 FROM presence_status
+		 WHERE id = 1
+		 LIMIT 1`,
+	)
+
+	item, err := scanPresence(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return PresenceStatus{}, ErrNotFound
+		}
+		return PresenceStatus{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) UpsertPresence(ctx context.Context, input UpsertPresenceInput) (PresenceStatus, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`INSERT INTO presence_status (
+			 id, city, region, country, country_code, timezone, source, last_heartbeat_at, updated_at
+		 )
+		 VALUES (1, $1, $2, $3, $4, $5, $6, $7, NOW())
+		 ON CONFLICT (id) DO UPDATE SET
+		   city = EXCLUDED.city,
+		   region = EXCLUDED.region,
+		   country = EXCLUDED.country,
+		   country_code = EXCLUDED.country_code,
+		   timezone = EXCLUDED.timezone,
+		   source = EXCLUDED.source,
+		   last_heartbeat_at = EXCLUDED.last_heartbeat_at,
+		   updated_at = NOW()
+		 RETURNING city, region, country, country_code, timezone, source, last_heartbeat_at, updated_at, created_at`,
+		input.City,
+		input.Region,
+		input.Country,
+		input.CountryCode,
+		input.Timezone,
+		input.Source,
+		input.HeartbeatAt,
+	)
+
+	item, err := scanPresence(row)
+	if err != nil {
+		return PresenceStatus{}, err
+	}
+	return item, nil
+}
+
+func scanProfileSnapshot(scanner interface{ Scan(dest ...any) error }) (ProfileSnapshot, error) {
+	var item ProfileSnapshot
+	var githubRaw []byte
+	var musicRaw []byte
+	var derivedRaw []byte
+	var sourceStatusRaw []byte
+	var syncedAt sql.NullTime
+
+	if err := scanner.Scan(
+		&githubRaw,
+		&musicRaw,
+		&derivedRaw,
+		&sourceStatusRaw,
+		&syncedAt,
+		&item.UpdatedAt,
+		&item.CreatedAt,
+	); err != nil {
+		return ProfileSnapshot{}, err
+	}
+
+	github, err := parseJSONMap(githubRaw)
+	if err != nil {
+		return ProfileSnapshot{}, err
+	}
+	music, err := parseJSONMap(musicRaw)
+	if err != nil {
+		return ProfileSnapshot{}, err
+	}
+	derived, err := parseJSONMap(derivedRaw)
+	if err != nil {
+		return ProfileSnapshot{}, err
+	}
+	sourceStatus, err := parseJSONMap(sourceStatusRaw)
+	if err != nil {
+		return ProfileSnapshot{}, err
+	}
+
+	item.Github = github
+	item.Music = music
+	item.Derived = derived
+	item.SourceStatus = sourceStatus
+	item.SyncedAt = nullableTime(syncedAt)
+	return item, nil
+}
+
+func (s *Store) GetProfileSnapshot(ctx context.Context) (ProfileSnapshot, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT github_json, music_json, derived_json, source_status_json, synced_at, updated_at, created_at
+		 FROM profile_snapshots
+		 WHERE id = 1
+		 LIMIT 1`,
+	)
+
+	item, err := scanProfileSnapshot(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ProfileSnapshot{}, ErrNotFound
+		}
+		return ProfileSnapshot{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) UpsertProfileSnapshot(ctx context.Context, input UpsertProfileSnapshotInput) (ProfileSnapshot, error) {
+	var githubRaw any
+	var musicRaw any
+	var derivedRaw any
+	var sourceStatusRaw any
+
+	if input.Github != nil {
+		raw, err := toJSONRaw(*input.Github)
+		if err != nil {
+			return ProfileSnapshot{}, err
+		}
+		githubRaw = raw
+	}
+	if input.Music != nil {
+		raw, err := toJSONRaw(*input.Music)
+		if err != nil {
+			return ProfileSnapshot{}, err
+		}
+		musicRaw = raw
+	}
+	if input.Derived != nil {
+		raw, err := toJSONRaw(*input.Derived)
+		if err != nil {
+			return ProfileSnapshot{}, err
+		}
+		derivedRaw = raw
+	}
+	if input.SourceStatus != nil {
+		raw, err := toJSONRaw(*input.SourceStatus)
+		if err != nil {
+			return ProfileSnapshot{}, err
+		}
+		sourceStatusRaw = raw
+	}
+
+	row := s.db.QueryRowContext(
+		ctx,
+		`INSERT INTO profile_snapshots (
+			 id, github_json, music_json, derived_json, source_status_json, synced_at, updated_at
+		 )
+		 VALUES (1, $1::jsonb, $2::jsonb, $3::jsonb, $4::jsonb, $5, NOW())
+		 ON CONFLICT (id) DO UPDATE SET
+		   github_json = COALESCE(EXCLUDED.github_json, profile_snapshots.github_json),
+		   music_json = COALESCE(EXCLUDED.music_json, profile_snapshots.music_json),
+		   derived_json = COALESCE(EXCLUDED.derived_json, profile_snapshots.derived_json),
+		   source_status_json = COALESCE(EXCLUDED.source_status_json, profile_snapshots.source_status_json),
+		   synced_at = COALESCE(EXCLUDED.synced_at, profile_snapshots.synced_at),
+		   updated_at = NOW()
+		 RETURNING github_json, music_json, derived_json, source_status_json, synced_at, updated_at, created_at`,
+		githubRaw,
+		musicRaw,
+		derivedRaw,
+		sourceStatusRaw,
+		input.SyncedAt,
+	)
+
+	item, err := scanProfileSnapshot(row)
+	if err != nil {
+		return ProfileSnapshot{}, err
+	}
+	return item, nil
 }

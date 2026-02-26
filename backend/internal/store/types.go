@@ -130,3 +130,43 @@ type AIJob struct {
 	CompletedAt  *time.Time      `json:"completedAt,omitempty"`
 	Result       *map[string]any `json:"result,omitempty"`
 }
+
+type PresenceStatus struct {
+	City            string    `json:"city"`
+	Region          *string   `json:"region,omitempty"`
+	Country         *string   `json:"country,omitempty"`
+	CountryCode     *string   `json:"countryCode,omitempty"`
+	Timezone        *string   `json:"timezone,omitempty"`
+	Source          *string   `json:"source,omitempty"`
+	LastHeartbeatAt time.Time `json:"lastHeartbeatAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	CreatedAt       time.Time `json:"createdAt"`
+}
+
+type UpsertPresenceInput struct {
+	City        string
+	Region      *string
+	Country     *string
+	CountryCode *string
+	Timezone    *string
+	Source      *string
+	HeartbeatAt time.Time
+}
+
+type ProfileSnapshot struct {
+	Github       map[string]any `json:"github,omitempty"`
+	Music        map[string]any `json:"music,omitempty"`
+	Derived      map[string]any `json:"derived,omitempty"`
+	SourceStatus map[string]any `json:"sourceStatus,omitempty"`
+	SyncedAt     *time.Time     `json:"syncedAt,omitempty"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	CreatedAt    time.Time      `json:"createdAt"`
+}
+
+type UpsertProfileSnapshotInput struct {
+	Github       *map[string]any
+	Music        *map[string]any
+	Derived      *map[string]any
+	SourceStatus *map[string]any
+	SyncedAt     *time.Time
+}

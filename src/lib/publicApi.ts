@@ -4,6 +4,52 @@ import type { GalleryItem, Moment, Post } from "@/lib/schema";
 import { type AppLocale } from "@/lib/locale";
 
 export type Locale = AppLocale;
+export type PublicPresence = {
+  online: boolean;
+  status: "online" | "offline" | "unknown";
+  city: string | null;
+  region: string | null;
+  country: string | null;
+  countryCode: string | null;
+  timezone: string | null;
+  source: string | null;
+  locationLabel: string;
+  lastHeartbeatAt: Date | null;
+  updatedAt: Date | null;
+  staleAfterSec: number | null;
+};
+
+export type PublicProfileTrack = {
+  id: string | null;
+  name: string;
+  artist: string;
+  album: string | null;
+  artworkUrl: string | null;
+  durationMs: number | null;
+  url: string | null;
+};
+
+export type PublicProfileSnapshot = {
+  github: {
+    username: string | null;
+    windowDays: number | null;
+    totalCommits: number | null;
+    totalPushEvents: number | null;
+    heatmapLevels: number[];
+    heatmapCounts: number[];
+    fetchedAt: Date | null;
+  } | null;
+  music: {
+    provider: string | null;
+    storefront: string | null;
+    recentTracks: PublicProfileTrack[];
+    fetchedAt: Date | null;
+  } | null;
+  derived: Record<string, unknown> | null;
+  sourceStatus: Record<string, unknown> | null;
+  syncedAt: Date | null;
+  updatedAt: Date | null;
+};
 
 type RawObject = Record<string, unknown>;
 
@@ -15,6 +61,12 @@ function asObject(value: unknown): RawObject {
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+function asNullableObject(value: unknown): RawObject | null {
+  return typeof value === "object" && value !== null
+    ? (value as RawObject)
+    : null;
 }
 
 function asString(value: unknown, fallback: string = ""): string {
@@ -287,6 +339,92 @@ export async function fetchPublicGalleryItem(
       30
     );
     return toGalleryItem(result.item);
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchPublicPresence(): Promise<PublicPresence | null> {
+  try {
+    const result = await apiGet<{ item: unknown }>(`/v1/public/presence`, 5);
+    const item = asObject(result.item);
+    const statusRaw = asString(item.status, "unknown");
+    const status: PublicPresence["status"] =
+      statusRaw === "online" || statusRaw === "offline" ? statusRaw : "unknown";
+    const lastHeartbeatAt = item.lastHeartbeatAt ? toDate(item.lastHeartbeatAt) : null;
+    const updatedAt = item.updatedAt ? toDate(item.updatedAt) : null;
+
+    return {
+      online: asBoolean(item.online, false),
+      status,
+      city: asNullableString(item.city),
+      region: asNullableString(item.region),
+      country: asNullableString(item.country),
+      countryCode: asNullableString(item.countryCode),
+      timezone: asNullableString(item.timezone),
+      source: asNullableString(item.source),
+      locationLabel: asString(item.locationLabel, ""),
+      lastHeartbeatAt,
+      updatedAt,
+      staleAfterSec: asNumberOrNull(item.staleAfterSec),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchPublicProfileSnapshot(): Promise<PublicProfileSnapshot | null> {
+  try {
+    const result = await apiGet<{ item: unknown }>(`/v1/public/profile-snapshot`, 30);
+    const item = asObject(result.item);
+
+    const githubObj = asNullableObject(item.github);
+    const githubHeatmap = asObject(githubObj?.heatmap);
+    const github = githubObj
+      ? {
+          username: asNullableString(githubObj.username),
+          windowDays: asNumberOrNull(githubObj.windowDays),
+          totalCommits: asNumberOrNull(githubObj.totalCommits),
+          totalPushEvents: asNumberOrNull(githubObj.totalPushEvents),
+          heatmapLevels: asArray(githubHeatmap.levels)
+            .map((value) => asNumberOrNull(value))
+            .filter((value): value is number => value !== null),
+          heatmapCounts: asArray(githubHeatmap.counts)
+            .map((value) => asNumberOrNull(value))
+            .filter((value): value is number => value !== null),
+          fetchedAt: githubObj.fetchedAt ? toDate(githubObj.fetchedAt) : null,
+        }
+      : null;
+
+    const musicObj = asNullableObject(item.music);
+    const music = musicObj
+      ? {
+          provider: asNullableString(musicObj.provider),
+          storefront: asNullableString(musicObj.storefront),
+          recentTracks: asArray(musicObj.recentTracks).map((trackRaw) => {
+            const track = asObject(trackRaw);
+            return {
+              id: asNullableString(track.id),
+              name: asString(track.name),
+              artist: asString(track.artist),
+              album: asNullableString(track.album),
+              artworkUrl: asNullableString(track.artworkUrl),
+              durationMs: asNumberOrNull(track.durationMs),
+              url: asNullableString(track.url),
+            };
+          }),
+          fetchedAt: musicObj.fetchedAt ? toDate(musicObj.fetchedAt) : null,
+        }
+      : null;
+
+    return {
+      github,
+      music,
+      derived: asNullableObject(item.derived),
+      sourceStatus: asNullableObject(item.sourceStatus),
+      syncedAt: item.syncedAt ? toDate(item.syncedAt) : null,
+      updatedAt: item.updatedAt ? toDate(item.updatedAt) : null,
+    };
   } catch {
     return null;
   }

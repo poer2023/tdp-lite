@@ -21,7 +21,9 @@ for migration in \
   /migrations/0002_search_fts_indexes.sql \
   /migrations/0003_translation_keys.sql \
   /migrations/0004_posts_slug_locale_unique.sql \
-  /migrations/0005_preview_sessions_and_translation_defaults.sql
+  /migrations/0005_preview_sessions_and_translation_defaults.sql \
+  /migrations/0006_presence_status.sql \
+  /migrations/0007_profile_snapshots.sql
 do
   echo "Applying ${migration}"
   psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -f "${migration}"

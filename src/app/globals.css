@@ -5,6 +5,22 @@
 @tailwind components;
 @tailwind utilities;
 
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined", sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -webkit-font-feature-settings: "liga";
+  font-feature-settings: "liga";
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
 /* About page custom colors */
 :root {
   --primary: #2b2b2b;
@@ -316,6 +332,167 @@ body {
 .bento-card:hover {
   transform: translateY(-4px) scale(1.005);
   box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 8px 16px -8px rgba(0, 0, 0, 0.1);
+}
+
+/* Stitch /search specific */
+.search-stitch-page {
+  background: #f2f2f0;
+}
+
+.search-stitch-overlay {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(240, 240, 238, 0.95) 100%
+  );
+  backdrop-filter: blur(24px) saturate(180%);
+}
+
+.search-stitch-input {
+  font-family: "Playfair Display", "Crimson Pro", serif;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  caret-color: #1a1a1a;
+}
+
+.search-stitch-serif {
+  font-family: "Playfair Display", "Crimson Pro", serif;
+}
+
+.search-stitch-input::placeholder {
+  color: rgba(102, 102, 102, 0.4);
+}
+
+.search-stitch-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  transition: transform 300ms ease, box-shadow 300ms ease, background-color 300ms ease;
+}
+
+.search-stitch-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 8px 16px -8px rgba(0, 0, 0, 0.1);
+}
+
+.search-stitch-no-scrollbar {
+  scrollbar-width: none;
+}
+
+.search-stitch-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.search-stitch-bar {
+  width: 3px;
+  background: #1a1a1a;
+  animation: search-equalize 1s infinite;
+}
+
+.search-stitch-bar:nth-child(1) {
+  animation-delay: 0.1s;
+  height: 10px;
+}
+
+.search-stitch-bar:nth-child(2) {
+  animation-delay: 0.3s;
+  height: 16px;
+}
+
+.search-stitch-bar:nth-child(3) {
+  animation-delay: 0.5s;
+  height: 12px;
+}
+
+.search-stitch-bar:nth-child(4) {
+  animation-delay: 0.2s;
+  height: 8px;
+}
+
+@keyframes search-equalize {
+  0% {
+    height: 8px;
+  }
+  50% {
+    height: 16px;
+  }
+  100% {
+    height: 8px;
+  }
+}
+
+/* Stitch /about specific */
+.about-soft-bg {
+  background-color: #f8f8f7;
+}
+
+.about-bento-card {
+  border-radius: 2.5rem;
+  padding: 2rem;
+  box-shadow:
+    0 20px 50px -12px rgba(0, 0, 0, 0.08),
+    0 10px 20px -5px rgba(0, 0, 0, 0.04),
+    0 0 1px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 500ms ease, box-shadow 500ms ease;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.about-bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.12),
+    0 15px 25px -5px rgba(0, 0, 0, 0.06);
+}
+
+.about-heatmap-cell {
+  border-radius: 0.125rem;
+  transition: opacity 180ms ease;
+}
+
+.about-heatmap-cell:hover {
+  opacity: 0.8;
+}
+
+.about-code-pill {
+  padding: 0.375rem 0.75rem;
+  background: var(--paper-grey);
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-family: "JetBrains Mono", monospace;
+  color: var(--ink);
+  border: 1px solid transparent;
+  transition: border-color 180ms ease;
+  cursor: default;
+}
+
+.about-code-pill:hover {
+  border-color: rgba(17, 17, 17, 0.2);
+}
+
+.dark .about-soft-bg {
+  background-color: var(--page-surface);
+}
+
+.dark .about-bento-card {
+  box-shadow:
+    0 22px 48px -20px rgba(2, 8, 18, 0.58),
+    0 8px 20px -10px rgba(2, 8, 18, 0.4),
+    0 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.dark .about-code-pill {
+  background: rgba(255, 255, 255, 0.08);
+  color: #eaf0f8;
+}
+
+.dark .about-code-pill:hover {
+  border-color: rgba(255, 255, 255, 0.24);
 }
 
 /* About page bento cards - matching Stitch design */

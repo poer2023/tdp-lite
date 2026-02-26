@@ -18,6 +18,8 @@ psql "$DATABASE_URL" -f backend/migrations/0002_search_fts_indexes.sql
 psql "$DATABASE_URL" -f backend/migrations/0003_translation_keys.sql
 psql "$DATABASE_URL" -f backend/migrations/0004_posts_slug_locale_unique.sql
 psql "$DATABASE_URL" -f backend/migrations/0005_preview_sessions_and_translation_defaults.sql
+psql "$DATABASE_URL" -f backend/migrations/0006_presence_status.sql
+psql "$DATABASE_URL" -f backend/migrations/0007_profile_snapshots.sql
 ```
 
 ## Environment
@@ -35,6 +37,7 @@ Optional:
 - `TDP_NONCE_TTL` (default `10m`)
 - `TDP_PREVIEW_TTL` (default `2h`)
 - `TDP_JOB_POLL_INTERVAL` (default `3s`)
+- `TDP_PRESENCE_ONLINE_WINDOW` (default `3m`)
 
 R2 (for pre-signed upload URL):
 

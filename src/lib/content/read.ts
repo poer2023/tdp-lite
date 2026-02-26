@@ -2,11 +2,15 @@ import type { FeedItem } from "@/components/bento/types";
 import { type AppLocale, normalizeLocale } from "@/lib/locale";
 import type { GalleryItem, Moment, Post } from "@/lib/schema";
 import {
+  type PublicPresence,
+  type PublicProfileSnapshot,
   fetchPublicFeed,
   fetchPublicGallery,
   fetchPublicGalleryItem,
   fetchPublicMoment,
   fetchPublicMoments,
+  fetchPublicPresence,
+  fetchPublicProfileSnapshot,
   fetchPublicPost,
   fetchPublicPosts,
 } from "@/lib/publicApi";
@@ -17,9 +21,16 @@ function toLocale(value: string): Locale {
   return normalizeLocale(value) as Locale;
 }
 
+const loggedReadWarnings = new Set<string>();
+
 function logReadError(scope: string, error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
-  console.error(`[content/read] ${scope} failed: ${message}`);
+  const key = `${scope}:${message}`;
+  if (loggedReadWarnings.has(key)) {
+    return;
+  }
+  loggedReadWarnings.add(key);
+  console.warn(`[content/read] ${scope} degraded: ${message}`);
 }
 
 export async function getPublicFeed(locale: string, limit: number = 10): Promise<FeedItem[]> {
@@ -84,6 +95,24 @@ export async function getPublicGalleryItem(
     return await fetchPublicGalleryItem(toLocale(locale), id);
   } catch (error) {
     logReadError(`gallery(${id})`, error);
+    return null;
+  }
+}
+
+export async function getPublicPresence(): Promise<PublicPresence | null> {
+  try {
+    return await fetchPublicPresence();
+  } catch (error) {
+    logReadError("presence", error);
+    return null;
+  }
+}
+
+export async function getPublicProfileSnapshot(): Promise<PublicProfileSnapshot | null> {
+  try {
+    return await fetchPublicProfileSnapshot();
+  } catch (error) {
+    logReadError("profileSnapshot", error);
     return null;
   }
 }
