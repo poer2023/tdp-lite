@@ -1,0 +1,127 @@
+# TDP Lite — 待办事项分析报告
+
+> 分析时间：2026-02-27 | 仅分析，不做改动
+
+---
+
+## 一、CLAUDE.md 待改进项状态
+
+### 🔴 高优先级
+
+| # | 问题 | 状态 | 说明 |
+|---|------|------|------|
+| 1 | 图片组件未用 `next/image` | ✅ **已修复** | 12 个文件已使用 `next/image`，无原生 `<img>` 标签 |
+| 2 | CSS `:root` 重复定义 | ❌ **未修复** | L25 (`--paper-white: #ffffff`) 和 L100 (`--paper-white: #fdfdfd`) 仍有两处 `:root`，值不一致 |
+| 3 | 冗余 `size-*` 类 | ❌ **未修复** | [globals.css:L92-98](file:///Users/wanghao/Project/tdp-lite/src/app/globals.css#L92-L98) 仍有 7 个手写 `size-*` 类（Tailwind 3.4+ 已内置） |
+
+### 🟡 中优先级
+
+| # | 问题 | 状态 | 说明 |
+|---|------|------|------|
+| 4 | Badge/Tag 样式重复 | ❌ **未修复** | `rounded-full bg-white/20 px-3 py-1` 在 `GalleryCard`、`MomentCard`(×2) 中重复出现，未抽取公共组件 |
+| 5 | 卡片容器样式重复 | ⚠️ **部分改进** | 已有 `.bento-card`、`.paper-card` 等 CSS 类，但尚无 `BaseCard` 组件封装 |
+| 6 | Tailwind 配置不完整 | ❌ **未修复** | `Crimson Pro` 未注册到 `fontFamily.serif`；`pulse-dot` 未注册到 Tailwind animation（仅在 globals.css 中用 `@keyframes`） |
+| 7 | 阴影使用不统一 | ⚠️ **部分改进** | 已有 `.paper-stack-shadow` 等预设，但部分行内阴影仍存在 |
+
+### 🟢 低优先级
+
+| # | 问题 | 状态 | 说明 |
+|---|------|------|------|
+| 8 | 深色模式不完整 | ⚠️ **大幅改进** | 10+ 文件已有 `dark:` 样式；`globals.css` 加入了大量 `.dark` override（~100 行）；但仍为"覆盖式"方案，非原生 Tailwind `dark:` |
+| 9 | 硬编码值 | ❌ **未修复** | `PostCard:L118` — `"Read time: 5m"` 仍硬编码；`GalleryMomentDetail:L130` — `"ISO 400 • f/1.8"` fallback；`MomentDetailCard:L124` — `"35MM • F/2.8"` 硬编码 |
+| 10 | `ActionItem` 类型位置 | ❌ **未修复** | 仍定义在 `bento/types.ts` 而非 `schema.ts` |
+| 11 | MomentCard variant 类型 | ❌ **未修复** | variant 类型仍硬编码在组件内部 |
+
+---
+
+## 二、README 架构目标状态
+
+### 1）前台轻 SSR — ⚠️ 部分完成
+
+- **ISR/revalidate**：仅 3 个页面配置了 `revalidate`
+  - ✅ `[locale]/page.tsx` (首页, 60s/10s)
+  - ✅ `[locale]/gallery/page.tsx` (60s)
+  - ✅ `[locale]/gallery/[imageId]/page.tsx` (60s)
+  - ❌ `posts`、`moments`、`about`、`search` 页面缺失 revalidate
+- **SSR 优先**：页面已基本走 API 读取，可视为"SSR-ready"
+
+### 2）内容源托管化 — ✅ 基本完成
+
+- `src/lib/content/read.ts` 已 API-backed
+- `publicApi.ts` 统一通过 `TDP_API_BASE_URL` 读取
+- 前端不直连 DB 读取内容（写侧除外）
+
+### 3）搜索预生成索引 — ❌ 未完成
+
+- 搜索仍依赖在线 Go API（`TDP_SEARCH_PRIMARY=go`）
+- `searchNext.ts` 仍保留完整 Drizzle 直连 DB 搜索作为 fallback
+- 未见索引 JSON 生成逻辑或发布管线
+
+### 4）Preview 独立部署 — ✅ 基本完成
+
+- `preview/` 路由保留在前端作为入口
+- 核心 preview session 逻辑走 Go API
+- `publisher/` 已独立为子应用
+
+### 5）前台依赖瘦身 — ❌ 未完成
+
+仍残留在前端的后端依赖：
+
+| 依赖 | 引用文件 | 说明 |
+|------|----------|------|
+| `drizzle-orm` | `db.ts`、`searchNext.ts`、`previewSession.ts`、`idempotency.ts` | 4 个文件仍 import |
+| `postgres` | `db.ts` | 仍保留连接逻辑 |
+| `next-auth` | `auth.ts` | 仍在前端 |
+| `@aws-sdk/client-s3` | `r2.ts` | 仍在前端 |
+| `bcryptjs` | `package.json` | 仍为前端依赖 |
+
+> 这些依赖按目标应迁移到 Go/publisher/admin 侧。
+
+### 6）CI 分层拆分 — ✅ 已完成
+
+- 前端 CI：`frontend-ci.yml` (type-check / lint / test / build)
+- 后端 CI：`backend-ci.yml` (go test / go build)
+- Publisher CI：`publisher-ci.yml`
+- 集成 E2E：`integration-e2e.yml`（独立流水线）
+- CD：`cd.yml`（main 分支触发）
+
+---
+
+## 三、其他发现
+
+### CSS 体积偏大
+- `globals.css` 已达 **1135 行 / 30KB**，包含大量组件级样式（liquid-glass、stitch、about、search 等）
+- 建议按组件域拆分成多个 CSS 模块
+
+### `:root` 变量冲突
+- 第一处 `:root`（L25）定义了 6 个基础变量
+- 第二处 `:root`（L100）重新定义了相同变量但值不同（`--paper-white: #ffffff` vs `#fdfdfd`）
+- 第二处会覆盖第一处，存在隐性 bug
+
+### 深色模式实现方式
+- 当前采用 `.dark` class 前缀 + `prefers-color-scheme` 双重机制
+- 大量 `!important` 覆盖（约 40+ 处），维护成本高
+- 理想方案：统一用 CSS 变量 + Tailwind `dark:` 原生类
+
+---
+
+## 四、优先级汇总
+
+```
+🔴 应尽快处理（影响正确性/性能）
+├── CSS :root 重复定义（值冲突）
+├── 前端 Drizzle/DB 依赖清理（架构目标核心）
+└── 搜索索引化（仍依赖在线后端）
+
+🟡 中期改进（代码质量）
+├── 抽取 Badge/BaseCard 公共组件
+├── 补全 Tailwind 配置（字体/动画注册）
+├── 删除冗余 size-* 类
+└── 补齐缺失页面的 ISR revalidate
+
+🟢 后续优化
+├── 消除硬编码值（PostCard/GalleryMoment/MomentDetail）
+├── 类型定义位置整理
+├── globals.css 拆分
+└── 深色模式重构为纯变量驱动
+```

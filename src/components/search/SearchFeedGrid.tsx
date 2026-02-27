@@ -16,11 +16,42 @@ import {
 interface SearchFeedGridProps {
   items: FeedItem[];
   className?: string;
+  maxDesktopCells?: number;
 }
 
-export function SearchFeedGrid({ items, className }: SearchFeedGridProps) {
+function getDesktopCellCost(spanClass: string): number {
+  const isWide = spanClass.includes("md:col-span-2");
+  const isTall = spanClass.includes("row-span-2");
+  if (isWide && isTall) return 4;
+  if (isWide || isTall) return 2;
+  return 1;
+}
+
+export function SearchFeedGrid({
+  items,
+  className,
+  maxDesktopCells,
+}: SearchFeedGridProps) {
   const spanByItemKey = computeBentoSpans(items);
-  const highlightedId = getHighlightedItemId(items);
+  const visibleItems =
+    typeof maxDesktopCells === "number" && maxDesktopCells > 0
+      ? (() => {
+          const selected: FeedItem[] = [];
+          let used = 0;
+          for (const item of items) {
+            const itemKey = getFeedItemLayoutKey(item);
+            const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
+            const cost = getDesktopCellCost(spanClass);
+            if (used + cost > maxDesktopCells) {
+              break;
+            }
+            selected.push(item);
+            used += cost;
+          }
+          return selected;
+        })()
+      : items;
+  const highlightedId = getHighlightedItemId(visibleItems);
 
   return (
     <div
@@ -29,7 +60,7 @@ export function SearchFeedGrid({ items, className }: SearchFeedGridProps) {
         className
       )}
     >
-      {items.map((item) => {
+      {visibleItems.map((item) => {
         const itemKey = getFeedItemLayoutKey(item);
         const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
         const isHighlighted = item.type !== "action" && item.id === highlightedId;

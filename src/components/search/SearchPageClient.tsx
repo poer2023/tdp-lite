@@ -289,12 +289,6 @@ export function SearchPageClient({ locale, initialItems }: SearchPageClientProps
         <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-30 mix-blend-overlay" />
 
         <div className="relative z-30 mb-8 w-full max-w-4xl px-6 md:mb-10 md:px-8">
-          <div className="mb-6 flex items-center justify-center gap-4">
-            <span className="rounded-full border border-black/10 bg-white/50 px-2 py-1 font-mono text-[9px] uppercase tracking-[0.25em] text-ink-light">
-              {t.protocol}
-            </span>
-          </div>
-
           <div className="group relative mx-auto max-w-2xl">
             <input
               autoFocus
@@ -331,9 +325,18 @@ export function SearchPageClient({ locale, initialItems }: SearchPageClientProps
           ) : null}
         </div>
 
-        <div className="search-stitch-no-scrollbar z-10 w-full max-w-5xl overflow-y-auto px-6 pb-36">
+        <div
+          className={`search-stitch-no-scrollbar z-10 w-full max-w-5xl px-6 pb-36 ${
+            searchState === "hot" || searchState === "typing" ? "overflow-hidden" : "overflow-y-auto"
+          }`}
+        >
           {displayItems.length > 0 ? (
-            <SearchFeedGrid items={displayItems} />
+            <SearchFeedGrid
+              items={displayItems}
+              maxDesktopCells={
+                searchState === "hot" || searchState === "typing" ? 8 : undefined
+              }
+            />
           ) : searchState === "searching" ? (
             <div className="mx-auto max-w-2xl rounded-3xl border border-black/10 bg-white/75 px-6 py-8 text-center text-sm text-ink-light">
               {t.searching}
