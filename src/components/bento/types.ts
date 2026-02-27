@@ -1,11 +1,7 @@
-import { Post, Moment, GalleryItem } from "@/lib/schema";
+import { Post, Moment, GalleryItem, ActionItem } from "@/lib/schema";
 
-export interface ActionItem {
-  type: "action";
-  id: string;
-  icon: string;
-  label: string;
-}
+// Re-export ActionItem from schema for backward compatibility
+export type { ActionItem };
 
 export type FeedItem =
   | ({ type: "post" } & Post)

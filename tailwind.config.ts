@@ -20,7 +20,17 @@ const config: Config = {
       fontFamily: {
         display: ["Space Grotesk", "system-ui", "sans-serif"],
         sans: ["Space Grotesk", "system-ui", "sans-serif"],
+        serif: ["Crimson Pro", "Playfair Display", "serif"],
         mono: ["JetBrains Mono", "monospace"],
+      },
+      animation: {
+        "pulse-dot": "pulse-dot 2s ease-in-out infinite",
+      },
+      keyframes: {
+        "pulse-dot": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
       },
       borderRadius: {
         DEFAULT: "0.5rem",
@@ -35,6 +45,10 @@ const config: Config = {
         "paper-hover": "0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 8px 16px -8px rgba(0, 0, 0, 0.1)",
         "paper-stack": "0 1px 1px rgba(0,0,0,0.05), 0 2px 2px rgba(0,0,0,0.05), 0 4px 4px rgba(0,0,0,0.05), 0 8px 8px rgba(0,0,0,0.05)",
         "deep-stack": "0 20px 50px rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.05)",
+        "highlight": "0 10px 26px -12px rgba(0, 0, 0, 0.28)",
+        "media-controls": "0 10px 24px -14px rgba(0, 0, 0, 0.65)",
+        "preview-frame": "0 20px 50px -30px rgba(0, 0, 0, 0.5)",
+        "preview-info": "0 24px 40px -34px rgba(0, 0, 0, 0.55)",
       },
     },
   },

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { GalleryItem } from "@/lib/schema";
 import { Camera, Aperture } from "lucide-react";
+import { LgChipDark } from "@/components/ui/LgChipDark";
 
 interface GalleryCardProps {
   item: GalleryItem;
@@ -44,9 +45,9 @@ export function GalleryCard({ item, className, preview = false }: GalleryCardPro
       >
         <div className="flex justify-end">
           {item.title && (
-            <span className="lg-chip-dark rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white">
+            <LgChipDark>
               {item.title}
-            </span>
+            </LgChipDark>
           )}
         </div>
 
@@ -80,9 +81,9 @@ export function GalleryCard({ item, className, preview = false }: GalleryCardPro
             preview ? "opacity-0" : "opacity-100 group-hover:opacity-0"
           )}
         >
-          <span className="lg-chip-dark rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-white shadow-sm dark:bg-black/70">
+          <LgChipDark className="bg-white/90 text-white shadow-sm dark:bg-black/70">
             {item.title}
-          </span>
+          </LgChipDark>
         </div>
       )}
     </div>

@@ -22,15 +22,15 @@ export function MomentDetailCard({
   const t =
     locale === "zh"
       ? {
-          noMedia: "暂无媒体内容",
-          reflection: "片段",
-          fallbackTitle: "在喧闹中寻找片刻静止",
-        }
+        noMedia: "暂无媒体内容",
+        reflection: "片段",
+        fallbackTitle: "在喧闹中寻找片刻静止",
+      }
       : {
-          noMedia: "No media",
-          reflection: "Reflection",
-          fallbackTitle: "Finding Stillness in Chaos",
-        };
+        noMedia: "No media",
+        reflection: "Reflection",
+        fallbackTitle: "Finding Stillness in Chaos",
+      };
   const mediaList = moment.media ?? [];
   const hasMedia = mediaList.length > 0;
   const hasMultipleMedia = mediaList.length > 1;
@@ -110,19 +110,21 @@ export function MomentDetailCard({
               </div>
             )}
 
-            {/* Camera parameters badge */}
-            <div
-              className={cn(
-                "absolute bottom-4 left-4",
-                "px-3 py-1.5 rounded-full",
-                "lg-chip-dark bg-black/40",
-                "text-white text-xs font-mono",
-                "flex items-center gap-2"
-              )}
-            >
-              <span>📷</span>
-              <span>35MM • F/2.8</span>
-            </div>
+            {/* Camera parameters badge - only show when EXIF data available */}
+            {(primaryMedia?.focalLength || primaryMedia?.aperture) && (
+              <div
+                className={cn(
+                  "absolute bottom-4 left-4",
+                  "px-3 py-1.5 rounded-full",
+                  "lg-chip-dark bg-black/40",
+                  "text-white text-xs font-mono",
+                  "flex items-center gap-2"
+                )}
+              >
+                <span>📷</span>
+                <span>{[primaryMedia.focalLength, primaryMedia.aperture].filter(Boolean).join(" • ")}</span>
+              </div>
+            )}
 
             {hasMultipleMedia ? (
               <>
@@ -130,7 +132,7 @@ export function MomentDetailCard({
                   type="button"
                   onClick={handlePrevMedia}
                   aria-label="Previous media"
-                  className="absolute left-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm transition-colors hover:bg-black/70"
+                  className="absolute left-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-media-controls backdrop-blur-sm transition-colors hover:bg-black/70"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -138,11 +140,11 @@ export function MomentDetailCard({
                   type="button"
                   onClick={handleNextMedia}
                   aria-label="Next media"
-                  className="absolute right-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm transition-colors hover:bg-black/70"
+                  className="absolute right-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-media-controls backdrop-blur-sm transition-colors hover:bg-black/70"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
-                <div className="absolute right-4 top-4 z-20 rounded-full border border-white/55 bg-black/55 px-2.5 py-1 font-mono text-[11px] text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm">
+                <div className="absolute right-4 top-4 z-20 rounded-full border border-white/55 bg-black/55 px-2.5 py-1 font-mono text-[11px] text-white shadow-media-controls backdrop-blur-sm">
                   {activeMediaIndex + 1}/{mediaList.length}
                 </div>
               </>
