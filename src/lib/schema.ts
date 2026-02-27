@@ -204,3 +204,11 @@ export type PreviewSession = typeof previewSessions.$inferSelect;
 export type NewPreviewSession = typeof previewSessions.$inferInsert;
 export type PublishIdempotencyKey = typeof publishIdempotencyKeys.$inferSelect;
 export type NewPublishIdempotencyKey = typeof publishIdempotencyKeys.$inferInsert;
+
+// UI-level types co-located with data models for discoverability
+export interface ActionItem {
+  type: "action";
+  id: string;
+  icon: string;
+  label: string;
+}

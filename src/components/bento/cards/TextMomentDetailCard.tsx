@@ -20,11 +20,11 @@ export function TextMomentDetailCard({
   const t =
     locale === "zh"
       ? {
-          fragment: "片段",
-        }
+        fragment: "片段",
+      }
       : {
-          fragment: "Fragment",
-        };
+        fragment: "Fragment",
+      };
   const locationName = moment.location?.name ?? null;
 
   return (
@@ -35,7 +35,7 @@ export function TextMomentDetailCard({
           "absolute inset-0 rounded-3xl",
           "bg-[#f4f4f2]",
           "translate-x-2 translate-y-3 -rotate-1",
-          "shadow-[0_1px_1px_rgba(0,0,0,0.05),0_2px_2px_rgba(0,0,0,0.05),0_4px_4px_rgba(0,0,0,0.05),0_8px_8px_rgba(0,0,0,0.05),0_16px_16px_rgba(0,0,0,0.05)]"
+          "shadow-paper-stack"
         )}
       />
       <div
@@ -52,7 +52,7 @@ export function TextMomentDetailCard({
         className={cn(
           "relative rounded-3xl overflow-hidden",
           "bg-[#fdfdfd]",
-          "shadow-[0_1px_1px_rgba(0,0,0,0.05),0_2px_2px_rgba(0,0,0,0.05),0_4px_4px_rgba(0,0,0,0.05),0_8px_8px_rgba(0,0,0,0.05),0_16px_16px_rgba(0,0,0,0.05)]",
+          "shadow-paper-stack",
           "border border-black/5",
           "min-h-[60vh] flex flex-col items-center justify-center"
         )}

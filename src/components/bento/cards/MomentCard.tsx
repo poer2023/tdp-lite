@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, MapPin, Music2, Quote } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
 import { MomentImageOnly } from "./MomentImageOnly";
 import { toLocalizedPath } from "@/lib/locale-routing";
+import { LgChipDark } from "@/components/ui/LgChipDark";
 
 type MomentMedia = NonNullable<Moment["media"]>[number];
 
@@ -60,8 +61,8 @@ export function MomentCard({
     );
     const shouldSkipOptimization = Boolean(
       media &&
-        !isVideo &&
-        (media.url.startsWith("blob:") || media.url.startsWith("data:"))
+      !isVideo &&
+      (media.url.startsWith("blob:") || media.url.startsWith("data:"))
     );
     return { isAudio, isVideo, shouldSkipOptimization };
   };
@@ -138,8 +139,8 @@ export function MomentCard({
     "group relative flex h-full w-full flex-col",
     isDetachedPreview ? "overflow-visible" : "paper-card overflow-hidden",
     !isDetachedPreview &&
-      isHighlighted &&
-      "ring-1 ring-black/15 shadow-[0_10px_26px_-12px_rgba(0,0,0,0.28)]",
+    isHighlighted &&
+    "ring-1 ring-black/15 shadow-highlight",
     preview ? "cursor-default" : "cursor-pointer",
     className
   );
@@ -255,7 +256,7 @@ export function MomentCard({
     isDetachedPreview ? (
       <>
         <div
-          className="relative mx-auto overflow-hidden rounded-[28px] border border-white/70 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.5)]"
+          className="relative mx-auto overflow-hidden rounded-[28px] border border-white/70 shadow-preview-frame"
           style={{
             aspectRatio: String(previewMediaRatio),
             width: previewMediaWidth,
@@ -292,7 +293,7 @@ export function MomentCard({
                   type="button"
                   onClick={() => setPreviewMediaIndex(resolvedMediaIndex - 1)}
                   aria-label="Previous media"
-                  className="absolute left-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm transition-colors hover:bg-black/70"
+                  className="absolute left-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-media-controls backdrop-blur-sm transition-colors hover:bg-black/70"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -300,11 +301,11 @@ export function MomentCard({
                   type="button"
                   onClick={() => setPreviewMediaIndex(resolvedMediaIndex + 1)}
                   aria-label="Next media"
-                  className="absolute right-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm transition-colors hover:bg-black/70"
+                  className="absolute right-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/55 bg-black/55 text-white shadow-media-controls backdrop-blur-sm transition-colors hover:bg-black/70"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
-                <div className="absolute right-4 top-4 z-20 rounded-full border border-white/55 bg-black/55 px-2.5 py-1 font-mono text-[11px] text-white shadow-[0_10px_24px_-14px_rgba(0,0,0,0.65)] backdrop-blur-sm">
+                <div className="absolute right-4 top-4 z-20 rounded-full border border-white/55 bg-black/55 px-2.5 py-1 font-mono text-[11px] text-white shadow-media-controls backdrop-blur-sm">
                   {resolvedMediaIndex + 1}/{mediaList.length}
                 </div>
               </>
@@ -312,7 +313,7 @@ export function MomentCard({
           </div>
         </div>
 
-        <div className="mx-3 mt-3 rounded-[20px] border border-white/75 bg-white/80 p-3.5 shadow-[0_24px_40px_-34px_rgba(0,0,0,0.55)] backdrop-blur-md">
+        <div className="mx-3 mt-3 rounded-[20px] border border-white/75 bg-white/80 p-3.5 shadow-preview-info backdrop-blur-md">
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 px-2.5 py-0.5 text-[11px] font-medium text-[#333]">
               {isHighlighted ? "Spotlight" : "Insight"}
@@ -375,14 +376,14 @@ export function MomentCard({
 
         <div className="relative z-10 flex h-full flex-col justify-between p-6">
           <div className="flex items-start justify-between">
-            <span className="lg-chip-dark inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white">
+            <LgChipDark className="inline-flex items-center gap-1.5">
               {isHighlighted ? "Spotlight" : "Insight"}
-            </span>
+            </LgChipDark>
             {moment.location && (
-              <span className="lg-chip-dark flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-xs text-white">
+              <LgChipDark className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" />
                 {moment.location.name}
-              </span>
+              </LgChipDark>
             )}
           </div>
 

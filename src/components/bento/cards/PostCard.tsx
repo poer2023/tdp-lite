@@ -30,14 +30,14 @@ export function PostCard({
   const coverSrc = post.coverUrl || null;
   const hasVideoCover = Boolean(
     coverSrc &&
-      (coverMediaType ? coverMediaType === "video" : isVideoUrl(coverSrc))
+    (coverMediaType ? coverMediaType === "video" : isVideoUrl(coverSrc))
   );
   const skipOptimization =
     !hasVideoCover &&
     (coverSrc?.startsWith("blob:") || coverSrc?.startsWith("data:"));
   const wrapperClass = cn(
     "paper-card group relative flex h-full flex-col overflow-hidden",
-    highlighted && "ring-1 ring-black/15 shadow-[0_10px_26px_-12px_rgba(0,0,0,0.28)]",
+    highlighted && "ring-1 ring-black/15 shadow-highlight",
     preview ? "cursor-default" : "cursor-pointer",
     className
   );
@@ -115,7 +115,7 @@ export function PostCard({
           <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
             Journal
           </span>
-          <p className="font-mono text-xs text-muted-foreground">Read time: 5m</p>
+          <p className="font-mono text-xs text-muted-foreground">Read time: {Math.max(1, Math.ceil(post.content.length / 1000))}m</p>
         </div>
         <div
           className={cn(

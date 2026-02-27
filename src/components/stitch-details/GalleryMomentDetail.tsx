@@ -103,12 +103,12 @@ export function GalleryMomentDetail({
       images.length > 0
         ? images
         : [
-            {
-              id: "fallback",
-              src: "https://picsum.photos/1200/1600",
-              alt: "Fallback image",
-            },
-          ],
+          {
+            id: "fallback",
+            src: "https://picsum.photos/1200/1600",
+            alt: "Fallback image",
+          },
+        ],
     [images]
   );
 
@@ -120,6 +120,8 @@ export function GalleryMomentDetail({
     Record<string, { width: number; height: number }>
   >({});
 
+  // Fallback detail items — only used when caller does not provide `metaItems` prop.
+  // Values below are design placeholders; real data should be passed from the parent.
   const details = metaItems ?? [
     {
       label: "Location",
@@ -184,9 +186,9 @@ export function GalleryMomentDetail({
     const desktopSideRailGap = useRightThumbnails ? DESKTOP_SIDE_THUMB_RAIL_GAP : 0;
     const desktopPanelWidth = Math.round(
       desktopMediaWidth +
-        DESKTOP_MEDIA_PANEL_HORIZONTAL_PADDING +
-        desktopSideRailWidth +
-        desktopSideRailGap
+      DESKTOP_MEDIA_PANEL_HORIZONTAL_PADDING +
+      desktopSideRailWidth +
+      desktopSideRailGap
     );
     const mobileMediaHeight = Math.max(
       MOBILE_MIN_MEDIA_HEIGHT,
@@ -205,9 +207,8 @@ export function GalleryMomentDetail({
 
   const mediaPanelStyle = {
     "--desktop-panel-width": `${layoutSizing.desktopPanelWidth}px`,
-    "--desktop-panel-min-width": `${
-      DESKTOP_MIN_MEDIA_WIDTH + DESKTOP_MEDIA_PANEL_HORIZONTAL_PADDING
-    }px`,
+    "--desktop-panel-min-width": `${DESKTOP_MIN_MEDIA_WIDTH + DESKTOP_MEDIA_PANEL_HORIZONTAL_PADDING
+      }px`,
     "--desktop-panel-max-width": `calc(100% - ${DESKTOP_MIN_TEXT_WIDTH}px)`,
   } as CSSProperties;
 
