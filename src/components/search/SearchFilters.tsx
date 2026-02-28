@@ -26,7 +26,7 @@ interface SearchFiltersProps {
 
 function InputLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-[#666]">
+    <label className="mb-1 block font-mono text-[10px] uppercase tracking-widest text-ink-light">
       {children}
     </label>
   );
@@ -100,18 +100,18 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
   };
 
   return (
-    <section className="lg-panel-medium rounded-2xl border border-black/10 bg-white/80 p-4 shadow-sm">
+    <section className="lg-panel-medium rounded-2xl border border-black/10 bg-white/80 p-4 shadow-sm dark:border-white/14 dark:bg-[rgba(43,51,64,0.82)]">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4 text-[#666]" />
-          <p className="font-mono text-xs uppercase tracking-widest text-[#666]">
+          <SlidersHorizontal className="h-4 w-4 text-ink-light" />
+          <p className="font-mono text-xs uppercase tracking-widest text-ink-light">
             {t.title}
           </p>
         </div>
         <button
           type="button"
           onClick={() => setIsOpen((prev) => !prev)}
-          className="rounded-full bg-black/5 px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-[#444] transition-colors hover:bg-black/10"
+          className="rounded-full bg-black/5 px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-ink-light transition-colors hover:bg-black/10 hover:text-ink dark:bg-white/8 dark:hover:bg-white/12"
         >
           {isOpen ? t.hide : t.show}
         </button>
@@ -126,7 +126,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               onChange={(event) =>
                 updateField("localeScope", event.target.value as "all" | "current")
               }
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             >
               <option value="all">{t.localeAll}</option>
               <option value="current">{t.localeCurrent}</option>
@@ -139,7 +139,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               type="date"
               value={value.dateFrom}
               onChange={(event) => updateField("dateFrom", event.target.value)}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -149,7 +149,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               type="date"
               value={value.dateTo}
               onChange={(event) => updateField("dateTo", event.target.value)}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -159,7 +159,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               value={value.tags}
               onChange={(event) => updateField("tags", event.target.value)}
               placeholder={t.tagsPlaceholder}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -169,7 +169,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               value={value.location}
               onChange={(event) => updateField("location", event.target.value)}
               placeholder={t.locationPlaceholder}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -179,7 +179,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               value={value.camera}
               onChange={(event) => updateField("camera", event.target.value)}
               placeholder={t.cameraPlaceholder}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -189,7 +189,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               value={value.lens}
               onChange={(event) => updateField("lens", event.target.value)}
               placeholder={t.lensPlaceholder}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -199,7 +199,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               value={value.focalLength}
               onChange={(event) => updateField("focalLength", event.target.value)}
               placeholder={t.focalLengthPlaceholder}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -209,7 +209,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               value={value.aperture}
               onChange={(event) => updateField("aperture", event.target.value)}
               placeholder={t.aperturePlaceholder}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -221,7 +221,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               value={value.isoMin}
               onChange={(event) => updateField("isoMin", event.target.value)}
               placeholder={t.isoMinPlaceholder}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
 
@@ -233,7 +233,7 @@ export function SearchFilters({ locale, value, onChange }: SearchFiltersProps) {
               value={value.isoMax}
               onChange={(event) => updateField("isoMax", event.target.value)}
               placeholder={t.isoMaxPlaceholder}
-              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-[#222] outline-none focus:border-black/30"
+              className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm text-ink outline-none focus:border-black/30 dark:border-white/14 dark:bg-[rgba(43,51,64,0.88)] dark:focus:border-white/24"
             />
           </div>
         </div>

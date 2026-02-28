@@ -10,6 +10,7 @@ import {
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
+import type { Location, MediaItem } from "./content/types";
 
 // Posts - 长文章
 export const posts = pgTable(
@@ -41,34 +42,6 @@ export const posts = pgTable(
     ),
   ]
 );
-
-// Media type for moments
-export interface MediaItem {
-  type: "image" | "video" | "audio";
-  url: string;
-  width?: number;
-  height?: number;
-  thumbnailUrl?: string;
-  title?: string;
-  artist?: string;
-  album?: string;
-  duration?: string;
-  capturedAt?: Date;
-  camera?: string;
-  lens?: string;
-  focalLength?: string;
-  aperture?: string;
-  iso?: number;
-  latitude?: number;
-  longitude?: number;
-}
-
-// Location type
-export interface Location {
-  name: string;
-  lat?: number;
-  lng?: number;
-}
 
 // Moments - 短动态
 export const moments = pgTable(
@@ -204,11 +177,4 @@ export type PreviewSession = typeof previewSessions.$inferSelect;
 export type NewPreviewSession = typeof previewSessions.$inferInsert;
 export type PublishIdempotencyKey = typeof publishIdempotencyKeys.$inferSelect;
 export type NewPublishIdempotencyKey = typeof publishIdempotencyKeys.$inferInsert;
-
-// UI-level types co-located with data models for discoverability
-export interface ActionItem {
-  type: "action";
-  id: string;
-  icon: string;
-  label: string;
-}
+export type { ActionItem, Location, MediaItem } from "./content/types";

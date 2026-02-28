@@ -3,12 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SearchFeedGrid } from "@/components/search/SearchFeedGrid";
 import type { FeedItem } from "@/components/bento/types";
-import {
-  fetchPublicGalleryItem,
-  fetchPublicMoment,
-  fetchPublicPost,
-  type Locale as ApiLocale,
-} from "@/lib/publicApi";
+import { cn } from "@/lib/utils";
 import type {
   SearchGalleryItem,
   SearchMomentItem,
@@ -17,6 +12,8 @@ import type {
   SearchSectionResponse,
   SupportedLocale,
 } from "@/lib/search/contracts";
+import { reviveSearchFeedItem } from "@/lib/search/feedItemSnapshot";
+import styles from "./search-page.module.css";
 
 const PUBLIC_SEARCH_ENDPOINT = "/api/search";
 const MIN_QUERY_LENGTH = 2;
@@ -84,45 +81,48 @@ async function hydrateSearchToFeed(params: {
 }): Promise<FeedItem[]> {
   let orderCursor = 0;
 
-  const postTasks = params.posts.map(async (entry) => {
+  const postRecords = params.posts.map((entry) => {
+    if (!entry.feedItem) {
+      return null;
+    }
     const order = orderCursor++;
-    const full = await fetchPublicPost(entry.locale as ApiLocale, entry.slug);
-    if (!full) return null;
     const record: HydratedFeedRecord = {
-      item: { type: "post", ...full },
+      item: reviveSearchFeedItem(entry.feedItem),
       sortAtMillis: toSortMillis(entry.sortAt),
       order,
     };
     return record;
   });
 
-  const momentTasks = params.moments.map(async (entry) => {
+  const momentRecords = params.moments.map((entry) => {
+    if (!entry.feedItem) {
+      return null;
+    }
     const order = orderCursor++;
-    const full = await fetchPublicMoment(entry.locale as ApiLocale, entry.id);
-    if (!full) return null;
     const record: HydratedFeedRecord = {
-      item: { type: "moment", ...full },
+      item: reviveSearchFeedItem(entry.feedItem),
       sortAtMillis: toSortMillis(entry.sortAt),
       order,
     };
     return record;
   });
 
-  const galleryTasks = params.gallery.map(async (entry) => {
+  const galleryRecords = params.gallery.map((entry) => {
+    if (!entry.feedItem) {
+      return null;
+    }
     const order = orderCursor++;
-    const full = await fetchPublicGalleryItem(entry.locale as ApiLocale, entry.id);
-    if (!full) return null;
     const record: HydratedFeedRecord = {
-      item: { type: "gallery", ...full },
+      item: reviveSearchFeedItem(entry.feedItem),
       sortAtMillis: toSortMillis(entry.sortAt),
       order,
     };
     return record;
   });
 
-  const records = (
-    await Promise.all([...postTasks, ...momentTasks, ...galleryTasks])
-  ).filter((record): record is HydratedFeedRecord => record !== null);
+  const records = [...postRecords, ...momentRecords, ...galleryRecords].filter(
+    (record): record is HydratedFeedRecord => record !== null
+  );
 
   records.sort((a, b) => {
     if (b.sortAtMillis !== a.sortAtMillis) {
@@ -285,7 +285,12 @@ export function SearchPageClient({ locale, initialItems }: SearchPageClientProps
         </div>
       </div>
 
-      <div className="search-stitch-overlay fixed inset-0 z-20 flex flex-col items-center pt-[8vh] md:pt-[10vh]">
+      <div
+        className={cn(
+          styles.overlay,
+          "fixed inset-0 z-20 flex flex-col items-center pt-[8vh] md:pt-[10vh]"
+        )}
+      >
         <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-30 mix-blend-overlay" />
 
         <div className="relative z-30 mb-8 w-full max-w-4xl px-6 md:mb-10 md:px-8">
@@ -294,18 +299,21 @@ export function SearchPageClient({ locale, initialItems }: SearchPageClientProps
               autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              className="search-stitch-input w-full bg-transparent py-4 text-center text-4xl leading-tight text-ink focus:outline-none md:text-6xl"
+              className={cn(
+                styles.input,
+                "w-full bg-transparent py-4 text-center text-4xl leading-tight text-ink focus:outline-none md:text-6xl"
+              )}
               placeholder={t.placeholder}
               type="text"
             />
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black/20 to-transparent transition-all duration-500 group-focus-within:via-black/80" />
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-black/20 to-transparent transition-all duration-500 group-focus-within:via-black/80 dark:via-white/16 dark:group-focus-within:via-white/55" />
           </div>
 
-            <div className="mt-5 flex justify-center opacity-70">
-              <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-ink-light">
-                <span>{t.recentLabel}:</span>
-                {t.quickTerms.map((term, index) => (
-                  <span key={term} className="inline-flex items-center gap-2">
+          <div className="mt-5 flex justify-center opacity-70">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-ink-light">
+              <span>{t.recentLabel}:</span>
+              {t.quickTerms.map((term, index) => (
+                <span key={term} className="inline-flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setQuery(term)}
@@ -326,9 +334,13 @@ export function SearchPageClient({ locale, initialItems }: SearchPageClientProps
         </div>
 
         <div
-          className={`search-stitch-no-scrollbar z-10 w-full max-w-5xl px-6 pb-36 ${
-            searchState === "hot" || searchState === "typing" ? "overflow-hidden" : "overflow-y-auto"
-          }`}
+          className={cn(
+            styles.noScrollbar,
+            "z-10 w-full max-w-5xl px-6 pb-36",
+            searchState === "hot" || searchState === "typing"
+              ? "overflow-hidden"
+              : "overflow-y-auto"
+          )}
         >
           {displayItems.length > 0 ? (
             <SearchFeedGrid
@@ -338,11 +350,11 @@ export function SearchPageClient({ locale, initialItems }: SearchPageClientProps
               }
             />
           ) : searchState === "searching" ? (
-            <div className="mx-auto max-w-2xl rounded-3xl border border-black/10 bg-white/75 px-6 py-8 text-center text-sm text-ink-light">
+            <div className="mx-auto max-w-2xl rounded-3xl border border-black/10 bg-white/75 px-6 py-8 text-center text-sm text-ink-light dark:border-white/12 dark:bg-[rgba(43,51,64,0.78)] dark:text-[#b7c3d2]">
               {t.searching}
             </div>
           ) : (
-            <div className="mx-auto max-w-2xl rounded-3xl border border-black/10 bg-white/75 px-6 py-8 text-center text-sm text-ink-light">
+            <div className="mx-auto max-w-2xl rounded-3xl border border-black/10 bg-white/75 px-6 py-8 text-center text-sm text-ink-light dark:border-white/12 dark:bg-[rgba(43,51,64,0.78)] dark:text-[#b7c3d2]">
               {headerText}
             </div>
           )}

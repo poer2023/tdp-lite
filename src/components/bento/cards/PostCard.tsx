@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { cn, formatRelativeTimeUppercase } from "@/lib/utils";
-import { Post } from "@/lib/schema";
+import type { Post } from "@/lib/content/types";
 import type { MediaKind } from "@/lib/media";
 import { isVideoUrl } from "@/lib/media";
 import { ArrowUpRight } from "lucide-react";

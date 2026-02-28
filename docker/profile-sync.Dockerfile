@@ -1,6 +1,12 @@
 FROM node:20-alpine
 
 WORKDIR /app
-COPY scripts/profile-sync.mjs /app/scripts/profile-sync.mjs
+RUN corepack enable
 
-ENTRYPOINT ["node", "/app/scripts/profile-sync.mjs", "--loop"]
+COPY package.json pnpm-lock.yaml tsconfig.json ./
+RUN pnpm install --frozen-lockfile
+
+COPY scripts ./scripts
+COPY src ./src
+
+ENTRYPOINT ["pnpm", "sync:loop"]

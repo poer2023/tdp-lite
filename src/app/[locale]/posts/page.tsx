@@ -3,9 +3,6 @@ import { formatDate } from "@/lib/utils";
 import { getPublicPosts } from "@/lib/content/read";
 import { isAppLocale, type AppLocale } from "@/lib/locale";
 
-// Force dynamic rendering to avoid database queries during build
-export const dynamic = "force-dynamic";
-
 type Locale = AppLocale;
 
 interface PostsPageProps {

@@ -5,9 +5,8 @@ import remarkGfm from "remark-gfm";
 import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDetail";
 import { BottomNav } from "@/components/BottomNav";
 import { getPublicPost } from "@/lib/content/read";
+import { getPostDetailStaticParams } from "@/lib/detailRouteParams";
 import { type AppLocale } from "@/lib/locale";
-
-export const dynamic = "force-dynamic";
 
 type Locale = AppLocale;
 
@@ -17,6 +16,10 @@ interface PostPageProps {
 
 const avatar =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1";
+
+export async function generateStaticParams() {
+  return getPostDetailStaticParams();
+}
 
 export default async function PostPage({ params }: PostPageProps) {
   const { locale, slug } = await params;

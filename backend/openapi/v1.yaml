@@ -248,6 +248,15 @@ paths:
       security: []
       responses:
         '200': { description: Profile snapshot }
+  /v1/public/search-snapshot:
+    get:
+      security: []
+      parameters:
+        - in: query
+          name: locale
+          schema: { $ref: '#/components/schemas/Locale' }
+      responses:
+        '200': { description: Search snapshot }
   /v1/public/search:
     post:
       security: []
@@ -326,6 +335,21 @@ paths:
                   format: date-time
       responses:
         '200': { description: Profile snapshot updated }
+  /v1/internal/search-snapshot:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200': { description: Search snapshot updated }
+  /v1/internal/search-snapshot/status:
+    get:
+      responses:
+        '200': { description: Search snapshot refresh status }
   /v1/media/uploads:
     post:
       parameters:

@@ -2,7 +2,7 @@
 
 import { Quote, Clock, MapPin } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import type { Moment } from "@/lib/schema";
+import type { Moment } from "@/lib/content/types";
 
 interface TextMomentDetailCardProps {
   moment: Moment;

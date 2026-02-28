@@ -2060,3 +2060,165 @@ func (s *Store) UpsertProfileSnapshot(ctx context.Context, input UpsertProfileSn
 	}
 	return item, nil
 }
+
+func scanSearchSnapshot(scanner interface{ Scan(dest ...any) error }) (SearchSnapshot, error) {
+	var item SearchSnapshot
+	var snapshotRaw []byte
+	var generatedAt sql.NullTime
+
+	if err := scanner.Scan(
+		&item.Locale,
+		&snapshotRaw,
+		&generatedAt,
+		&item.UpdatedAt,
+		&item.CreatedAt,
+	); err != nil {
+		return SearchSnapshot{}, err
+	}
+
+	snapshot, err := parseJSONMap(snapshotRaw)
+	if err != nil {
+		return SearchSnapshot{}, err
+	}
+
+	item.Snapshot = snapshot
+	item.GeneratedAt = nullableTime(generatedAt)
+	return item, nil
+}
+
+func (s *Store) GetSearchSnapshot(ctx context.Context, locale string) (SearchSnapshot, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT locale, snapshot_json, generated_at, updated_at, created_at
+		 FROM search_snapshots
+		 WHERE locale = $1
+		 LIMIT 1`,
+		locale,
+	)
+
+	item, err := scanSearchSnapshot(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return SearchSnapshot{}, ErrNotFound
+		}
+		return SearchSnapshot{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) UpsertSearchSnapshot(ctx context.Context, input UpsertSearchSnapshotInput) (SearchSnapshot, error) {
+	snapshotRaw, err := toJSONRaw(input.Snapshot)
+	if err != nil {
+		return SearchSnapshot{}, err
+	}
+
+	row := s.db.QueryRowContext(
+		ctx,
+		`INSERT INTO search_snapshots (
+			 locale, snapshot_json, generated_at, updated_at
+		 )
+		 VALUES ($1, $2::jsonb, $3, NOW())
+		 ON CONFLICT (locale) DO UPDATE SET
+		   snapshot_json = EXCLUDED.snapshot_json,
+		   generated_at = COALESCE(EXCLUDED.generated_at, search_snapshots.generated_at),
+		   updated_at = NOW()
+		 RETURNING locale, snapshot_json, generated_at, updated_at, created_at`,
+		localeOrDefault(input.Locale),
+		snapshotRaw,
+		input.GeneratedAt,
+	)
+
+	item, err := scanSearchSnapshot(row)
+	if err != nil {
+		return SearchSnapshot{}, err
+	}
+	if err := s.MarkSearchSnapshotRefreshProcessed(ctx, input.GeneratedAt); err != nil {
+		return SearchSnapshot{}, err
+	}
+	return item, nil
+}
+
+func localeOrDefault(locale string) string {
+	if strings.TrimSpace(locale) == "zh" {
+		return "zh"
+	}
+	return "en"
+}
+
+func scanSearchSnapshotRefreshState(scanner interface{ Scan(dest ...any) error }) (SearchSnapshotRefreshState, error) {
+	var item SearchSnapshotRefreshState
+	var requestedAt sql.NullTime
+	var processedAt sql.NullTime
+
+	if err := scanner.Scan(
+		&requestedAt,
+		&processedAt,
+		&item.UpdatedAt,
+		&item.CreatedAt,
+	); err != nil {
+		return SearchSnapshotRefreshState{}, err
+	}
+
+	item.RequestedAt = nullableTime(requestedAt)
+	item.ProcessedAt = nullableTime(processedAt)
+	return item, nil
+}
+
+func (s *Store) GetSearchSnapshotRefreshState(ctx context.Context) (SearchSnapshotRefreshState, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT requested_at, processed_at, updated_at, created_at
+		 FROM search_snapshot_refresh_state
+		 WHERE id = 1
+		 LIMIT 1`,
+	)
+
+	item, err := scanSearchSnapshotRefreshState(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return SearchSnapshotRefreshState{}, ErrNotFound
+		}
+		return SearchSnapshotRefreshState{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) RequestSearchSnapshotRefresh(ctx context.Context) (SearchSnapshotRefreshState, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`INSERT INTO search_snapshot_refresh_state (
+			 id, requested_at, updated_at
+		 )
+		 VALUES (1, NOW(), NOW())
+		 ON CONFLICT (id) DO UPDATE SET
+		   requested_at = NOW(),
+		   updated_at = NOW()
+		 RETURNING requested_at, processed_at, updated_at, created_at`,
+	)
+
+	item, err := scanSearchSnapshotRefreshState(row)
+	if err != nil {
+		return SearchSnapshotRefreshState{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) MarkSearchSnapshotRefreshProcessed(ctx context.Context, processedAt *time.Time) error {
+	var value any
+	if processedAt != nil {
+		value = *processedAt
+	}
+
+	_, err := s.db.ExecContext(
+		ctx,
+		`INSERT INTO search_snapshot_refresh_state (
+			 id, requested_at, processed_at, updated_at
+		 )
+		 VALUES (1, NULL, COALESCE($1, NOW()), NOW())
+		 ON CONFLICT (id) DO UPDATE SET
+		   processed_at = COALESCE($1, NOW()),
+		   updated_at = NOW()`,
+		value,
+	)
+	return err
+}

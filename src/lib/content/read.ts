@@ -1,6 +1,6 @@
 import type { FeedItem } from "@/components/bento/types";
 import { type AppLocale, normalizeLocale } from "@/lib/locale";
-import type { GalleryItem, Moment, Post } from "@/lib/schema";
+import type { GalleryItem, Moment, Post } from "@/lib/content/types";
 import {
   type PublicPresence,
   type PublicProfileSnapshot,
@@ -14,6 +14,15 @@ import {
   fetchPublicPost,
   fetchPublicPosts,
 } from "@/lib/publicApi";
+import {
+  getSnapshotGalleryItemById,
+  getSnapshotMomentById,
+  getSnapshotPostBySlug,
+  listSnapshotFeed,
+  listSnapshotGalleryItems,
+  listSnapshotMoments,
+  listSnapshotPosts,
+} from "@/lib/search/searchSnapshot";
 
 export type Locale = AppLocale;
 
@@ -38,7 +47,7 @@ export async function getPublicFeed(locale: string, limit: number = 10): Promise
     return await fetchPublicFeed(toLocale(locale), limit);
   } catch (error) {
     logReadError("feed", error);
-    return [];
+    return await listSnapshotFeed(toLocale(locale), limit);
   }
 }
 
@@ -47,7 +56,7 @@ export async function getPublicPosts(locale: string): Promise<Post[]> {
     return await fetchPublicPosts(toLocale(locale));
   } catch (error) {
     logReadError("posts", error);
-    return [];
+    return await listSnapshotPosts(toLocale(locale));
   }
 }
 
@@ -56,7 +65,7 @@ export async function getPublicPost(locale: string, slug: string): Promise<Post 
     return await fetchPublicPost(toLocale(locale), slug);
   } catch (error) {
     logReadError(`post(${slug})`, error);
-    return null;
+    return await getSnapshotPostBySlug(toLocale(locale), slug);
   }
 }
 
@@ -65,7 +74,7 @@ export async function getPublicMoments(locale: string): Promise<Moment[]> {
     return await fetchPublicMoments(toLocale(locale));
   } catch (error) {
     logReadError("moments", error);
-    return [];
+    return await listSnapshotMoments(toLocale(locale));
   }
 }
 
@@ -74,7 +83,7 @@ export async function getPublicMoment(locale: string, id: string): Promise<Momen
     return await fetchPublicMoment(toLocale(locale), id);
   } catch (error) {
     logReadError(`moment(${id})`, error);
-    return null;
+    return await getSnapshotMomentById(toLocale(locale), id);
   }
 }
 
@@ -83,7 +92,7 @@ export async function getPublicGallery(locale: string): Promise<GalleryItem[]> {
     return await fetchPublicGallery(toLocale(locale));
   } catch (error) {
     logReadError("gallery", error);
-    return [];
+    return await listSnapshotGalleryItems(toLocale(locale));
   }
 }
 
@@ -95,7 +104,7 @@ export async function getPublicGalleryItem(
     return await fetchPublicGalleryItem(toLocale(locale), id);
   } catch (error) {
     logReadError(`gallery(${id})`, error);
-    return null;
+    return await getSnapshotGalleryItemById(toLocale(locale), id);
   }
 }
 

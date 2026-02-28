@@ -1,0 +1,52 @@
+.root {
+  background: #f2f2f0;
+}
+
+.overlay {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(240, 240, 238, 0.95) 100%
+  );
+  backdrop-filter: blur(24px) saturate(180%);
+}
+
+.input {
+  font-family: "Playfair Display", "Crimson Pro", serif;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  caret-color: #1a1a1a;
+}
+
+.input::placeholder {
+  color: rgba(102, 102, 102, 0.4);
+}
+
+.noScrollbar {
+  scrollbar-width: none;
+}
+
+.noScrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+:global(.dark) .root {
+  background: var(--page-surface);
+}
+
+:global(.dark) .overlay {
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(34, 42, 52, 0.94) 0%,
+    rgba(26, 32, 40, 0.96) 100%
+  );
+}
+
+:global(.dark) .input {
+  caret-color: #f4f7fb;
+}
+
+:global(.dark) .input::placeholder {
+  color: rgba(183, 195, 210, 0.54);
+}

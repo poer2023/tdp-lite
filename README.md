@@ -84,7 +84,7 @@
    - `docker compose --env-file .env.compose up -d`
 3. 若需要发布工具，再启 publisher profile：
    - `docker compose --env-file .env.compose --profile publisher up -d`
-4. 若需要每日同步 GitHub / Apple Music 快照，再启 sync profile：
+4. 若需要独立同步 GitHub / Apple Music / search snapshot，再启 sync profile：
    - `docker compose --env-file .env.compose --profile sync up -d profile-sync`
 
 默认端口：
@@ -162,22 +162,38 @@
 - Update presence quickly:
   - `pnpm presence:heartbeat -- --city Tokyo --country Japan --country-code JP --source manual`
 
-## Profile Snapshot Sync (GitHub + Apple Music)
+## Snapshot Sync (GitHub + Apple Music + Search)
 
-- Sync worker only writes snapshot to API:
-  - pull source data -> normalize -> `POST /v1/internal/profile-snapshot`
+- Sync worker only writes snapshots:
+  - profile: pull source data -> normalize -> `POST /v1/internal/profile-snapshot`
+  - search: build locale index -> `POST /v1/internal/search-snapshot`
 - Frontend (`tdp-lite`) only reads:
   - `GET /v1/public/profile-snapshot`
+  - `GET /v1/public/search-snapshot`
 - Failure isolation:
   - sync failure only affects data freshness, never blocks page rendering.
   - source partial failure preserves previous snapshot fields (no destructive overwrite).
+  - search snapshot upsert failure preserves the previous successful search snapshot.
+  - content writes only enqueue a search refresh request; the rebuild remains async and never blocks publish success.
+  - profile sync also writes `data/profile-snapshot.json` locally by default; lite falls back to that file, then to in-process stale cache, when the profile snapshot API is unavailable.
 
 Local run:
 
 - One-shot sync:
+  - `pnpm sync:once`
+- Loop mode:
+  - `pnpm sync:loop`
+- Legacy single-task commands still work:
   - `pnpm profile:sync`
-- Loop mode (default 24h interval):
   - `pnpm profile:sync:loop`
+  - `pnpm search:sync`
+
+Optional env:
+
+- `PROFILE_SYNC_WRITE_LOCAL=false`
+  - disable writing `data/profile-snapshot.json`
+- `PROFILE_SYNC_OUTPUT_FILE=/custom/path/profile-snapshot.json`
+  - override the local profile snapshot output path
 
 Required env:
 
@@ -189,6 +205,9 @@ Required env:
   - `APPLE_MUSIC_DEVELOPER_TOKEN`
   - `APPLE_MUSIC_USER_TOKEN`
   - `APPLE_MUSIC_STOREFRONT` (default `us`)
+- Search sync:
+  - `SEARCH_SYNC_INTERVAL_HOURS` (default `1` in compose sync profile)
+  - `SEARCH_SYNC_WRITE_LOCAL` (`true` for local dev, `false` for isolated sync container)
 
 ## CI/CD
 

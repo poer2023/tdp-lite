@@ -1,3 +1,5 @@
+import "server-only";
+
 import { db } from "@/lib/db";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import {

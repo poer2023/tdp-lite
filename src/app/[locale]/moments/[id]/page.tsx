@@ -2,18 +2,21 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { getPublicMoment } from "@/lib/content/read";
+import { getMomentDetailStaticParams } from "@/lib/detailRouteParams";
 import { type AppLocale } from "@/lib/locale";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { BottomNav } from "@/components/BottomNav";
 import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
 import { MomentDetailPreviewClient } from "@/components/bento/MomentDetailPreviewClient";
 
-export const dynamic = "force-dynamic";
-
 type Locale = AppLocale;
 
 interface MomentDetailPageProps {
   params: Promise<{ locale: Locale; id: string }>;
+}
+
+export async function generateStaticParams() {
+  return getMomentDetailStaticParams();
 }
 
 export default async function MomentDetailPage({

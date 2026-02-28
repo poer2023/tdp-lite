@@ -48,6 +48,9 @@ jobs:
       - name: Type check
         run: pnpm type-check
 
+      - name: Architecture guardrails
+        run: pnpm check:architecture
+
       - name: Lint
         run: pnpm lint
 

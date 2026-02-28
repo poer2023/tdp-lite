@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -96,6 +96,14 @@ const tabs: TabConfig[] = [
 const THEME_STORAGE_KEY = "tdp-theme-preference";
 
 export function BottomNav({ locale, activeTab }: BottomNavProps) {
+  return (
+    <Suspense fallback={null}>
+      <BottomNavInner locale={locale} activeTab={activeTab} />
+    </Suspense>
+  );
+}
+
+function BottomNavInner({ locale, activeTab }: BottomNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const previewDockContext = usePreviewDockContext();

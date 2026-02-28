@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { GalleryItem, Moment, Post } from "@/lib/schema";
+import type { GalleryItem, Moment, Post } from "@/lib/content/types";
 import type { ActionItem, FeedItem } from "../types";
 import {
   BENTO_SPAN_CLASS,

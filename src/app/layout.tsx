@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import "./globals.css";
 
-const themeBootstrapScript = `
+const documentBootstrapScript = `
 (() => {
   try {
+    const pathname = window.location.pathname || "/";
+    const locale = pathname === "/en" || pathname.startsWith("/en/") ? "en" : "zh";
+    document.documentElement.lang = locale;
+
     const key = "tdp-theme-preference";
     const root = document.documentElement;
     const stored = window.localStorage.getItem(key);
@@ -28,13 +31,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const requestHeaders = await headers();
-  const lang = requestHeaders.get("x-tdp-locale") === "en" ? "en" : "zh";
-
   return (
-    <html lang={lang} suppressHydrationWarning>
+    <html lang="zh" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+        <script dangerouslySetInnerHTML={{ __html: documentBootstrapScript }} />
       </head>
       <body className="min-h-screen antialiased">
         {children}

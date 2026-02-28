@@ -1,16 +1,12 @@
 import { BentoGrid } from "@/components/bento/BentoGrid";
-import { FeedItem } from "@/components/bento/types";
 import { getPublicFeed, getPublicPresence } from "@/lib/content/read";
 import Link from "next/link";
 import Image from "next/image";
 import { BottomNav } from "@/components/BottomNav";
 import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
-import { unstable_cache } from "next/cache";
 import { toLocalizedPath } from "@/lib/locale-routing";
 
 import { type AppLocale } from "@/lib/locale";
-
-export const dynamic = "force-dynamic";
 
 type Locale = AppLocale;
 
@@ -18,19 +14,12 @@ interface HomePageProps {
   params: Promise<{ locale: Locale }>;
 }
 
-const getHomeItems = unstable_cache(
-  async (locale: Locale): Promise<FeedItem[]> => getPublicFeed(locale, 10),
-  ["home-items-v1"],
-  { revalidate: 60 }
-);
-
-const getPresence = unstable_cache(async () => getPublicPresence(), ["presence-v1"], {
-  revalidate: 10,
-});
-
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
-  const [items, presence] = await Promise.all([getHomeItems(locale), getPresence()]);
+  const [items, presence] = await Promise.all([
+    getPublicFeed(locale, 10),
+    getPublicPresence(),
+  ]);
   const t =
     locale === "zh"
       ? {

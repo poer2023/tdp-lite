@@ -1,4 +1,10 @@
 import { z } from "zod";
+import type {
+  SearchSerializedFeedItem,
+  SearchSerializedGalleryFeedItem,
+  SearchSerializedMomentFeedItem,
+  SearchSerializedPostFeedItem,
+} from "./feedItemSnapshot";
 
 export type SearchSection = "post" | "moment" | "gallery";
 export type LocaleScope = "all" | "current";
@@ -69,12 +75,14 @@ export interface SearchPostItem extends SearchResponseItemBase {
   title: string;
   excerpt: string;
   tags: string[];
+  feedItem?: SearchSerializedPostFeedItem;
 }
 
 export interface SearchMomentItem extends SearchResponseItemBase {
   section: "moment";
   content: string;
   locationName: string | null;
+  feedItem?: SearchSerializedMomentFeedItem;
 }
 
 export interface SearchGalleryItem extends SearchResponseItemBase {
@@ -88,6 +96,7 @@ export interface SearchGalleryItem extends SearchResponseItemBase {
   iso: number | null;
   thumbUrl: string | null;
   fileUrl: string;
+  feedItem?: SearchSerializedGalleryFeedItem;
 }
 
 export type SearchResponseItem =
@@ -115,3 +124,5 @@ export type SearchItemBySection = {
 export type SearchSectionResponse<S extends SearchSection> = SearchResponse<
   SearchItemBySection[S]
 >;
+
+export type SearchSerializableFeedItem = SearchSerializedFeedItem;

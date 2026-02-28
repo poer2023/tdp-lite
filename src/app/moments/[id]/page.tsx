@@ -1,9 +1,12 @@
 import LocaleMomentPage from "../../[locale]/moments/[id]/page";
-
-export const dynamic = "force-dynamic";
+import { getDefaultMomentDetailStaticParams } from "@/lib/detailRouteParams";
 
 interface MomentPageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateStaticParams() {
+  return getDefaultMomentDetailStaticParams();
 }
 
 export default async function MomentPage({ params }: MomentPageProps) {

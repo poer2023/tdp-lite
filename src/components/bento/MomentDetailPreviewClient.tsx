@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MomentCard } from "@/components/bento/cards/MomentCard";
-import type { Moment } from "@/lib/schema";
+import type { Moment } from "@/lib/content/types";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import {
   DEFAULT_PREVIEW_DOCK_STATE,

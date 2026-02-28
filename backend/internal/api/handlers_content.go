@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -64,6 +65,16 @@ func trimPtr(input *string) *string {
 	return &value
 }
 
+func (s *Server) requestSearchSnapshotRefresh(r *http.Request, reason string) {
+	if _, err := s.store.RequestSearchSnapshotRefresh(r.Context()); err != nil {
+		log.Printf("search snapshot refresh request failed reason=%s err=%v", reason, err)
+		return
+	}
+	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "search_snapshot.request", "search_snapshot", "singleton", map[string]any{
+		"reason": reason,
+	})
+}
+
 func (s *Server) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	var req createPostRequest
 	if err := decodeJSON(r, &req); err != nil {
@@ -100,6 +111,7 @@ func (s *Server) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 		_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "post.create", "post", item.ID, map[string]any{"status": item.Status})
+		s.requestSearchSnapshotRefresh(r, "post.create")
 		return map[string]any{"item": item}, nil
 	}); err != nil {
 		writeStoreError(w, r, err)
@@ -151,6 +163,7 @@ func (s *Server) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 		_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "post.update", "post", item.ID, nil)
+		s.requestSearchSnapshotRefresh(r, "post.update")
 		return map[string]any{"item": item}, nil
 	}); err != nil {
 		writeStoreError(w, r, err)
@@ -165,6 +178,7 @@ func (s *Server) handlePublishPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "post.publish", "post", item.ID, nil)
+	s.requestSearchSnapshotRefresh(r, "post.publish")
 	writeJSON(w, http.StatusOK, map[string]any{"item": item})
 }
 
@@ -176,6 +190,7 @@ func (s *Server) handleUnpublishPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "post.unpublish", "post", item.ID, nil)
+	s.requestSearchSnapshotRefresh(r, "post.unpublish")
 	writeJSON(w, http.StatusOK, map[string]any{"item": item})
 }
 
@@ -186,6 +201,7 @@ func (s *Server) handleDeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "post.delete", "post", id, nil)
+	s.requestSearchSnapshotRefresh(r, "post.delete")
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
@@ -235,6 +251,7 @@ func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 		_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "moment.create", "moment", item.ID, map[string]any{"status": item.Status})
+		s.requestSearchSnapshotRefresh(r, "moment.create")
 		return map[string]any{"item": item}, nil
 	}); err != nil {
 		writeStoreError(w, r, err)
@@ -278,6 +295,7 @@ func (s *Server) handleUpdateMoment(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 		_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "moment.update", "moment", item.ID, nil)
+		s.requestSearchSnapshotRefresh(r, "moment.update")
 		return map[string]any{"item": item}, nil
 	}); err != nil {
 		writeStoreError(w, r, err)
@@ -292,6 +310,7 @@ func (s *Server) handlePublishMoment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "moment.publish", "moment", item.ID, nil)
+	s.requestSearchSnapshotRefresh(r, "moment.publish")
 	writeJSON(w, http.StatusOK, map[string]any{"item": item})
 }
 
@@ -303,6 +322,7 @@ func (s *Server) handleUnpublishMoment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "moment.unpublish", "moment", item.ID, nil)
+	s.requestSearchSnapshotRefresh(r, "moment.unpublish")
 	writeJSON(w, http.StatusOK, map[string]any{"item": item})
 }
 
@@ -313,6 +333,7 @@ func (s *Server) handleDeleteMoment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "moment.delete", "moment", id, nil)
+	s.requestSearchSnapshotRefresh(r, "moment.delete")
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
@@ -393,6 +414,7 @@ func (s *Server) handleCreateGalleryItem(w http.ResponseWriter, r *http.Request)
 			return nil, err
 		}
 		_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "gallery.create", "gallery", item.ID, map[string]any{"status": item.Status})
+		s.requestSearchSnapshotRefresh(r, "gallery.create")
 		return map[string]any{"item": item}, nil
 	}); err != nil {
 		writeStoreError(w, r, err)
@@ -439,6 +461,7 @@ func (s *Server) handleUpdateGalleryItem(w http.ResponseWriter, r *http.Request)
 			return nil, err
 		}
 		_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "gallery.update", "gallery", item.ID, nil)
+		s.requestSearchSnapshotRefresh(r, "gallery.update")
 		return map[string]any{"item": item}, nil
 	}); err != nil {
 		writeStoreError(w, r, err)
@@ -453,6 +476,7 @@ func (s *Server) handlePublishGalleryItem(w http.ResponseWriter, r *http.Request
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "gallery.publish", "gallery", item.ID, nil)
+	s.requestSearchSnapshotRefresh(r, "gallery.publish")
 	writeJSON(w, http.StatusOK, map[string]any{"item": item})
 }
 
@@ -464,6 +488,7 @@ func (s *Server) handleUnpublishGalleryItem(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "gallery.unpublish", "gallery", item.ID, nil)
+	s.requestSearchSnapshotRefresh(r, "gallery.unpublish")
 	writeJSON(w, http.StatusOK, map[string]any{"item": item})
 }
 
@@ -474,6 +499,7 @@ func (s *Server) handleDeleteGalleryItem(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	_ = s.store.InsertAuditLog(r.Context(), actorKeyID(r), "gallery.delete", "gallery", id, nil)
+	s.requestSearchSnapshotRefresh(r, "gallery.delete")
 	writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 

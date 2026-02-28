@@ -1,23 +1,19 @@
 import Image from "next/image";
 import {
-  Aperture,
   ArrowUpRight,
   AudioLines,
   Brush,
-  Circle,
   Code2,
-  Contrast,
   Palette,
   Play,
   Sparkles,
   Terminal,
-  Camera,
 } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { getPublicProfileSnapshot } from "@/lib/content/read";
 import { type AppLocale } from "@/lib/locale";
-
-export const dynamic = "force-dynamic";
+import { cn, formatRelativeTime } from "@/lib/utils";
+import styles from "./about.module.css";
 
 type Locale = AppLocale;
 
@@ -43,18 +39,26 @@ export default async function AboutPage({ params }: AboutPageProps) {
         less: "少",
         more: "多",
         techStack: "技术栈",
-        latestShip: "最新发布",
-        projectLabel: "项目 01",
-        projectName: "流体模拟",
+        latestPush: "最近推送",
+        latestPushLabel: "仓库",
+        latestPushFallback: "暂无近期代码动态",
         quote: "“没有美感的功能只是工具；没有功能的美感只是装饰。”",
         quoteBody:
           "我追求两者的交汇点：让干净的代码承载流动的体验，让审慎的设计引导复杂交互。",
-        currentPalette: "当前配色",
-        palettePrefix: "项目：",
-        paletteProjectName: "新瑞士海报系列",
-        glass: "镜头",
-        lensAType: "街拍",
-        lensBType: "人像",
+        focusMix: "当前配比",
+        focusMixHint: "根据最近同步的代码、聆听与探索行为生成",
+        githubPulse: "GitHub 脉冲",
+        recentActivity: "最近活动",
+        totalCommits: "提交",
+        totalPushes: "推送",
+        activeWindow: "窗口",
+        noActivity: "暂无近期活动",
+        musicSummary: "聆听摘要",
+        topArtists: "常听艺人",
+        ratioCode: "代码",
+        ratioListen: "聆听",
+        ratioExplore: "探索",
+        syncFallback: "使用最近一次成功同步",
         musicName: "Deep Focus 24'",
         musicArtist: "Ambient Works",
       }
@@ -72,19 +76,27 @@ export default async function AboutPage({ params }: AboutPageProps) {
         less: "Less",
         more: "More",
         techStack: "Tech Stack",
-        latestShip: "Latest Ship",
-        projectLabel: "Project 01",
-        projectName: "Fluid Simulations",
+        latestPush: "Latest Push",
+        latestPushLabel: "Repo",
+        latestPushFallback: "No recent code activity",
         quote:
           '"Function without beauty is utilitarian. Beauty without function is decoration."',
         quoteBody:
           "I strive for the intersection. Where clean code enables fluid motion, and thoughtful design guides complex interactions.",
-        currentPalette: "Current Palette",
-        palettePrefix: "Project:",
-        paletteProjectName: "Neo-Swiss Poster Series",
-        glass: "Glass",
-        lensAType: "Street",
-        lensBType: "Portrait",
+        focusMix: "Current Mix",
+        focusMixHint: "Derived from recent code, listening, and exploration",
+        githubPulse: "GitHub Pulse",
+        recentActivity: "Recent Activity",
+        totalCommits: "Commits",
+        totalPushes: "Pushes",
+        activeWindow: "Window",
+        noActivity: "No recent activity",
+        musicSummary: "Listening Summary",
+        topArtists: "Top Artists",
+        ratioCode: "Code",
+        ratioListen: "Listen",
+        ratioExplore: "Explore",
+        syncFallback: "Using the latest successful sync",
         musicName: "Deep Focus 24'",
         musicArtist: "Ambient Works",
       };
@@ -139,13 +151,6 @@ export default async function AboutPage({ params }: AboutPageProps) {
     "GraphQL",
   ];
 
-  const palette = [
-    { code: "#2C3E50", bg: "bg-[#2C3E50]", textClass: "text-white" },
-    { code: "#E74C3C", bg: "bg-[#E74C3C]", textClass: "text-white" },
-    { code: "#ECF0F1", bg: "bg-[#ECF0F1]", textClass: "text-ink" },
-    { code: "#3498DB", bg: "bg-[#3498DB]", textClass: "text-white" },
-  ];
-
   const profileSnapshot = await getPublicProfileSnapshot();
   const heatmapPalette = [
     "bg-paper-grey",
@@ -176,9 +181,52 @@ export default async function AboutPage({ params }: AboutPageProps) {
     profileSnapshot?.syncedAt instanceof Date
       ? String(profileSnapshot.syncedAt.getUTCFullYear())
       : t.year;
+  const ratioLabelMap: Record<string, string> = {
+    code: t.ratioCode,
+    listen: t.ratioListen,
+    explore: t.ratioExplore,
+  };
+  const focusRatios =
+    profileSnapshot?.derived?.ratios
+      ?.filter((ratio) => ratio.value > 0)
+      .map((ratio) => ({
+        ...ratio,
+        label: ratioLabelMap[ratio.key] ?? ratio.label,
+      })) ?? [
+      { key: "code", label: t.ratioCode, value: 34 },
+      { key: "listen", label: t.ratioListen, value: 33 },
+      { key: "explore", label: t.ratioExplore, value: 33 },
+    ];
+  const latestPush = profileSnapshot?.github?.recentPushes?.[0] ?? null;
+  const recentPushes = profileSnapshot?.github?.recentPushes?.slice(0, 3) ?? [];
+  const topArtists = profileSnapshot?.music?.topArtists?.slice(0, 3) ?? [];
   const latestTrack = profileSnapshot?.music?.recentTracks?.[0] ?? null;
   const musicName = latestTrack?.name || t.musicName;
   const musicArtist = latestTrack?.artist || t.musicArtist;
+  const latestRepoName = latestPush?.repo.split("/").pop() ?? t.latestPushFallback;
+  const latestPushMeta = latestPush
+    ? `${latestPush.commitCount} ${t.totalCommits} · ${formatRelativeTime(latestPush.createdAt ?? new Date(), locale)}`
+    : t.syncFallback;
+  const githubUsername = profileSnapshot?.github?.username
+    ? `@${profileSnapshot.github.username}`
+    : t.githubPulse;
+  const githubStats = [
+    {
+      label: t.totalCommits,
+      value: profileSnapshot?.github?.totalCommits ?? 0,
+    },
+    {
+      label: t.totalPushes,
+      value: profileSnapshot?.github?.totalPushEvents ?? 0,
+    },
+    {
+      label: t.activeWindow,
+      value: profileSnapshot?.github?.windowDays ?? 0,
+    },
+  ];
+  const musicProgressWidth = latestTrack?.durationMs
+    ? `${Math.max(18, Math.min(88, Math.round((latestTrack.durationMs / 240000) * 100)))}%`
+    : "34%";
 
   return (
     <>
@@ -187,7 +235,10 @@ export default async function AboutPage({ params }: AboutPageProps) {
         data-lg-bg-layer="about-noise"
       />
       <div
-        className="about-soft-bg text-ink min-h-screen overflow-x-hidden pb-40 font-display selection:bg-black/10 selection:text-black"
+        className={cn(
+          styles.root,
+          "text-ink min-h-screen overflow-x-hidden pb-40 font-display selection:bg-black/10 selection:text-black"
+        )}
         data-lg-bg-layer="about-root"
       >
         <div className="relative z-10 mx-auto max-w-[1400px] px-6 pb-8 pt-12 md:px-12 md:pt-20">
@@ -272,7 +323,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 <Terminal className="h-[18px] w-[18px] text-ink/40" />
               </div>
 
-              <div className="about-bento-card min-h-[200px] bg-white">
+              <div className={cn(styles.card, "min-h-[200px] bg-white")}>
                 <div className="mb-6 flex items-start justify-between">
                   <h3 className="font-serif text-xl font-bold">{t.commitFrequency}</h3>
                   <span className="rounded bg-paper-grey px-2 py-1 font-mono text-xs text-ink-light">
@@ -284,7 +335,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                     {heatmapCells.map((cellColor, index) => (
                       <div
                         key={`${cellColor}-${index}`}
-                        className={`about-heatmap-cell aspect-square ${cellColor}`}
+                        className={cn(styles.heatmapCell, "aspect-square", cellColor)}
                       />
                     ))}
                   </div>
@@ -301,18 +352,18 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 </div>
               </div>
 
-              <div className="about-bento-card bg-white">
+              <div className={cn(styles.card, "bg-white")}>
                 <h3 className="mb-4 font-serif text-xl font-bold">{t.techStack}</h3>
                 <div className="flex flex-wrap gap-2">
                   {techPills.map((pill) => (
-                    <div key={pill} className="about-code-pill">
+                    <div key={pill} className={styles.codePill}>
                       {pill}
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="about-bento-card group cursor-pointer bg-ink text-white">
+              <div className={cn(styles.card, "group cursor-pointer bg-ink text-white")}>
                 <div className="mb-8 flex items-start justify-between">
                   <div className="flex size-8 items-center justify-center rounded-full border border-white/20">
                     <ArrowUpRight className="h-4 w-4" />
@@ -324,7 +375,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                         : "rounded-full border border-white/20 px-2 py-0.5 font-mono text-[10px] uppercase"
                     }
                   >
-                    {t.latestShip}
+                    {t.latestPush}
                   </span>
                 </div>
                 <div className="mt-auto">
@@ -333,7 +384,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                       isZh ? "mb-1 text-xs text-white/60" : "mb-1 font-mono text-xs text-white/60"
                     }
                   >
-                    {t.projectLabel}
+                    {t.latestPushLabel}
                   </h4>
                   <h3
                     className={
@@ -342,8 +393,11 @@ export default async function AboutPage({ params }: AboutPageProps) {
                         : "font-serif text-2xl font-bold underline-offset-4 group-hover:underline"
                     }
                   >
-                    {t.projectName}
+                    {latestRepoName}
                   </h3>
+                  <p className={isZh ? "mt-2 text-xs text-white/65" : "mt-2 font-mono text-xs text-white/65"}>
+                    {latestPushMeta}
+                  </p>
                 </div>
               </div>
             </div>
@@ -351,7 +405,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
             <div className="col-span-1 flex flex-col gap-6 md:col-span-4">
               <div className="mb-2 hidden h-7 items-center justify-center md:flex" />
 
-              <div className="about-bento-card min-h-[500px] items-center justify-center bg-paper-off-white py-16 text-center md:row-span-3 md:min-h-0 md:py-0">
+              <div className={cn(styles.card, "min-h-[500px] items-center justify-center bg-paper-off-white py-16 text-center md:row-span-3 md:min-h-0 md:py-0")}>
                 <Sparkles className="mb-8 h-10 w-10 text-ink-light" />
                 <div className="mx-auto max-w-xs space-y-8 md:max-w-sm">
                   <p
@@ -402,62 +456,85 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 </h2>
               </div>
 
-              <div className="about-bento-card bg-white">
+              <div className={cn(styles.card, "bg-white")}>
                 <div className="mb-6 flex items-center justify-between">
-                  <h3 className="font-serif text-xl font-bold">{t.currentPalette}</h3>
-                  <Contrast className="h-[18px] w-[18px] text-ink-light" />
+                  <h3 className="font-serif text-xl font-bold">{t.focusMix}</h3>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-light">
+                    {githubUsername}
+                  </span>
                 </div>
-                <div className="grid h-24 grid-cols-4 gap-2">
-                  {palette.map((swatch, index) => (
-                    <div
-                      key={swatch.code}
-                      className={`group relative h-full ${swatch.bg} ${index === 0 ? "rounded-l-xl" : ""} ${index === palette.length - 1 ? "rounded-r-xl" : ""}`}
-                    >
-                      <span
-                        className={`absolute bottom-2 left-1 text-[8px] font-mono opacity-0 transition-opacity group-hover:opacity-100 ${swatch.textClass}`}
-                      >
-                        {swatch.code}
-                      </span>
+                <div className="space-y-4">
+                  {focusRatios.map((ratio, index) => (
+                    <div key={`${ratio.key}-${index}`} className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className={isZh ? "text-sm font-medium text-ink" : "font-mono text-xs uppercase tracking-[0.18em] text-ink"}>
+                          {ratio.label}
+                        </span>
+                        <span className="font-mono text-xs text-ink-light">{ratio.value}%</span>
+                      </div>
+                      <div className="h-3 overflow-hidden rounded-full bg-paper-grey">
+                        <div
+                          className="h-full rounded-full bg-ink transition-[width] duration-500"
+                          style={{ width: `${Math.max(8, Math.min(100, ratio.value))}%` }}
+                        />
+                      </div>
                     </div>
                   ))}
                 </div>
-                <p className="mt-4 text-xs font-mono text-ink-light">
-                  {t.palettePrefix} <span className="text-ink">{t.paletteProjectName}</span>
+                <p className={isZh ? "mt-4 text-xs text-ink-light" : "mt-4 font-mono text-xs text-ink-light"}>
+                  {t.focusMixHint}
                 </p>
               </div>
 
-              <div className="about-bento-card bg-[#111] text-white">
+              <div className={cn(styles.card, "bg-[#111] text-white")}>
                 <div className="mb-6 flex items-start justify-between">
-                  <h3 className="font-serif text-xl font-bold">{t.glass}</h3>
-                  <Camera className="h-[18px] w-[18px] text-white/50" />
+                  <h3 className="font-serif text-xl font-bold">{t.githubPulse}</h3>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">
+                    {githubUsername}
+                  </span>
                 </div>
-                <div className="space-y-4">
-                  <div className="group flex cursor-pointer items-center gap-4">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-white/10 transition-colors group-hover:bg-white group-hover:text-black">
-                      <Circle className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-mono text-sm font-bold">35mm f/1.4</p>
-                      <p className="text-[10px] uppercase tracking-wider text-white/50">
-                        {t.lensAType}
+                <div className="grid grid-cols-3 gap-3">
+                  {githubStats.map((stat) => (
+                    <div key={stat.label} className="rounded-2xl bg-white/6 px-3 py-3">
+                      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+                        {stat.label}
+                      </p>
+                      <p className="mt-2 font-serif text-2xl font-bold text-white">
+                        {stat.value}
                       </p>
                     </div>
-                  </div>
-                  <div className="group flex cursor-pointer items-center gap-4">
-                    <div className="flex size-10 items-center justify-center rounded-full bg-white/10 transition-colors group-hover:bg-white group-hover:text-black">
-                      <Aperture className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-mono text-sm font-bold">85mm f/1.8</p>
-                      <p className="text-[10px] uppercase tracking-wider text-white/50">
-                        {t.lensBType}
-                      </p>
-                    </div>
+                  ))}
+                </div>
+                <div className="mt-6">
+                  <p className={isZh ? "mb-3 text-xs text-white/45" : "mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/45"}>
+                    {t.recentActivity}
+                  </p>
+                  <div className="space-y-3">
+                    {recentPushes.length > 0 ? recentPushes.map((push) => (
+                      <div
+                        key={`${push.repo}-${push.createdAt?.toISOString() ?? "unknown"}`}
+                        className="flex items-center justify-between gap-4 rounded-2xl bg-white/5 px-3 py-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate font-mono text-sm text-white">{push.repo}</p>
+                          <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                            {push.createdAt ? formatRelativeTime(push.createdAt, locale) : t.syncFallback}
+                          </p>
+                        </div>
+                        <div className="shrink-0 rounded-full border border-white/12 px-2 py-1 font-mono text-[10px] text-white/70">
+                          {push.commitCount} {t.totalCommits}
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="rounded-2xl bg-white/5 px-3 py-4 text-sm text-white/65">
+                        {t.noActivity}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="about-bento-card bg-gradient-to-br from-[#f8f8f8] to-[#eee]">
+              <div className={cn(styles.card, "bg-gradient-to-br from-[#f8f8f8] to-[#eee]")}>
                 <div className="flex items-start gap-4">
                   <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-ink shadow-lg">
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -465,7 +542,12 @@ export default async function AboutPage({ params }: AboutPageProps) {
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h4 className="truncate text-sm font-bold">{musicName}</h4>
+                    <div className="flex items-center justify-between gap-4">
+                      <h4 className="truncate text-sm font-bold">{musicName}</h4>
+                      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-light">
+                        {t.musicSummary}
+                      </span>
+                    </div>
                     <p className="mt-1 font-mono text-xs text-ink-light">{musicArtist}</p>
                     <div className="mt-3 flex items-center gap-2">
                       <button
@@ -476,8 +558,22 @@ export default async function AboutPage({ params }: AboutPageProps) {
                         <Play className="h-[14px] w-[14px] fill-white text-white" />
                       </button>
                       <div className="h-1 flex-1 overflow-hidden rounded-full bg-black/10">
-                        <div className="h-full w-1/3 rounded-full bg-ink" />
+                        <div className="h-full rounded-full bg-ink" style={{ width: musicProgressWidth }} />
                       </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {topArtists.length > 0 ? topArtists.map((artist) => (
+                        <span
+                          key={artist.name}
+                          className="rounded-full border border-black/8 bg-white/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-ink-light"
+                        >
+                          {artist.name}
+                        </span>
+                      )) : (
+                        <span className={isZh ? "text-xs text-ink-light" : "font-mono text-[10px] uppercase tracking-[0.15em] text-ink-light"}>
+                          {t.topArtists}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

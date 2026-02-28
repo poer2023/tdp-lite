@@ -1,0 +1,1335 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-02-28T08:01:54.096Z",
+  "locale": "en",
+  "counts": {
+    "post": 7,
+    "moment": 20,
+    "gallery": 10
+  },
+  "items": [
+    {
+      "id": "b116f9ce-e4e7-440f-9e6b-68a44eb770e3",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-18T06:40:00.000Z",
+      "content": "[MOCK_MULTI] Morning walk sequence: first light at the tower, then coffee steam, then late-afternoon crosswalk. Testing multi-image moment rendering on home and preview.",
+      "locationName": "Shinjuku → Shibuya, Tokyo",
+      "feedItem": {
+        "type": "moment",
+        "id": "b116f9ce-e4e7-440f-9e6b-68a44eb770e3",
+        "translationKey": "b116f9ce-e4e7-440f-9e6b-68a44eb770e3",
+        "content": "[MOCK_MULTI] Morning walk sequence: first light at the tower, then coffee steam, then late-afternoon crosswalk. Testing multi-image moment rendering on home and preview.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
+            "width": 800,
+            "height": 533
+          },
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80",
+            "width": 800,
+            "height": 600
+          },
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+            "width": 800,
+            "height": 1200
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Shinjuku → Shibuya, Tokyo"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-18T06:40:00.000Z",
+        "createdAt": "2026-02-18T06:40:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.080Z",
+        "deletedAt": null
+      },
+      "searchableText": "[mock_multi] morning walk sequence: first light at the tower, then coffee steam, then late-afternoon crosswalk. testing multi-image moment rendering on home and preview. shinjuku → shibuya, tokyo"
+    },
+    {
+      "id": "a43e4e13-fb11-47c5-8aac-bc0debb4b5a1",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-17T12:10:00.000Z",
+      "content": "[MOCK_TEXT] No photo today. Just notes from the train: the window shook at every station, someone kept reading the same paragraph, and the city felt slower than usual.",
+      "locationName": "JR Yamanote Line",
+      "feedItem": {
+        "type": "moment",
+        "id": "a43e4e13-fb11-47c5-8aac-bc0debb4b5a1",
+        "translationKey": "a43e4e13-fb11-47c5-8aac-bc0debb4b5a1",
+        "content": "[MOCK_TEXT] No photo today. Just notes from the train: the window shook at every station, someone kept reading the same paragraph, and the city felt slower than usual.",
+        "media": [],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "JR Yamanote Line"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-17T12:10:00.000Z",
+        "createdAt": "2026-02-17T12:10:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.080Z",
+        "deletedAt": null
+      },
+      "searchableText": "[mock_text] no photo today. just notes from the train: the window shook at every station, someone kept reading the same paragraph, and the city felt slower than usual. jr yamanote line"
+    },
+    {
+      "id": "9c2afa40-9b4b-4332-a0ce-00e0ef62dcda",
+      "section": "post",
+      "locale": "en",
+      "sortAt": "2026-02-16T10:48:00.328Z",
+      "slug": "mock-video-cover-1771238880328-1",
+      "title": "Mock Video Cover 1",
+      "excerpt": "[MOCK_VIDEO] Post cover should render as autoplay video in cards.",
+      "tags": [
+        "mock",
+        "video",
+        "cover"
+      ],
+      "feedItem": {
+        "type": "post",
+        "id": "9c2afa40-9b4b-4332-a0ce-00e0ef62dcda",
+        "translationKey": "9c2afa40-9b4b-4332-a0ce-00e0ef62dcda",
+        "slug": "mock-video-cover-1771238880328-1",
+        "locale": "en",
+        "title": "Mock Video Cover 1",
+        "excerpt": "[MOCK_VIDEO] Post cover should render as autoplay video in cards.",
+        "content": "This is mock content for validating video cover behavior in Bento cards.",
+        "coverUrl": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm",
+        "tags": [
+          "mock",
+          "video",
+          "cover"
+        ],
+        "status": "published",
+        "publishedAt": "2026-02-16T10:48:00.328Z",
+        "createdAt": "2026-02-16T10:48:00.328Z",
+        "updatedAt": "2026-02-16T10:48:00.328Z"
+      },
+      "searchableText": "mock video cover 1 [mock_video] post cover should render as autoplay video in cards. this is mock content for validating video cover behavior in bento cards. mock video cover"
+    },
+    {
+      "id": "2b6a4f35-cdb4-4b5b-834f-59bd3a375bd9",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-16T10:47:30.328Z",
+      "content": "[MOCK_VIDEO] Moment card should autoplay video only in viewport.",
+      "locationName": "Tokyo",
+      "feedItem": {
+        "type": "moment",
+        "id": "2b6a4f35-cdb4-4b5b-834f-59bd3a375bd9",
+        "translationKey": "2b6a4f35-cdb4-4b5b-834f-59bd3a375bd9",
+        "content": "[MOCK_VIDEO] Moment card should autoplay video only in viewport.",
+        "media": [
+          {
+            "type": "video",
+            "url": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm",
+            "thumbnailUrl": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1200&q=80&auto=format&fit=crop"
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Tokyo"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-16T10:47:30.328Z",
+        "createdAt": "2026-02-16T10:47:30.328Z",
+        "updatedAt": "2026-02-16T17:56:43.863Z",
+        "deletedAt": null
+      },
+      "searchableText": "[mock_video] moment card should autoplay video only in viewport. tokyo"
+    },
+    {
+      "id": "67c16858-6dce-4638-97dc-fd90511408c7",
+      "section": "post",
+      "locale": "en",
+      "sortAt": "2026-02-16T10:47:00.328Z",
+      "slug": "mock-video-cover-1771238880328-2",
+      "title": "Mock Video Cover 2",
+      "excerpt": "[MOCK_VIDEO] Post cover should render as autoplay video in cards.",
+      "tags": [
+        "mock",
+        "video",
+        "cover"
+      ],
+      "feedItem": {
+        "type": "post",
+        "id": "67c16858-6dce-4638-97dc-fd90511408c7",
+        "translationKey": "67c16858-6dce-4638-97dc-fd90511408c7",
+        "slug": "mock-video-cover-1771238880328-2",
+        "locale": "en",
+        "title": "Mock Video Cover 2",
+        "excerpt": "[MOCK_VIDEO] Post cover should render as autoplay video in cards.",
+        "content": "This is mock content for validating video cover behavior in Bento cards.",
+        "coverUrl": "https://mdn.github.io/learning-area/html/multimedia-and-embedding/video-and-audio-content/rabbit320.webm",
+        "tags": [
+          "mock",
+          "video",
+          "cover"
+        ],
+        "status": "published",
+        "publishedAt": "2026-02-16T10:47:00.328Z",
+        "createdAt": "2026-02-16T10:47:00.328Z",
+        "updatedAt": "2026-02-16T10:47:00.328Z"
+      },
+      "searchableText": "mock video cover 2 [mock_video] post cover should render as autoplay video in cards. this is mock content for validating video cover behavior in bento cards. mock video cover"
+    },
+    {
+      "id": "67704a9a-ba01-41a5-9d55-87170ec9d663",
+      "section": "post",
+      "locale": "en",
+      "sortAt": "2026-02-16T10:46:00.328Z",
+      "slug": "mock-video-cover-1771238880328-3",
+      "title": "Mock Video Cover 3",
+      "excerpt": "[MOCK_VIDEO] Post cover should render as autoplay video in cards.",
+      "tags": [
+        "mock",
+        "video",
+        "cover"
+      ],
+      "feedItem": {
+        "type": "post",
+        "id": "67704a9a-ba01-41a5-9d55-87170ec9d663",
+        "translationKey": "67704a9a-ba01-41a5-9d55-87170ec9d663",
+        "slug": "mock-video-cover-1771238880328-3",
+        "locale": "en",
+        "title": "Mock Video Cover 3",
+        "excerpt": "[MOCK_VIDEO] Post cover should render as autoplay video in cards.",
+        "content": "This is mock content for validating video cover behavior in Bento cards.",
+        "coverUrl": "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm?mock=3",
+        "tags": [
+          "mock",
+          "video",
+          "cover"
+        ],
+        "status": "published",
+        "publishedAt": "2026-02-16T10:46:00.328Z",
+        "createdAt": "2026-02-16T10:46:00.328Z",
+        "updatedAt": "2026-02-16T10:46:00.328Z"
+      },
+      "searchableText": "mock video cover 3 [mock_video] post cover should render as autoplay video in cards. this is mock content for validating video cover behavior in bento cards. mock video cover"
+    },
+    {
+      "id": "65dcc992-8ff4-4807-afeb-2b94880a43f4",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-14T02:30:00.000Z",
+      "content": "Morning light through the café window. The espresso is perfect today — nutty, with a hint of dark chocolate. Sometimes the simplest mornings are the best.",
+      "locationName": "Blue Bottle Coffee, Shibuya",
+      "feedItem": {
+        "type": "moment",
+        "id": "65dcc992-8ff4-4807-afeb-2b94880a43f4",
+        "translationKey": "65dcc992-8ff4-4807-afeb-2b94880a43f4",
+        "content": "Morning light through the café window. The espresso is perfect today — nutty, with a hint of dark chocolate. Sometimes the simplest mornings are the best.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80",
+            "width": 800,
+            "height": 600
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Blue Bottle Coffee, Shibuya"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-14T02:30:00.000Z",
+        "createdAt": "2026-02-14T02:30:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.863Z",
+        "deletedAt": null
+      },
+      "searchableText": "morning light through the café window. the espresso is perfect today — nutty, with a hint of dark chocolate. sometimes the simplest mornings are the best. blue bottle coffee, shibuya"
+    },
+    {
+      "id": "063cee69-c381-4206-b305-66b8c45b2ef7",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-14T02:30:00.000Z",
+      "content": "Morning light through the café window. The espresso is perfect today — nutty, with a hint of dark chocolate. Sometimes the simplest mornings are the best.",
+      "locationName": "Blue Bottle Coffee, Shibuya",
+      "feedItem": {
+        "type": "moment",
+        "id": "063cee69-c381-4206-b305-66b8c45b2ef7",
+        "translationKey": "063cee69-c381-4206-b305-66b8c45b2ef7",
+        "content": "Morning light through the café window. The espresso is perfect today — nutty, with a hint of dark chocolate. Sometimes the simplest mornings are the best.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80",
+            "width": 800,
+            "height": 600
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Blue Bottle Coffee, Shibuya"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-14T02:30:00.000Z",
+        "createdAt": "2026-02-14T02:30:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.080Z",
+        "deletedAt": null
+      },
+      "searchableText": "morning light through the café window. the espresso is perfect today — nutty, with a hint of dark chocolate. sometimes the simplest mornings are the best. blue bottle coffee, shibuya"
+    },
+    {
+      "id": "f7810f45-828e-4e8f-8191-c5f2770206fc",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-13T10:00:00.000Z",
+      "content": "Tokyo Tower at Dusk",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "f7810f45-828e-4e8f-8191-c5f2770206fc",
+        "translationKey": "f7810f45-828e-4e8f-8191-c5f2770206fc",
+        "content": "Tokyo Tower at Dusk",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
+            "width": 2400,
+            "height": 1600,
+            "capturedAt": "2026-02-13T09:45:00.000Z",
+            "camera": "Fujifilm X-T5",
+            "lens": "XF 23mm f/1.4",
+            "focalLength": "23mm",
+            "aperture": "f/2.8",
+            "iso": 400,
+            "latitude": 35.6586,
+            "longitude": 139.7454
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-13T10:00:00.000Z",
+        "createdAt": "2026-02-13T10:00:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.868Z",
+        "deletedAt": null
+      },
+      "searchableText": "tokyo tower at dusk"
+    },
+    {
+      "id": "cf815717-dd9d-45a7-a1e0-9e362a8c2eef",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-02-13T10:00:00.000Z",
+      "imageId": "eaba2dae02cdef410dce",
+      "title": "Tokyo Tower at Dusk",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 23mm f/1.4",
+      "focalLength": "23mm",
+      "aperture": "f/2.8",
+      "iso": 400,
+      "thumbUrl": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "cf815717-dd9d-45a7-a1e0-9e362a8c2eef",
+        "translationKey": "cf815717-dd9d-45a7-a1e0-9e362a8c2eef",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
+        "title": "Tokyo Tower at Dusk",
+        "width": 2400,
+        "height": 1600,
+        "capturedAt": "2026-02-13T09:45:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 23mm f/1.4",
+        "focalLength": "23mm",
+        "aperture": "f/2.8",
+        "iso": 400,
+        "latitude": 35.6586,
+        "longitude": 139.7454,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-02-13T10:00:00.000Z",
+        "createdAt": "2026-02-13T10:00:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "tokyo tower at dusk fujifilm x-t5 xf 23mm f/1.4 23mm f/2.8 400"
+    },
+    {
+      "id": "f9cf8072-87a9-4ff5-8208-8e049dacf9d9",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-12T07:15:00.000Z",
+      "content": "Found this quiet street in Yanaka. No tourists, just an old man walking his dog and the distant sound of wind chimes. This is the Tokyo I came for.",
+      "locationName": "Yanaka, Tokyo",
+      "feedItem": {
+        "type": "moment",
+        "id": "f9cf8072-87a9-4ff5-8208-8e049dacf9d9",
+        "translationKey": "f9cf8072-87a9-4ff5-8208-8e049dacf9d9",
+        "content": "Found this quiet street in Yanaka. No tourists, just an old man walking his dog and the distant sound of wind chimes. This is the Tokyo I came for.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
+            "width": 800,
+            "height": 533
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Yanaka, Tokyo"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-12T07:15:00.000Z",
+        "createdAt": "2026-02-12T07:15:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.080Z",
+        "deletedAt": null
+      },
+      "searchableText": "found this quiet street in yanaka. no tourists, just an old man walking his dog and the distant sound of wind chimes. this is the tokyo i came for. yanaka, tokyo"
+    },
+    {
+      "id": "e76951d9-f95f-48db-b738-d5f2dcb46c93",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-12T07:15:00.000Z",
+      "content": "Found this quiet street in Yanaka. No tourists, just an old man walking his dog and the distant sound of wind chimes. This is the Tokyo I came for.",
+      "locationName": "Yanaka, Tokyo",
+      "feedItem": {
+        "type": "moment",
+        "id": "e76951d9-f95f-48db-b738-d5f2dcb46c93",
+        "translationKey": "e76951d9-f95f-48db-b738-d5f2dcb46c93",
+        "content": "Found this quiet street in Yanaka. No tourists, just an old man walking his dog and the distant sound of wind chimes. This is the Tokyo I came for.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
+            "width": 800,
+            "height": 533
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Yanaka, Tokyo"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-12T07:15:00.000Z",
+        "createdAt": "2026-02-12T07:15:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.863Z",
+        "deletedAt": null
+      },
+      "searchableText": "found this quiet street in yanaka. no tourists, just an old man walking his dog and the distant sound of wind chimes. this is the tokyo i came for. yanaka, tokyo"
+    },
+    {
+      "id": "f07d8156-f050-4064-ad96-b8798d8321fa",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-02-11T07:00:00.000Z",
+      "imageId": "65b711f35ab77902138d",
+      "title": "Back Alley, Yanaka",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 56mm f/1.2",
+      "focalLength": "56mm",
+      "aperture": "f/1.8",
+      "iso": 200,
+      "thumbUrl": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "f07d8156-f050-4064-ad96-b8798d8321fa",
+        "translationKey": "f07d8156-f050-4064-ad96-b8798d8321fa",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
+        "title": "Back Alley, Yanaka",
+        "width": 2400,
+        "height": 1600,
+        "capturedAt": "2026-02-11T06:30:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 56mm f/1.2",
+        "focalLength": "56mm",
+        "aperture": "f/1.8",
+        "iso": 200,
+        "latitude": 35.7245,
+        "longitude": 139.7672,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-02-11T07:00:00.000Z",
+        "createdAt": "2026-02-11T07:00:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "back alley, yanaka fujifilm x-t5 xf 56mm f/1.2 56mm f/1.8 200"
+    },
+    {
+      "id": "e49828ff-1105-4aca-a598-70789f479cfc",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-11T07:00:00.000Z",
+      "content": "Back Alley, Yanaka",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "e49828ff-1105-4aca-a598-70789f479cfc",
+        "translationKey": "e49828ff-1105-4aca-a598-70789f479cfc",
+        "content": "Back Alley, Yanaka",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
+            "width": 2400,
+            "height": 1600,
+            "capturedAt": "2026-02-11T06:30:00.000Z",
+            "camera": "Fujifilm X-T5",
+            "lens": "XF 56mm f/1.2",
+            "focalLength": "56mm",
+            "aperture": "f/1.8",
+            "iso": 200,
+            "latitude": 35.7245,
+            "longitude": 139.7672
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-11T07:00:00.000Z",
+        "createdAt": "2026-02-11T07:00:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.868Z",
+        "deletedAt": null
+      },
+      "searchableText": "back alley, yanaka"
+    },
+    {
+      "id": "ee6e0bd6-b4e3-49ab-9c53-5111f989d075",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-10T14:00:00.000Z",
+      "content": "\"The things you own end up owning you.\" — been thinking about this a lot lately. Started decluttering my workspace. Less stuff, more space to think.",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "ee6e0bd6-b4e3-49ab-9c53-5111f989d075",
+        "translationKey": "ee6e0bd6-b4e3-49ab-9c53-5111f989d075",
+        "content": "\"The things you own end up owning you.\" — been thinking about this a lot lately. Started decluttering my workspace. Less stuff, more space to think.",
+        "media": [],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-10T14:00:00.000Z",
+        "createdAt": "2026-02-10T14:00:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.863Z",
+        "deletedAt": null
+      },
+      "searchableText": "\"the things you own end up owning you.\" — been thinking about this a lot lately. started decluttering my workspace. less stuff, more space to think."
+    },
+    {
+      "id": "2795dd2d-4f6f-4192-99c0-d28eb4a6538d",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-10T14:00:00.000Z",
+      "content": "\"The things you own end up owning you.\" — been thinking about this a lot lately. Started decluttering my workspace. Less stuff, more space to think.",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "2795dd2d-4f6f-4192-99c0-d28eb4a6538d",
+        "translationKey": "2795dd2d-4f6f-4192-99c0-d28eb4a6538d",
+        "content": "\"The things you own end up owning you.\" — been thinking about this a lot lately. Started decluttering my workspace. Less stuff, more space to think.",
+        "media": [],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-10T14:00:00.000Z",
+        "createdAt": "2026-02-10T14:00:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.080Z",
+        "deletedAt": null
+      },
+      "searchableText": "\"the things you own end up owning you.\" — been thinking about this a lot lately. started decluttering my workspace. less stuff, more space to think."
+    },
+    {
+      "id": "98055801-38e0-407e-84c8-6509155bfdca",
+      "section": "post",
+      "locale": "en",
+      "sortAt": "2026-02-10T08:00:00.000Z",
+      "slug": "building-minimal-blog-with-nextjs",
+      "title": "Building a Minimal Blog with Next.js 16",
+      "excerpt": "A deep dive into creating a paper-textured, typography-first blog platform using the latest Next.js features and Turbopack.",
+      "tags": [
+        "Next.js",
+        "Design",
+        "Typography"
+      ],
+      "feedItem": {
+        "type": "post",
+        "id": "98055801-38e0-407e-84c8-6509155bfdca",
+        "translationKey": "98055801-38e0-407e-84c8-6509155bfdca",
+        "slug": "building-minimal-blog-with-nextjs",
+        "locale": "en",
+        "title": "Building a Minimal Blog with Next.js 16",
+        "excerpt": "A deep dive into creating a paper-textured, typography-first blog platform using the latest Next.js features and Turbopack.",
+        "content": "# Building a Minimal Blog with Next.js 16\n\nThe web has become noisy. Every blog looks the same — cookie-cutter templates with generic stock photos and predictable layouts. I wanted something different.\n\n## The Paper Metaphor\n\nI started with a simple question: *what if a website could feel like holding a well-worn notebook?*\n\nThis led to the \"paper texture\" design language:\n\n- **Layered tints**: Three levels of paper color (`tint-1`, `tint-2`, `tint-3`) create depth\n- **Ink colors**: Instead of arbitrary grays, we use `ink` and `ink-light`\n- **Shadow system**: `paper-sm`, `paper`, `paper-hover` mimic physical paper stacking\n\n## Typography Choices\n\nThree fonts, each with a purpose:\n\n| Font | Role | Usage |\n|------|------|-------|\n| Space Grotesk | Display | Headlines, UI elements |\n| Crimson Pro | Serif accent | Decorative italic text |\n| JetBrains Mono | Monospace | Metadata, timestamps |\n\n## The Bento Grid\n\nThe homepage uses a Bento-style grid layout. Each card type has its own personality:\n\n```tsx\ntype FeedItem =\n  | ({ type: \"post\" } & Post)\n  | ({ type: \"moment\" } & Moment)\n  | ({ type: \"gallery\" } & GalleryItem)\n  | ActionItem;\n```\n\nPosts get the largest cards. Moments are compact. Gallery items are visual-first.\n\n## What's Next\n\n- Dark mode support\n- RSS feed generation\n- Image optimization with `next/image`\n- Internationalization refinements\n\nThe code is open source. Feel free to explore.",
+        "coverUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80",
+        "tags": [
+          "Next.js",
+          "Design",
+          "Typography"
+        ],
+        "status": "published",
+        "publishedAt": "2026-02-10T08:00:00.000Z",
+        "createdAt": "2026-02-08T10:00:00.000Z",
+        "updatedAt": "2026-02-10T08:00:00.000Z"
+      },
+      "searchableText": "building a minimal blog with next.js 16 a deep dive into creating a paper-textured, typography-first blog platform using the latest next.js features and turbopack. building a minimal blog with next.js 16 the web has become noisy. every blog looks the same — cookie cutter templates with generic stock photos and predictable layouts. i wanted something different. the paper metaphor i started with a simple question: what if a website could feel like holding a well worn notebook? this led to the \"paper texture\" design language: layered tints : three levels of paper color ( , , ) create depth ink colors : instead of arbitrary grays, we use and shadow system : , , mimic physical paper stacking typography choices three fonts, each with a purpose: | font | role | usage | | | | | | space grotesk | display | headlines, ui elements | | crimson pro | serif accent | decorative italic text | | jetbrains mono | monospace | metadata, timestamps | the bento grid the homepage uses a bento style grid layout. each card type has its own personality: posts get the largest cards. moments are compact. gallery items are visual first. what's next dark mode support rss feed generation image optimization with internationalization refinements the code is open source. feel free to explore. next.js design typography"
+    },
+    {
+      "id": "defc7ee6-a39d-4c8a-bac1-a3fc19e260ca",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-09T09:30:00.000Z",
+      "content": "Sunset over Sumida River",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "defc7ee6-a39d-4c8a-bac1-a3fc19e260ca",
+        "translationKey": "defc7ee6-a39d-4c8a-bac1-a3fc19e260ca",
+        "content": "Sunset over Sumida River",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=800&q=80",
+            "width": 2400,
+            "height": 1600,
+            "capturedAt": "2026-02-09T09:10:00.000Z",
+            "camera": "Fujifilm X-T5",
+            "lens": "XF 23mm f/1.4",
+            "focalLength": "23mm",
+            "aperture": "f/8",
+            "iso": 100,
+            "latitude": 35.7101,
+            "longitude": 139.8017
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-09T09:30:00.000Z",
+        "createdAt": "2026-02-09T09:30:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.868Z",
+        "deletedAt": null
+      },
+      "searchableText": "sunset over sumida river"
+    },
+    {
+      "id": "654160d9-7f92-47db-9110-00a48669232d",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-02-09T09:30:00.000Z",
+      "imageId": "70ae3d7148e4cd796589",
+      "title": "Sunset over Sumida River",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 23mm f/1.4",
+      "focalLength": "23mm",
+      "aperture": "f/8",
+      "iso": 100,
+      "thumbUrl": "https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "654160d9-7f92-47db-9110-00a48669232d",
+        "translationKey": "654160d9-7f92-47db-9110-00a48669232d",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1507400492013-162706c8c05e?w=800&q=80",
+        "title": "Sunset over Sumida River",
+        "width": 2400,
+        "height": 1600,
+        "capturedAt": "2026-02-09T09:10:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 23mm f/1.4",
+        "focalLength": "23mm",
+        "aperture": "f/8",
+        "iso": 100,
+        "latitude": 35.7101,
+        "longitude": 139.8017,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-02-09T09:30:00.000Z",
+        "createdAt": "2026-02-09T09:30:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "sunset over sumida river fujifilm x-t5 xf 23mm f/1.4 23mm f/8 100"
+    },
+    {
+      "id": "ce5196ef-425c-4d84-bb34-f6bd1ce660d6",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-08T11:45:00.000Z",
+      "content": "Rain in Tokyo hits different. The city becomes a watercolor painting — all soft edges and reflected neon. Shot an entire roll of film today just walking through puddles.",
+      "locationName": "Shinjuku, Tokyo",
+      "feedItem": {
+        "type": "moment",
+        "id": "ce5196ef-425c-4d84-bb34-f6bd1ce660d6",
+        "translationKey": "ce5196ef-425c-4d84-bb34-f6bd1ce660d6",
+        "content": "Rain in Tokyo hits different. The city becomes a watercolor painting — all soft edges and reflected neon. Shot an entire roll of film today just walking through puddles.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80",
+            "width": 800,
+            "height": 1200
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Shinjuku, Tokyo"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-08T11:45:00.000Z",
+        "createdAt": "2026-02-08T11:45:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.863Z",
+        "deletedAt": null
+      },
+      "searchableText": "rain in tokyo hits different. the city becomes a watercolor painting — all soft edges and reflected neon. shot an entire roll of film today just walking through puddles. shinjuku, tokyo"
+    },
+    {
+      "id": "4572d37b-4b79-4642-a9a1-b07385eeef3d",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-08T11:45:00.000Z",
+      "content": "Rain in Tokyo hits different. The city becomes a watercolor painting — all soft edges and reflected neon. Shot an entire roll of film today just walking through puddles.",
+      "locationName": "Shinjuku, Tokyo",
+      "feedItem": {
+        "type": "moment",
+        "id": "4572d37b-4b79-4642-a9a1-b07385eeef3d",
+        "translationKey": "4572d37b-4b79-4642-a9a1-b07385eeef3d",
+        "content": "Rain in Tokyo hits different. The city becomes a watercolor painting — all soft edges and reflected neon. Shot an entire roll of film today just walking through puddles.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80",
+            "width": 800,
+            "height": 1200
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Shinjuku, Tokyo"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-08T11:45:00.000Z",
+        "createdAt": "2026-02-08T11:45:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.080Z",
+        "deletedAt": null
+      },
+      "searchableText": "rain in tokyo hits different. the city becomes a watercolor painting — all soft edges and reflected neon. shot an entire roll of film today just walking through puddles. shinjuku, tokyo"
+    },
+    {
+      "id": "50c36f3b-3e40-4e8d-9880-fedf9edc6d57",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-02-07T23:30:00.000Z",
+      "imageId": "94664af0c1b787222bf9",
+      "title": "Mt. Fuji from Kawaguchiko",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 56mm f/1.2",
+      "focalLength": "56mm",
+      "aperture": "f/5.6",
+      "iso": 100,
+      "thumbUrl": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "50c36f3b-3e40-4e8d-9880-fedf9edc6d57",
+        "translationKey": "50c36f3b-3e40-4e8d-9880-fedf9edc6d57",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+        "title": "Mt. Fuji from Kawaguchiko",
+        "width": 2400,
+        "height": 1600,
+        "capturedAt": "2026-02-07T23:00:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 56mm f/1.2",
+        "focalLength": "56mm",
+        "aperture": "f/5.6",
+        "iso": 100,
+        "latitude": 35.5116,
+        "longitude": 138.7556,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-02-07T23:30:00.000Z",
+        "createdAt": "2026-02-07T23:30:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "mt. fuji from kawaguchiko fujifilm x-t5 xf 56mm f/1.2 56mm f/5.6 100"
+    },
+    {
+      "id": "1c5e31cc-2aed-45ff-a63a-c308d72da603",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-07T23:30:00.000Z",
+      "content": "Mt. Fuji from Kawaguchiko",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "1c5e31cc-2aed-45ff-a63a-c308d72da603",
+        "translationKey": "1c5e31cc-2aed-45ff-a63a-c308d72da603",
+        "content": "Mt. Fuji from Kawaguchiko",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+            "width": 2400,
+            "height": 1600,
+            "capturedAt": "2026-02-07T23:00:00.000Z",
+            "camera": "Fujifilm X-T5",
+            "lens": "XF 56mm f/1.2",
+            "focalLength": "56mm",
+            "aperture": "f/5.6",
+            "iso": 100,
+            "latitude": 35.5116,
+            "longitude": 138.7556
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-07T23:30:00.000Z",
+        "createdAt": "2026-02-07T23:30:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.868Z",
+        "deletedAt": null
+      },
+      "searchableText": "mt. fuji from kawaguchiko"
+    },
+    {
+      "id": "54274293-29a8-49b7-b831-7ffd90836f87",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-06T20:00:00.000Z",
+      "content": "Just finished reading 'A Swim in a Pond in the Rain' by George Saunders. The way he breaks down storytelling craft is incredible. Every writer should read this.",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "54274293-29a8-49b7-b831-7ffd90836f87",
+        "translationKey": "54274293-29a8-49b7-b831-7ffd90836f87",
+        "content": "Just finished reading 'A Swim in a Pond in the Rain' by George Saunders. The way he breaks down storytelling craft is incredible. Every writer should read this.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&q=80",
+            "width": 800,
+            "height": 533
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-06T20:00:00.000Z",
+        "createdAt": "2026-02-06T20:00:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.080Z",
+        "deletedAt": null
+      },
+      "searchableText": "just finished reading 'a swim in a pond in the rain' by george saunders. the way he breaks down storytelling craft is incredible. every writer should read this."
+    },
+    {
+      "id": "399e9c1c-8ad0-4857-b6e3-34cacbdfdd2b",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-06T20:00:00.000Z",
+      "content": "Just finished reading 'A Swim in a Pond in the Rain' by George Saunders. The way he breaks down storytelling craft is incredible. Every writer should read this.",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "399e9c1c-8ad0-4857-b6e3-34cacbdfdd2b",
+        "translationKey": "399e9c1c-8ad0-4857-b6e3-34cacbdfdd2b",
+        "content": "Just finished reading 'A Swim in a Pond in the Rain' by George Saunders. The way he breaks down storytelling craft is incredible. Every writer should read this.",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&q=80",
+            "width": 800,
+            "height": 533
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-06T20:00:00.000Z",
+        "createdAt": "2026-02-06T20:00:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.863Z",
+        "deletedAt": null
+      },
+      "searchableText": "just finished reading 'a swim in a pond in the rain' by george saunders. the way he breaks down storytelling craft is incredible. every writer should read this."
+    },
+    {
+      "id": "79896f68-0801-4570-85be-26cfb1516685",
+      "section": "post",
+      "locale": "en",
+      "sortAt": "2026-02-05T14:30:00.000Z",
+      "slug": "photography-workflow-2026",
+      "title": "My Photography Workflow in 2026",
+      "excerpt": "From RAW capture to web-ready — how I process, organize, and publish my street photography.",
+      "tags": [
+        "Photography",
+        "Workflow",
+        "Fujifilm"
+      ],
+      "feedItem": {
+        "type": "post",
+        "id": "79896f68-0801-4570-85be-26cfb1516685",
+        "translationKey": "79896f68-0801-4570-85be-26cfb1516685",
+        "slug": "photography-workflow-2026",
+        "locale": "en",
+        "title": "My Photography Workflow in 2026",
+        "excerpt": "From RAW capture to web-ready — how I process, organize, and publish my street photography.",
+        "content": "# My Photography Workflow in 2026\n\nEvery photographer has a system. Here's mine.\n\n## Capture\n\nI shoot primarily with a Fujifilm X-T5, paired with the 23mm f/1.4 for street work and the 56mm f/1.2 for portraits. Everything is shot in RAW + JPEG, with the JPEG using Fuji's Classic Neg simulation as a reference.\n\n## Processing\n\n1. **Import**: Files go into Capture One, organized by date\n2. **Cull**: Quick pass to star the keepers (usually 10-15% of a session)\n3. **Edit**: Minimal adjustments — exposure, white balance, maybe a slight curve\n4. **Export**: Two versions — full-res for archive, 2400px long edge for web\n\n## The Less-Is-More Philosophy\n\nI've learned that the best editing is invisible. If someone notices your post-processing, you've gone too far.\n\n> \"The camera is an instrument that teaches people how to see without a camera.\" — Dorothea Lange\n\n## Publishing\n\nPhotos go to this site's gallery first, then selectively to social media. I write EXIF data into the gallery entries because I believe metadata tells a story too.",
+        "coverUrl": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80",
+        "tags": [
+          "Photography",
+          "Workflow",
+          "Fujifilm"
+        ],
+        "status": "published",
+        "publishedAt": "2026-02-05T14:30:00.000Z",
+        "createdAt": "2026-02-03T09:00:00.000Z",
+        "updatedAt": "2026-02-05T14:30:00.000Z"
+      },
+      "searchableText": "my photography workflow in 2026 from raw capture to web-ready — how i process, organize, and publish my street photography. my photography workflow in 2026 every photographer has a system. here's mine. capture i shoot primarily with a fujifilm x t5, paired with the 23mm f/1.4 for street work and the 56mm f/1.2 for portraits. everything is shot in raw + jpeg, with the jpeg using fuji's classic neg simulation as a reference. processing 1. import : files go into capture one, organized by date 2. cull : quick pass to star the keepers (usually 10 15% of a session) 3. edit : minimal adjustments — exposure, white balance, maybe a slight curve 4. export : two versions — full res for archive, 2400px long edge for web the less is more philosophy i've learned that the best editing is invisible. if someone notices your post processing, you've gone too far. \"the camera is an instrument that teaches people how to see without a camera.\" — dorothea lange publishing photos go to this site's gallery first, then selectively to social media. i write exif data into the gallery entries because i believe metadata tells a story too. photography workflow fujifilm"
+    },
+    {
+      "id": "eab15959-f6e5-44c4-a423-219aa1336f8c",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-05T05:45:00.000Z",
+      "content": "Enoshima Shoreline",
+      "locationName": null,
+      "feedItem": {
+        "type": "moment",
+        "id": "eab15959-f6e5-44c4-a423-219aa1336f8c",
+        "translationKey": "eab15959-f6e5-44c4-a423-219aa1336f8c",
+        "content": "Enoshima Shoreline",
+        "media": [
+          {
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80",
+            "width": 2400,
+            "height": 1600,
+            "capturedAt": "2026-02-05T05:20:00.000Z",
+            "camera": "Fujifilm X-T5",
+            "lens": "XF 23mm f/1.4",
+            "focalLength": "23mm",
+            "aperture": "f/4",
+            "iso": 100,
+            "latitude": 35.3009,
+            "longitude": 139.4793
+          }
+        ],
+        "locale": "en",
+        "visibility": "public",
+        "location": null,
+        "status": "published",
+        "publishedAt": "2026-02-05T05:45:00.000Z",
+        "createdAt": "2026-02-05T05:45:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.868Z",
+        "deletedAt": null
+      },
+      "searchableText": "enoshima shoreline"
+    },
+    {
+      "id": "e4441351-dee8-4e09-aed4-26f5ba20c035",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-02-05T05:45:00.000Z",
+      "imageId": "890b5ccf470ca73b8b5c",
+      "title": "Enoshima Shoreline",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 23mm f/1.4",
+      "focalLength": "23mm",
+      "aperture": "f/4",
+      "iso": 100,
+      "thumbUrl": "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "e4441351-dee8-4e09-aed4-26f5ba20c035",
+        "translationKey": "e4441351-dee8-4e09-aed4-26f5ba20c035",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=800&q=80",
+        "title": "Enoshima Shoreline",
+        "width": 2400,
+        "height": 1600,
+        "capturedAt": "2026-02-05T05:20:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 23mm f/1.4",
+        "focalLength": "23mm",
+        "aperture": "f/4",
+        "iso": 100,
+        "latitude": 35.3009,
+        "longitude": 139.4793,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-02-05T05:45:00.000Z",
+        "createdAt": "2026-02-05T05:45:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "enoshima shoreline fujifilm x-t5 xf 23mm f/1.4 23mm f/4 100"
+    },
+    {
+      "id": "c9eefeac-1d2b-4b2b-b8c9-aeefc92157b4",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-04T12:30:00.000Z",
+      "content": "Discovered a tiny ramen shop with only 8 seats. The chef has been making the same recipe for 30 years. Perfection takes patience.",
+      "locationName": "Koenji, Tokyo",
+      "feedItem": {
+        "type": "moment",
+        "id": "c9eefeac-1d2b-4b2b-b8c9-aeefc92157b4",
+        "translationKey": "c9eefeac-1d2b-4b2b-b8c9-aeefc92157b4",
+        "content": "Discovered a tiny ramen shop with only 8 seats. The chef has been making the same recipe for 30 years. Perfection takes patience.",
+        "media": [],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Koenji, Tokyo"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-04T12:30:00.000Z",
+        "createdAt": "2026-02-04T12:30:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.080Z",
+        "deletedAt": null
+      },
+      "searchableText": "discovered a tiny ramen shop with only 8 seats. the chef has been making the same recipe for 30 years. perfection takes patience. koenji, tokyo"
+    },
+    {
+      "id": "acc6b4f9-abc7-4682-a807-a6cc402830a9",
+      "section": "moment",
+      "locale": "en",
+      "sortAt": "2026-02-04T12:30:00.000Z",
+      "content": "Discovered a tiny ramen shop with only 8 seats. The chef has been making the same recipe for 30 years. Perfection takes patience.",
+      "locationName": "Koenji, Tokyo",
+      "feedItem": {
+        "type": "moment",
+        "id": "acc6b4f9-abc7-4682-a807-a6cc402830a9",
+        "translationKey": "acc6b4f9-abc7-4682-a807-a6cc402830a9",
+        "content": "Discovered a tiny ramen shop with only 8 seats. The chef has been making the same recipe for 30 years. Perfection takes patience.",
+        "media": [],
+        "locale": "en",
+        "visibility": "public",
+        "location": {
+          "name": "Koenji, Tokyo"
+        },
+        "status": "published",
+        "publishedAt": "2026-02-04T12:30:00.000Z",
+        "createdAt": "2026-02-04T12:30:00.000Z",
+        "updatedAt": "2026-02-16T17:56:43.863Z",
+        "deletedAt": null
+      },
+      "searchableText": "discovered a tiny ramen shop with only 8 seats. the chef has been making the same recipe for 30 years. perfection takes patience. koenji, tokyo"
+    },
+    {
+      "id": "67045465-3ce3-4a20-8ef2-174d6272831c",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-02-03T10:30:00.000Z",
+      "imageId": "cb068806cc02281b3f40",
+      "title": "Shinjuku Crossing",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 23mm f/1.4",
+      "focalLength": "23mm",
+      "aperture": "f/2",
+      "iso": 800,
+      "thumbUrl": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "67045465-3ce3-4a20-8ef2-174d6272831c",
+        "translationKey": "67045465-3ce3-4a20-8ef2-174d6272831c",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+        "title": "Shinjuku Crossing",
+        "width": 1600,
+        "height": 2400,
+        "capturedAt": "2026-02-03T10:15:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 23mm f/1.4",
+        "focalLength": "23mm",
+        "aperture": "f/2",
+        "iso": 800,
+        "latitude": 35.6938,
+        "longitude": 139.7034,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-02-03T10:30:00.000Z",
+        "createdAt": "2026-02-03T10:30:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "shinjuku crossing fujifilm x-t5 xf 23mm f/1.4 23mm f/2 800"
+    },
+    {
+      "id": "b3fbaac3-e822-4e52-b28e-8d70636089e3",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-01-31T04:30:00.000Z",
+      "imageId": "37ddad5ea7504af80ec7",
+      "title": "Plum Blossoms, Ueno Park",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 56mm f/1.2",
+      "focalLength": "56mm",
+      "aperture": "f/1.2",
+      "iso": 100,
+      "thumbUrl": "https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "b3fbaac3-e822-4e52-b28e-8d70636089e3",
+        "translationKey": "b3fbaac3-e822-4e52-b28e-8d70636089e3",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1490750967868-88aa4f44baee?w=800&q=80",
+        "title": "Plum Blossoms, Ueno Park",
+        "width": 2400,
+        "height": 1600,
+        "capturedAt": "2026-01-31T04:00:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 56mm f/1.2",
+        "focalLength": "56mm",
+        "aperture": "f/1.2",
+        "iso": 100,
+        "latitude": 35.7146,
+        "longitude": 139.7742,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-01-31T04:30:00.000Z",
+        "createdAt": "2026-01-31T04:30:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "plum blossoms, ueno park fujifilm x-t5 xf 56mm f/1.2 56mm f/1.2 100"
+    },
+    {
+      "id": "5dfa7ea6-9303-42b1-9aaf-1a5d3fe1f4e7",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-01-28T07:00:00.000Z",
+      "imageId": "6ccdf0fa181ef6229265",
+      "title": "Bamboo Path, Kamakura",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 23mm f/1.4",
+      "focalLength": "23mm",
+      "aperture": "f/2.8",
+      "iso": 400,
+      "thumbUrl": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "5dfa7ea6-9303-42b1-9aaf-1a5d3fe1f4e7",
+        "translationKey": "5dfa7ea6-9303-42b1-9aaf-1a5d3fe1f4e7",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80",
+        "title": "Bamboo Path, Kamakura",
+        "width": 2400,
+        "height": 1600,
+        "capturedAt": "2026-01-28T06:30:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 23mm f/1.4",
+        "focalLength": "23mm",
+        "aperture": "f/2.8",
+        "iso": 400,
+        "latitude": 35.3192,
+        "longitude": 139.5466,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-01-28T07:00:00.000Z",
+        "createdAt": "2026-01-28T07:00:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "bamboo path, kamakura fujifilm x-t5 xf 23mm f/1.4 23mm f/2.8 400"
+    },
+    {
+      "id": "a66a4b55-54dd-43e0-a63e-7bef42ccf6e2",
+      "section": "post",
+      "locale": "en",
+      "sortAt": "2026-01-28T06:00:00.000Z",
+      "slug": "tokyo-wandering-notes",
+      "title": "Tokyo Wandering Notes",
+      "excerpt": "Three weeks of aimless walking through Tokyo's back streets, capturing the quiet moments between the noise.",
+      "tags": [
+        "Travel",
+        "Tokyo",
+        "Photography"
+      ],
+      "feedItem": {
+        "type": "post",
+        "id": "a66a4b55-54dd-43e0-a63e-7bef42ccf6e2",
+        "translationKey": "a66a4b55-54dd-43e0-a63e-7bef42ccf6e2",
+        "slug": "tokyo-wandering-notes",
+        "locale": "en",
+        "title": "Tokyo Wandering Notes",
+        "excerpt": "Three weeks of aimless walking through Tokyo's back streets, capturing the quiet moments between the noise.",
+        "content": "# Tokyo Wandering Notes\n\nTokyo is a city of contradictions. The neon-lit chaos of Shibuya exists minutes from the meditative silence of Meiji Shrine.\n\n## Week 1: Shimokitazawa\n\nThe vintage shops. The narrow alleys. A coffee shop where the barista remembers your order after one visit. This is the Tokyo the guidebooks skip.\n\n## Week 2: Yanaka\n\nThe old Tokyo. Cemetery walks at dusk. A cat sleeping on a temple wall. The scent of incense mixing with grilled fish from a nearby izakaya.\n\n## Week 3: Koenji\n\nPunk rock bars next to traditional sento bathhouses. A record shop with 10,000 vinyl. Rain on concrete. The sound of trains.\n\n---\n\n*Sometimes the best travel photography is just showing up and paying attention.*",
+        "coverUrl": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
+        "tags": [
+          "Travel",
+          "Tokyo",
+          "Photography"
+        ],
+        "status": "published",
+        "publishedAt": "2026-01-28T06:00:00.000Z",
+        "createdAt": "2026-01-20T12:00:00.000Z",
+        "updatedAt": "2026-01-28T06:00:00.000Z"
+      },
+      "searchableText": "tokyo wandering notes three weeks of aimless walking through tokyo's back streets, capturing the quiet moments between the noise. tokyo wandering notes tokyo is a city of contradictions. the neon lit chaos of shibuya exists minutes from the meditative silence of meiji shrine. week 1: shimokitazawa the vintage shops. the narrow alleys. a coffee shop where the barista remembers your order after one visit. this is the tokyo the guidebooks skip. week 2: yanaka the old tokyo. cemetery walks at dusk. a cat sleeping on a temple wall. the scent of incense mixing with grilled fish from a nearby izakaya. week 3: koenji punk rock bars next to traditional sento bathhouses. a record shop with 10,000 vinyl. rain on concrete. the sound of trains. sometimes the best travel photography is just showing up and paying attention. travel tokyo photography"
+    },
+    {
+      "id": "80101f2a-4da5-4a2a-ab03-177a76b3b0f1",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-01-25T01:00:00.000Z",
+      "imageId": "14bdfbda8041b28e90ca",
+      "title": "Tsukiji Morning Market",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 23mm f/1.4",
+      "focalLength": "23mm",
+      "aperture": "f/2",
+      "iso": 1600,
+      "thumbUrl": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "80101f2a-4da5-4a2a-ab03-177a76b3b0f1",
+        "translationKey": "80101f2a-4da5-4a2a-ab03-177a76b3b0f1",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
+        "title": "Tsukiji Morning Market",
+        "width": 2400,
+        "height": 1600,
+        "capturedAt": "2026-01-25T00:30:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 23mm f/1.4",
+        "focalLength": "23mm",
+        "aperture": "f/2",
+        "iso": 1600,
+        "latitude": 35.6654,
+        "longitude": 139.7707,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-01-25T01:00:00.000Z",
+        "createdAt": "2026-01-25T01:00:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "tsukiji morning market fujifilm x-t5 xf 23mm f/1.4 23mm f/2 1600"
+    },
+    {
+      "id": "3ae363b5-7efe-4a5a-ae04-9f83041046cc",
+      "section": "gallery",
+      "locale": "en",
+      "sortAt": "2026-01-22T13:30:00.000Z",
+      "imageId": "e86428368ed339642381",
+      "title": "Rainy Night, Kagurazaka",
+      "camera": "Fujifilm X-T5",
+      "lens": "XF 23mm f/1.4",
+      "focalLength": "23mm",
+      "aperture": "f/1.4",
+      "iso": 3200,
+      "thumbUrl": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80",
+      "fileUrl": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80",
+      "feedItem": {
+        "type": "gallery",
+        "id": "3ae363b5-7efe-4a5a-ae04-9f83041046cc",
+        "translationKey": "3ae363b5-7efe-4a5a-ae04-9f83041046cc",
+        "locale": "en",
+        "fileUrl": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80",
+        "thumbUrl": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80",
+        "title": "Rainy Night, Kagurazaka",
+        "width": 1600,
+        "height": 2400,
+        "capturedAt": "2026-01-22T13:00:00.000Z",
+        "camera": "Fujifilm X-T5",
+        "lens": "XF 23mm f/1.4",
+        "focalLength": "23mm",
+        "aperture": "f/1.4",
+        "iso": 3200,
+        "latitude": 35.7017,
+        "longitude": 139.7413,
+        "isLivePhoto": false,
+        "videoUrl": null,
+        "status": "published",
+        "publishedAt": "2026-01-22T13:30:00.000Z",
+        "createdAt": "2026-01-22T13:30:00.000Z",
+        "updatedAt": "2026-02-24T06:46:17.085Z",
+        "deletedAt": null
+      },
+      "searchableText": "rainy night, kagurazaka fujifilm x-t5 xf 23mm f/1.4 23mm f/1.4 3200"
+    },
+    {
+      "id": "dd2fa56f-3e4d-404e-9cc1-0162b40f09ba",
+      "section": "post",
+      "locale": "en",
+      "sortAt": "2026-01-15T09:00:00.000Z",
+      "slug": "on-digital-minimalism",
+      "title": "On Digital Minimalism",
+      "excerpt": "Why I deleted most of my apps and what happened next.",
+      "tags": [
+        "Minimalism",
+        "Digital Life",
+        "Essay"
+      ],
+      "feedItem": {
+        "type": "post",
+        "id": "dd2fa56f-3e4d-404e-9cc1-0162b40f09ba",
+        "translationKey": "dd2fa56f-3e4d-404e-9cc1-0162b40f09ba",
+        "slug": "on-digital-minimalism",
+        "locale": "en",
+        "title": "On Digital Minimalism",
+        "excerpt": "Why I deleted most of my apps and what happened next.",
+        "content": "# On Digital Minimalism\n\nLast month I deleted 47 apps from my phone. Here's what remained:\n\n- Camera\n- Notes\n- Maps\n- Weather\n- Music\n- Messages\n\nThat's it. No social media. No news apps. No games.\n\n## The First Week\n\nUncomfortable. My thumb kept reaching for phantom icons. I'd pick up my phone, stare at the sparse home screen, and put it down again.\n\n## The Second Week\n\nI started noticing things. The texture of tree bark. The way light falls through a window at 4pm. Conversations with strangers.\n\n## One Month Later\n\nI read 4 books. I shot 800 photos. I wrote 12,000 words. I slept better.\n\nThe phone became a tool again, not a slot machine.",
+        "coverUrl": null,
+        "tags": [
+          "Minimalism",
+          "Digital Life",
+          "Essay"
+        ],
+        "status": "published",
+        "publishedAt": "2026-01-15T09:00:00.000Z",
+        "createdAt": "2026-01-12T08:00:00.000Z",
+        "updatedAt": "2026-01-15T09:00:00.000Z"
+      },
+      "searchableText": "on digital minimalism why i deleted most of my apps and what happened next. on digital minimalism last month i deleted 47 apps from my phone. here's what remained: camera notes maps weather music messages that's it. no social media. no news apps. no games. the first week uncomfortable. my thumb kept reaching for phantom icons. i'd pick up my phone, stare at the sparse home screen, and put it down again. the second week i started noticing things. the texture of tree bark. the way light falls through a window at 4pm. conversations with strangers. one month later i read 4 books. i shot 800 photos. i wrote 12,000 words. i slept better. the phone became a tool again, not a slot machine. minimalism digital life essay"
+    }
+  ]
+}

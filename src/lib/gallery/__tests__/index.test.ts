@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Moment, Post } from "@/lib/schema";
+import type { Moment, Post } from "@/lib/content/types";
 import {
   aggregateGalleryImages,
   extractImageUrlsFromPostContent,

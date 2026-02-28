@@ -36,5 +36,8 @@ pnpm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Local runtime snapshots
+data/profile-snapshot.json
+
 # Drizzle
 drizzle/meta

@@ -1,7 +1,20 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import type { FeedItem } from "@/components/bento/types";
-import type { GalleryItem, Moment, Post } from "@/lib/schema";
+import type { GalleryItem, Moment, Post } from "@/lib/content/types";
 
 import { type AppLocale } from "@/lib/locale";
+import {
+  PUBLIC_CACHE_REVALIDATE,
+  PUBLIC_CACHE_TAGS,
+  publicFeedTags,
+  publicGalleryItemTags,
+  publicGalleryTags,
+  publicMomentTags,
+  publicMomentsTags,
+  publicPostTags,
+  publicPostsTags,
+} from "@/lib/publicCache";
 
 export type Locale = AppLocale;
 export type PublicPresence = {
@@ -29,6 +42,23 @@ export type PublicProfileTrack = {
   url: string | null;
 };
 
+export type PublicGithubRecentPush = {
+  repo: string;
+  commitCount: number;
+  createdAt: Date | null;
+};
+
+export type PublicMusicTopArtist = {
+  name: string;
+  count: number;
+};
+
+export type PublicProfileRatio = {
+  key: string;
+  label: string;
+  value: number;
+};
+
 export type PublicProfileSnapshot = {
   github: {
     username: string | null;
@@ -37,15 +67,20 @@ export type PublicProfileSnapshot = {
     totalPushEvents: number | null;
     heatmapLevels: number[];
     heatmapCounts: number[];
+    recentPushes: PublicGithubRecentPush[];
     fetchedAt: Date | null;
   } | null;
   music: {
     provider: string | null;
     storefront: string | null;
     recentTracks: PublicProfileTrack[];
+    topArtists: PublicMusicTopArtist[];
     fetchedAt: Date | null;
   } | null;
-  derived: Record<string, unknown> | null;
+  derived: {
+    ratios: PublicProfileRatio[];
+    generatedAt: Date | null;
+  } | null;
   sourceStatus: Record<string, unknown> | null;
   syncedAt: Date | null;
   updatedAt: Date | null;
@@ -115,13 +150,25 @@ function resolveApiBaseUrl(): string {
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
+const PROFILE_SNAPSHOT_FILE = path.join(process.cwd(), "data", "profile-snapshot.json");
+const PROFILE_SNAPSHOT_CACHE_TTL_MS = 30_000;
 
-async function apiGet<T>(path: string, revalidateSeconds: number = 30): Promise<T> {
+let lastProfileSnapshotCache:
+  | { item: PublicProfileSnapshot; fetchedAt: number }
+  | null = null;
+
+interface PublicApiGetOptions {
+  revalidateSeconds?: number;
+  tags?: string[];
+}
+
+async function apiGet<T>(path: string, options: PublicApiGetOptions = {}): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
+  const { revalidateSeconds = PUBLIC_CACHE_REVALIDATE.contentList, tags } = options;
   let response: Response;
   try {
     response = await fetch(url, {
-      next: { revalidate: revalidateSeconds },
+      next: { revalidate: revalidateSeconds, tags },
       headers: {
         Accept: "application/json",
       },
@@ -155,6 +202,117 @@ function toDate(value: unknown): Date {
     return new Date(value);
   }
   return new Date(0);
+}
+
+function parsePublicProfileSnapshot(raw: unknown): PublicProfileSnapshot | null {
+  const item = asObject(raw);
+  if (Object.keys(item).length === 0) {
+    return null;
+  }
+
+  const githubObj = asNullableObject(item.github);
+  const githubHeatmap = asObject(githubObj?.heatmap);
+  const github = githubObj
+    ? {
+        username: asNullableString(githubObj.username),
+        windowDays: asNumberOrNull(githubObj.windowDays),
+        totalCommits: asNumberOrNull(githubObj.totalCommits),
+        totalPushEvents: asNumberOrNull(githubObj.totalPushEvents),
+        heatmapLevels: asArray(githubHeatmap.levels)
+          .map((value) => asNumberOrNull(value))
+          .filter((value): value is number => value !== null),
+        heatmapCounts: asArray(githubHeatmap.counts)
+          .map((value) => asNumberOrNull(value))
+          .filter((value): value is number => value !== null),
+        recentPushes: asArray(githubObj.recentPushes).map((pushRaw) => {
+          const push = asObject(pushRaw);
+          return {
+            repo: asString(push.repo),
+            commitCount: asNumberOrNull(push.commitCount) ?? 0,
+            createdAt: push.createdAt ? toDate(push.createdAt) : null,
+          };
+        }),
+        fetchedAt: githubObj.fetchedAt ? toDate(githubObj.fetchedAt) : null,
+      }
+    : null;
+
+  const musicObj = asNullableObject(item.music);
+  const music = musicObj
+    ? {
+        provider: asNullableString(musicObj.provider),
+        storefront: asNullableString(musicObj.storefront),
+        recentTracks: asArray(musicObj.recentTracks).map((trackRaw) => {
+          const track = asObject(trackRaw);
+          return {
+            id: asNullableString(track.id),
+            name: asString(track.name),
+            artist: asString(track.artist),
+            album: asNullableString(track.album),
+            artworkUrl: asNullableString(track.artworkUrl),
+            durationMs: asNumberOrNull(track.durationMs),
+            url: asNullableString(track.url),
+          };
+        }),
+        topArtists: asArray(musicObj.topArtists).map((artistRaw) => {
+          const artist = asObject(artistRaw);
+          return {
+            name: asString(artist.name),
+            count: asNumberOrNull(artist.count) ?? 0,
+          };
+        }),
+        fetchedAt: musicObj.fetchedAt ? toDate(musicObj.fetchedAt) : null,
+      }
+    : null;
+
+  const derivedObj = asNullableObject(item.derived);
+  const derived = derivedObj
+    ? {
+        ratios: asArray(derivedObj.ratios).map((ratioRaw) => {
+          const ratio = asObject(ratioRaw);
+          return {
+            key: asString(ratio.key),
+            label: asString(ratio.label),
+            value: asNumberOrNull(ratio.value) ?? 0,
+          };
+        }),
+        generatedAt: derivedObj.generatedAt ? toDate(derivedObj.generatedAt) : null,
+      }
+    : null;
+
+  return {
+    github,
+    music,
+    derived,
+    sourceStatus: asNullableObject(item.sourceStatus),
+    syncedAt: item.syncedAt ? toDate(item.syncedAt) : null,
+    updatedAt: item.updatedAt ? toDate(item.updatedAt) : null,
+  };
+}
+
+async function readLocalProfileSnapshot(): Promise<PublicProfileSnapshot | null> {
+  try {
+    const raw = await fs.readFile(PROFILE_SNAPSHOT_FILE, "utf8");
+    const parsed = parsePublicProfileSnapshot(JSON.parse(raw));
+    if (parsed) {
+      lastProfileSnapshotCache = { item: parsed, fetchedAt: Date.now() };
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function readCachedProfileSnapshot(): PublicProfileSnapshot | null {
+  if (!lastProfileSnapshotCache) {
+    return null;
+  }
+
+  const age = Date.now() - lastProfileSnapshotCache.fetchedAt;
+  if (age > PROFILE_SNAPSHOT_CACHE_TTL_MS) {
+    return lastProfileSnapshotCache.item;
+  }
+
+  return lastProfileSnapshotCache.item;
 }
 
 function toPost(raw: unknown): Post {
@@ -261,7 +419,10 @@ function toGalleryItem(raw: unknown): GalleryItem {
 export async function fetchPublicFeed(locale: Locale, limit: number = 10): Promise<FeedItem[]> {
   const result = await apiGet<{ items: unknown[] }>(
     `/v1/public/feed?locale=${locale}&limit=${limit}`,
-    30
+    {
+      revalidateSeconds: PUBLIC_CACHE_REVALIDATE.feed,
+      tags: publicFeedTags(locale),
+    }
   );
 
   return result.items
@@ -284,7 +445,10 @@ export async function fetchPublicFeed(locale: Locale, limit: number = 10): Promi
 export async function fetchPublicPosts(locale: Locale): Promise<Post[]> {
   const result = await apiGet<{ items: unknown[] }>(
     `/v1/public/posts?locale=${locale}`,
-    30
+    {
+      revalidateSeconds: PUBLIC_CACHE_REVALIDATE.contentList,
+      tags: publicPostsTags(locale),
+    }
   );
   return result.items.map(toPost);
 }
@@ -293,7 +457,10 @@ export async function fetchPublicPost(locale: Locale, slug: string): Promise<Pos
   try {
     const result = await apiGet<{ item: unknown }>(
       `/v1/public/posts/${encodeURIComponent(slug)}?locale=${locale}`,
-      30
+      {
+        revalidateSeconds: PUBLIC_CACHE_REVALIDATE.contentDetail,
+        tags: publicPostTags(locale, slug),
+      }
     );
     return toPost(result.item);
   } catch {
@@ -304,7 +471,10 @@ export async function fetchPublicPost(locale: Locale, slug: string): Promise<Pos
 export async function fetchPublicMoments(locale: Locale): Promise<Moment[]> {
   const result = await apiGet<{ items: unknown[] }>(
     `/v1/public/moments?locale=${locale}`,
-    30
+    {
+      revalidateSeconds: PUBLIC_CACHE_REVALIDATE.contentList,
+      tags: publicMomentsTags(locale),
+    }
   );
   return result.items.map(toMoment);
 }
@@ -313,7 +483,10 @@ export async function fetchPublicMoment(locale: Locale, id: string): Promise<Mom
   try {
     const result = await apiGet<{ item: unknown }>(
       `/v1/public/moments/${encodeURIComponent(id)}?locale=${locale}`,
-      30
+      {
+        revalidateSeconds: PUBLIC_CACHE_REVALIDATE.contentDetail,
+        tags: publicMomentTags(locale, id),
+      }
     );
     return toMoment(result.item);
   } catch {
@@ -324,7 +497,10 @@ export async function fetchPublicMoment(locale: Locale, id: string): Promise<Mom
 export async function fetchPublicGallery(locale: Locale): Promise<GalleryItem[]> {
   const result = await apiGet<{ items: unknown[] }>(
     `/v1/public/gallery?locale=${locale}`,
-    30
+    {
+      revalidateSeconds: PUBLIC_CACHE_REVALIDATE.contentList,
+      tags: publicGalleryTags(locale),
+    }
   );
   return result.items.map(toGalleryItem);
 }
@@ -336,7 +512,10 @@ export async function fetchPublicGalleryItem(
   try {
     const result = await apiGet<{ item: unknown }>(
       `/v1/public/gallery/${encodeURIComponent(id)}?locale=${locale}`,
-      30
+      {
+        revalidateSeconds: PUBLIC_CACHE_REVALIDATE.contentDetail,
+        tags: publicGalleryItemTags(locale, id),
+      }
     );
     return toGalleryItem(result.item);
   } catch {
@@ -346,7 +525,10 @@ export async function fetchPublicGalleryItem(
 
 export async function fetchPublicPresence(): Promise<PublicPresence | null> {
   try {
-    const result = await apiGet<{ item: unknown }>(`/v1/public/presence`, 5);
+    const result = await apiGet<{ item: unknown }>(`/v1/public/presence`, {
+      revalidateSeconds: PUBLIC_CACHE_REVALIDATE.presence,
+      tags: [PUBLIC_CACHE_TAGS.presence],
+    });
     const item = asObject(result.item);
     const statusRaw = asString(item.status, "unknown");
     const status: PublicPresence["status"] =
@@ -375,57 +557,16 @@ export async function fetchPublicPresence(): Promise<PublicPresence | null> {
 
 export async function fetchPublicProfileSnapshot(): Promise<PublicProfileSnapshot | null> {
   try {
-    const result = await apiGet<{ item: unknown }>(`/v1/public/profile-snapshot`, 30);
-    const item = asObject(result.item);
-
-    const githubObj = asNullableObject(item.github);
-    const githubHeatmap = asObject(githubObj?.heatmap);
-    const github = githubObj
-      ? {
-          username: asNullableString(githubObj.username),
-          windowDays: asNumberOrNull(githubObj.windowDays),
-          totalCommits: asNumberOrNull(githubObj.totalCommits),
-          totalPushEvents: asNumberOrNull(githubObj.totalPushEvents),
-          heatmapLevels: asArray(githubHeatmap.levels)
-            .map((value) => asNumberOrNull(value))
-            .filter((value): value is number => value !== null),
-          heatmapCounts: asArray(githubHeatmap.counts)
-            .map((value) => asNumberOrNull(value))
-            .filter((value): value is number => value !== null),
-          fetchedAt: githubObj.fetchedAt ? toDate(githubObj.fetchedAt) : null,
-        }
-      : null;
-
-    const musicObj = asNullableObject(item.music);
-    const music = musicObj
-      ? {
-          provider: asNullableString(musicObj.provider),
-          storefront: asNullableString(musicObj.storefront),
-          recentTracks: asArray(musicObj.recentTracks).map((trackRaw) => {
-            const track = asObject(trackRaw);
-            return {
-              id: asNullableString(track.id),
-              name: asString(track.name),
-              artist: asString(track.artist),
-              album: asNullableString(track.album),
-              artworkUrl: asNullableString(track.artworkUrl),
-              durationMs: asNumberOrNull(track.durationMs),
-              url: asNullableString(track.url),
-            };
-          }),
-          fetchedAt: musicObj.fetchedAt ? toDate(musicObj.fetchedAt) : null,
-        }
-      : null;
-
-    return {
-      github,
-      music,
-      derived: asNullableObject(item.derived),
-      sourceStatus: asNullableObject(item.sourceStatus),
-      syncedAt: item.syncedAt ? toDate(item.syncedAt) : null,
-      updatedAt: item.updatedAt ? toDate(item.updatedAt) : null,
-    };
+    const result = await apiGet<{ item: unknown }>(`/v1/public/profile-snapshot`, {
+      revalidateSeconds: PUBLIC_CACHE_REVALIDATE.profileSnapshot,
+      tags: [PUBLIC_CACHE_TAGS.profileSnapshot],
+    });
+    const parsed = parsePublicProfileSnapshot(result.item);
+    if (parsed) {
+      lastProfileSnapshotCache = { item: parsed, fetchedAt: Date.now() };
+    }
+    return parsed;
   } catch {
-    return null;
+    return (await readLocalProfileSnapshot()) ?? readCachedProfileSnapshot();
   }
 }

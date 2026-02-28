@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import { createHash, createHmac, randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 function parseArgs(argv) {
   const result = {};
@@ -350,6 +352,16 @@ async function postSnapshot(config, body) {
   return text ? JSON.parse(text) : {};
 }
 
+async function writeLocalSnapshot(config, snapshot) {
+  if (!config.writeLocalSnapshot || !snapshot || typeof snapshot !== "object") {
+    return;
+  }
+
+  const outputFile = config.localSnapshotFile;
+  await mkdir(path.dirname(outputFile), { recursive: true });
+  await writeFile(outputFile, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+}
+
 async function runOnce(config) {
   const githubResult = await fetchGithubSnapshot(config).catch((error) => ({
     ok: false,
@@ -400,7 +412,8 @@ async function runOnce(config) {
     payload.syncedAt = new Date().toISOString();
   }
 
-  await postSnapshot(config, payload);
+  const response = await postSnapshot(config, payload);
+  await writeLocalSnapshot(config, response?.item ?? null);
   return { successCount, sourceStatus };
 }
 
@@ -413,6 +426,10 @@ function buildConfig(args) {
     loop: asBoolean(args.loop, false),
     intervalHours: Math.max(1, intervalHours),
     timeoutMs: Math.max(2000, asInt(process.env.PROFILE_SYNC_TIMEOUT_MS, 20000)),
+    writeLocalSnapshot: asBoolean(process.env.PROFILE_SYNC_WRITE_LOCAL, true),
+    localSnapshotFile: path.resolve(
+      process.env.PROFILE_SYNC_OUTPUT_FILE || "data/profile-snapshot.json"
+    ),
     apiBaseUrl: (
       process.env.TDP_API_BASE_URL ||
       process.env.NEXT_PUBLIC_TDP_API_BASE_URL ||

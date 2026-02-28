@@ -5,10 +5,7 @@ import {
   serializeGalleryImage,
   type GalleryImageAggregateDTO,
 } from "@/lib/gallery";
-import { unstable_cache } from "next/cache";
 import { type AppLocale } from "@/lib/locale";
-
-export const dynamic = "force-dynamic";
 
 type Locale = AppLocale;
 
@@ -16,18 +13,11 @@ interface GalleryPageProps {
   params: Promise<{ locale: Locale }>;
 }
 
-const getCachedGalleryItems = unstable_cache(
-  async (locale: Locale): Promise<GalleryImageAggregateDTO[]> => {
-    const items = await getAggregatedGalleryImages(locale);
-    return items.map(serializeGalleryImage);
-  },
-  ["gallery-images-v2"],
-  { revalidate: 60 }
-);
-
 export default async function GalleryPage({ params }: GalleryPageProps) {
   const { locale } = await params;
-  const items = await getCachedGalleryItems(locale);
+  const items: GalleryImageAggregateDTO[] = (await getAggregatedGalleryImages(locale)).map(
+    serializeGalleryImage
+  );
   const heading = locale === "zh" ? "画廊" : "Gallery";
 
   return (

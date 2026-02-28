@@ -72,6 +72,7 @@ func (s *Server) Router() http.Handler {
 		r.Get("/gallery/{id}", s.handlePublicGalleryByID)
 		r.Get("/presence", s.handlePublicPresence)
 		r.Get("/profile-snapshot", s.handlePublicProfileSnapshot)
+		r.Get("/search-snapshot", s.handlePublicSearchSnapshot)
 		r.Post("/search", s.handlePublicSearch)
 	})
 
@@ -117,6 +118,8 @@ func (s *Server) Router() http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Post("/internal/presence", auth.RequireScope("content:write", s.handleUpsertPresence))
 			r.Post("/internal/profile-snapshot", auth.RequireScope("content:write", s.handleUpsertProfileSnapshot))
+			r.Post("/internal/search-snapshot", auth.RequireScope("content:write", s.handleUpsertSearchSnapshot))
+			r.Get("/internal/search-snapshot/status", auth.RequireScope("content:write", s.handleGetSearchSnapshotRefreshStatus))
 		})
 
 		r.Group(func(r chi.Router) {

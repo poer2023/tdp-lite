@@ -1,11 +1,27 @@
 "use server";
 
 import { createHash, createHmac, randomUUID } from "crypto";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { auth } from "./auth";
 import { normalizeLocale } from "./locale";
+import {
+  PUBLIC_CACHE_TAGS,
+  publicFeedTags,
+  publicGalleryItemTags,
+  publicGalleryTags,
+  publicMomentTags,
+  publicMomentsTags,
+  publicPostTags,
+  publicPostsTags,
+} from "./publicCache";
 
 type ContentType = "moment" | "post" | "gallery";
+
+function revalidateContentTags(tags: string[]) {
+  for (const tag of tags) {
+    revalidateTag(tag, "max");
+  }
+}
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -260,7 +276,17 @@ export async function createMoment(formData: FormData) {
   });
 
   const data = await parseResponse<{ item: unknown }>(response);
+  const item = (data.item ?? {}) as Record<string, unknown>;
+  const createdMomentId = typeof item.id === "string" ? item.id : null;
 
+  revalidateContentTags([
+    ...publicFeedTags(locale),
+    ...publicMomentsTags(locale),
+    ...publicGalleryTags(locale),
+  ]);
+  if (createdMomentId) {
+    revalidateContentTags(publicMomentTags(locale, createdMomentId));
+  }
   revalidatePath("/");
   revalidatePath("/admin");
   return data.item;
@@ -305,7 +331,17 @@ export async function createPost(formData: FormData) {
   });
 
   const data = await parseResponse<{ item: unknown }>(response);
+  const item = (data.item ?? {}) as Record<string, unknown>;
+  const createdPostSlug = typeof item.slug === "string" ? item.slug : null;
 
+  revalidateContentTags([
+    ...publicFeedTags(locale),
+    ...publicPostsTags(locale),
+    ...publicGalleryTags(locale),
+  ]);
+  if (createdPostSlug) {
+    revalidateContentTags(publicPostTags(locale, createdPostSlug));
+  }
   revalidatePath("/");
   revalidatePath("/admin");
   return data.item;
@@ -336,7 +372,13 @@ export async function createGallery(formData: FormData) {
   });
 
   const data = await parseResponse<{ item: unknown }>(response);
+  const item = (data.item ?? {}) as Record<string, unknown>;
+  const createdGalleryId = typeof item.id === "string" ? item.id : null;
 
+  revalidateContentTags(publicGalleryTags(locale));
+  if (createdGalleryId) {
+    revalidateContentTags(publicGalleryItemTags(locale, createdGalleryId));
+  }
   revalidatePath("/");
   revalidatePath("/admin");
   return data.item;
@@ -360,6 +402,12 @@ export async function deleteContent(type: ContentType, id: string) {
   });
   await parseResponse<{ ok: boolean }>(response);
 
+  revalidateContentTags([
+    PUBLIC_CACHE_TAGS.feed,
+    PUBLIC_CACHE_TAGS.posts,
+    PUBLIC_CACHE_TAGS.moments,
+    PUBLIC_CACHE_TAGS.gallery,
+  ]);
   revalidatePath("/");
   revalidatePath("/admin");
   return { success: true };

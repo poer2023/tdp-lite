@@ -1,6 +1,6 @@
-import { Post, Moment, GalleryItem, ActionItem } from "@/lib/schema";
+import type { ActionItem, GalleryItem, Moment, Post } from "@/lib/content/types";
 
-// Re-export ActionItem from schema for backward compatibility
+// Re-export the UI action card type from the content domain types.
 export type { ActionItem };
 
 export type FeedItem =

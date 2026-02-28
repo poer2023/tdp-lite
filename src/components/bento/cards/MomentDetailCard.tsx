@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Music2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Moment } from "@/lib/schema";
+import type { Moment } from "@/lib/content/types";
 
 interface MomentDetailCardProps {
   moment: Moment;

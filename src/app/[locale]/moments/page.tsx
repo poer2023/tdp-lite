@@ -5,8 +5,6 @@ import { getPublicMoments } from "@/lib/content/read";
 import { MapPin } from "lucide-react";
 import { isAppLocale, type AppLocale } from "@/lib/locale";
 
-export const dynamic = "force-dynamic";
-
 type Locale = AppLocale;
 
 interface MomentsPageProps {

@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { SearchRequest, SearchSection, SearchSectionResponse } from "./contracts";
 import { SearchDualSourceError, SearchSourceError, type SearchSource } from "./errors";
 import { searchBySectionInGo } from "./searchGo";

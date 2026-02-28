@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { cn, formatRelativeTime } from "@/lib/utils";
-import { Moment } from "@/lib/schema";
+import type { Moment } from "@/lib/content/types";
 import { isVideoUrl } from "@/lib/media";
 import { ChevronLeft, ChevronRight, MapPin, Music2, Quote } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";

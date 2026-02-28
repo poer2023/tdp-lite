@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { GalleryItem } from "@/lib/schema";
+import type { GalleryItem } from "@/lib/content/types";
 import { Camera, Aperture } from "lucide-react";
 import { LgChipDark } from "@/components/ui/LgChipDark";
 

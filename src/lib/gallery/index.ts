@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import type { Moment } from "../schema";
+import type { Moment } from "@/lib/content/types";
 import { isVideoUrl } from "../media";
 import { toLocalizedPath } from "../locale-routing";
 import type {

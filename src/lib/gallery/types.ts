@@ -1,4 +1,4 @@
-import type { Moment, Post } from "@/lib/schema";
+import type { Moment, Post } from "@/lib/content/types";
 
 export type GallerySourceType = "post" | "moment";
 export type GallerySourcePosition = "post_cover" | "post_body" | "moment_media";

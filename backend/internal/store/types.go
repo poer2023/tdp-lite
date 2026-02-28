@@ -170,3 +170,24 @@ type UpsertProfileSnapshotInput struct {
 	SourceStatus *map[string]any
 	SyncedAt     *time.Time
 }
+
+type SearchSnapshot struct {
+	Locale      string         `json:"locale"`
+	Snapshot    map[string]any `json:"snapshot,omitempty"`
+	GeneratedAt *time.Time     `json:"generatedAt,omitempty"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
+	CreatedAt   time.Time      `json:"createdAt"`
+}
+
+type UpsertSearchSnapshotInput struct {
+	Locale      string
+	Snapshot    map[string]any
+	GeneratedAt *time.Time
+}
+
+type SearchSnapshotRefreshState struct {
+	RequestedAt *time.Time `json:"requestedAt,omitempty"`
+	ProcessedAt *time.Time `json:"processedAt,omitempty"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	CreatedAt   time.Time  `json:"createdAt"`
+}
