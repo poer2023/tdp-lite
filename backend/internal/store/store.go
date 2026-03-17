@@ -1351,12 +1351,8 @@ func (s *Store) ListPublicFeed(ctx context.Context, locale string, limit int) ([
 	if err != nil {
 		return nil, err
 	}
-	gallery, err := s.ListPublicGallery(ctx, locale, limit, 0)
-	if err != nil {
-		return nil, err
-	}
 
-	items := make([]FeedItem, 0, len(posts)+len(moments)+len(gallery))
+	items := make([]FeedItem, 0, len(posts)+len(moments))
 	for _, item := range posts {
 		sortAt := item.CreatedAt
 		if item.PublishedAt != nil {
@@ -1372,14 +1368,6 @@ func (s *Store) ListPublicFeed(ctx context.Context, locale string, limit int) ([
 		}
 		m := item
 		items = append(items, FeedItem{Type: "moment", SortAt: sortAt, Moment: &m})
-	}
-	for _, item := range gallery {
-		sortAt := item.CreatedAt
-		if item.PublishedAt != nil {
-			sortAt = *item.PublishedAt
-		}
-		g := item
-		items = append(items, FeedItem{Type: "gallery", SortAt: sortAt, Gallery: &g})
 	}
 
 	sort.Slice(items, func(i, j int) bool {

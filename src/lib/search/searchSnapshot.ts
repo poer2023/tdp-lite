@@ -470,7 +470,10 @@ export async function listSnapshotFeed(
   const snapshot = await readSnapshotFile(normalizeLocale(locale));
   const items = snapshot.items
     .map(documentToFeedItem)
-    .filter((item): item is SnapshotContentFeedItem => item !== null)
+    .filter(
+      (item): item is Exclude<SnapshotContentFeedItem, { type: "gallery" }> =>
+        item !== null && item.type !== "gallery"
+    )
     .sort(compareFeedItemsByDate);
   if (typeof limit === "number" && limit > 0) {
     return items.slice(0, limit);

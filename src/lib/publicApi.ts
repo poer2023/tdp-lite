@@ -434,9 +434,6 @@ export async function fetchPublicFeed(locale: Locale, limit: number = 10): Promi
       if (item.type === "moment" && item.moment) {
         return { type: "moment", ...toMoment(item.moment) } as FeedItem;
       }
-      if (item.type === "gallery" && item.gallery) {
-        return { type: "gallery", ...toGalleryItem(item.gallery) } as FeedItem;
-      }
       return null;
     })
     .filter((item): item is FeedItem => item !== null);
