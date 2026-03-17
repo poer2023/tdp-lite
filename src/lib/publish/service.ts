@@ -12,7 +12,7 @@ import {
 } from "@/lib/schema";
 import { generateSlug } from "@/lib/slug";
 import type {
-  PreviewDraftPayload,
+  PublishDraftPayload,
   PublishGalleryInput,
   PublishMomentInput,
   PublishPostInput,
@@ -107,7 +107,7 @@ function toGalleryUrl(locale: string): string {
 }
 
 export async function publishByPayload(
-  payload: PreviewDraftPayload
+  payload: PublishDraftPayload
 ): Promise<PublishExecutionResult> {
   if (payload.kind === "moment") {
     const record = await createMomentEntry(payload.data);

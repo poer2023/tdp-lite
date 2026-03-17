@@ -2,19 +2,21 @@ import type { GalleryItem, Moment, Post } from "@/lib/schema";
 import { isVideoUrl } from "@/lib/media";
 import { generateSlug } from "@/lib/slug";
 import type {
-  PublishGalleryInput,
-  PublishMomentInput,
-  PublishPostInput,
+  PreviewGalleryInput,
+  PreviewMomentInput,
+  PreviewPostInput,
 } from "./contracts";
 
 const NOW = () => new Date();
 
-export function toPreviewMoment(input: PublishMomentInput): Moment {
+export function toPreviewMoment(input: PreviewMomentInput): Moment {
   const now = NOW();
+  const content = input.content.trim();
+  const hasMedia = input.media.length > 0;
   return {
     id: "preview-moment",
     translationKey: "preview-moment",
-    content: input.content,
+    content: content || (hasMedia ? "" : "你的动态预览会显示在这里。"),
     media: input.media,
     locale: input.locale,
     visibility: input.visibility,
@@ -27,16 +29,18 @@ export function toPreviewMoment(input: PublishMomentInput): Moment {
   };
 }
 
-export function toPreviewPost(input: PublishPostInput): Post {
+export function toPreviewPost(input: PreviewPostInput): Post {
   const now = NOW();
+  const title = input.title.trim() || "未命名文章";
+  const content = input.content.trim() || "填写正文后会在这里预览。";
   return {
     id: "preview-post",
     translationKey: "preview-post",
-    slug: generateSlug(input.title) || "preview-post",
+    slug: generateSlug(title) || "preview-post",
     locale: input.locale,
-    title: input.title,
+    title,
     excerpt: input.excerpt || null,
-    content: input.content,
+    content,
     coverUrl: input.coverUrl || null,
     tags: input.tags,
     status: input.status,
@@ -46,7 +50,7 @@ export function toPreviewPost(input: PublishPostInput): Post {
   };
 }
 
-export function toPreviewGallery(input: PublishGalleryInput): GalleryItem {
+export function toPreviewGallery(input: PreviewGalleryInput): GalleryItem {
   const now = NOW();
   return {
     id: "preview-gallery",
@@ -76,17 +80,17 @@ export function toPreviewGallery(input: PublishGalleryInput): GalleryItem {
 }
 
 export function inferPostCoverMediaType(
-  input: PublishPostInput
+  input: PreviewPostInput
 ): "image" | "video" | undefined {
   if (!input.coverUrl) return undefined;
   return isVideoUrl(input.coverUrl) ? "video" : "image";
 }
 
-export function inferMomentHasMedia(input: PublishMomentInput): boolean {
+export function inferMomentHasMedia(input: PreviewMomentInput): boolean {
   return input.media.length > 0;
 }
 
-export function inferGalleryMediaType(input: PublishGalleryInput): "image" | "video" {
+export function inferGalleryMediaType(input: PreviewGalleryInput): "image" | "video" {
   if (input.videoUrl) return "video";
   if (isVideoUrl(input.fileUrl)) return "video";
   return "image";

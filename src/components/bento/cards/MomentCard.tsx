@@ -10,6 +10,7 @@ import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
 import { MomentImageOnly } from "./MomentImageOnly";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { LgChipDark } from "@/components/ui/LgChipDark";
+import { resolveMomentDisplayFromMoment } from "@/lib/content/momentDisplay";
 
 type MomentMedia = NonNullable<Moment["media"]>[number];
 
@@ -99,7 +100,9 @@ export function MomentCard({
     isVideo: hasVideoMedia,
     shouldSkipOptimization: skipOptimization,
   } = getMediaPresentation(mainMedia);
-  const momentText = isAudioMedia ? mainMedia?.title || moment.content : moment.content;
+  const momentDisplay = resolveMomentDisplayFromMoment(moment, mainMedia?.title);
+  const momentText = momentDisplay.text;
+  const shouldQuoteMomentText = !momentDisplay.usesFallback;
   const hasMediaDimensions =
     typeof mainMedia?.width === "number" &&
     typeof mainMedia?.height === "number" &&
@@ -327,7 +330,7 @@ export function MomentCard({
           </div>
 
           <p className="line-clamp-3 whitespace-pre-wrap font-display text-[1rem] font-medium leading-[1.42] tracking-[-0.004em] text-[#111]">
-            &ldquo;{momentText}&rdquo;
+            {shouldQuoteMomentText ? <>&ldquo;{momentText}&rdquo;</> : momentText}
           </p>
 
           <div className="mt-2.5 font-mono text-[10px] uppercase tracking-wider text-[#666]">
@@ -346,7 +349,7 @@ export function MomentCard({
                   Music
                 </span>
                 <p className="font-display text-lg font-medium text-white">
-                  {mainMedia?.title || moment.content}
+                  {momentText}
                 </p>
                 {mainMedia?.artist ? (
                   <p className="font-mono text-xs text-white/70">{mainMedia.artist}</p>
@@ -390,15 +393,27 @@ export function MomentCard({
           <div className="space-y-2">
             {preview ? (
               <p className="font-display text-lg font-medium leading-relaxed text-white">
-                &ldquo;{momentText}&rdquo;
+                {shouldQuoteMomentText ? (
+                  <>&ldquo;{momentText}&rdquo;</>
+                ) : (
+                  momentText
+                )}
               </p>
             ) : (
               <div className="relative">
                 <p className="line-clamp-2 font-display text-lg font-medium leading-relaxed text-white transition-[transform,opacity] duration-300 ease-out will-change-transform group-hover:-translate-y-2 group-hover:opacity-0">
-                  &ldquo;{momentText}&rdquo;
+                  {shouldQuoteMomentText ? (
+                    <>&ldquo;{momentText}&rdquo;</>
+                  ) : (
+                    momentText
+                  )}
                 </p>
                 <p className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 font-display text-lg font-medium leading-relaxed text-white opacity-0 transition-[transform,opacity] duration-300 ease-out will-change-transform group-hover:translate-y-0 group-hover:opacity-100">
-                  &ldquo;{momentText}&rdquo;
+                  {shouldQuoteMomentText ? (
+                    <>&ldquo;{momentText}&rdquo;</>
+                  ) : (
+                    momentText
+                  )}
                 </p>
               </div>
             )}
@@ -433,7 +448,7 @@ export function MomentCard({
 
       <div className="flex-1 flex items-center">
         <p className="font-display text-lg font-medium leading-relaxed text-foreground">
-          &ldquo;{isAudioMedia ? mainMedia?.title || moment.content : moment.content}&rdquo;
+          {shouldQuoteMomentText ? <>&ldquo;{momentText}&rdquo;</> : momentText}
         </p>
       </div>
 

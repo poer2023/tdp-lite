@@ -20,7 +20,7 @@ function PreviewError({ message }: { message: string }) {
     <div className="flex min-h-screen items-center justify-center bg-page-surface p-6 font-display">
       <div className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 text-center shadow-sm dark:border-white/14 dark:bg-[#2c3541]">
         <p className="font-mono text-[10px] uppercase tracking-widest text-[#999]">
-          Preview Unavailable
+          预览不可用
         </p>
         <p className="mt-3 text-sm text-[#444]">{message}</p>
       </div>

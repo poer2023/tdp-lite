@@ -26,6 +26,7 @@ export function PostCard({
   className,
   preview = false,
 }: PostCardProps) {
+  const isZh = post.locale === "zh";
   const highlighted = isHighlighted ?? isHero ?? false;
   const coverSrc = post.coverUrl || null;
   const hasVideoCover = Boolean(
@@ -84,7 +85,7 @@ export function PostCard({
             <div className="flex items-center gap-3">
               {highlighted && (
                 <span className="rounded-full bg-black px-3 py-1 text-xs font-medium uppercase tracking-wider text-white">
-                  Featured
+                  {isZh ? "精选" : "Featured"}
                 </span>
               )}
               <span className="font-mono text-xs uppercase tracking-wider text-white/80">
@@ -113,9 +114,16 @@ export function PostCard({
       <div className="flex items-start justify-between">
         <div className="space-y-1">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-            Journal
+            {post.tags && post.tags.length > 0
+              ? post.tags[0]
+              : isZh
+                ? "随笔"
+                : "Journal"}
           </span>
-          <p className="font-mono text-xs text-muted-foreground">Read time: {Math.max(1, Math.ceil(post.content.length / 1000))}m</p>
+          <p className="font-mono text-xs text-muted-foreground">
+            {isZh ? "阅读时长：" : "Read time: "}
+            {Math.max(1, Math.ceil(post.content.length / 1000))}m
+          </p>
         </div>
         <div
           className={cn(
@@ -130,7 +138,7 @@ export function PostCard({
       <div className="space-y-2">
         {highlighted && (
           <span className="inline-flex rounded-full bg-black px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-white">
-            Featured
+            {isZh ? "精选" : "Featured"}
           </span>
         )}
         <h3 className="font-display text-xl font-bold leading-tight text-foreground">

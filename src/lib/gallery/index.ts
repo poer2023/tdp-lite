@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import type { Moment } from "@/lib/content/types";
+import type { GalleryItem, Moment } from "@/lib/content/types";
 import { isVideoUrl } from "../media";
 import { toLocalizedPath } from "../locale-routing";
 import type {
@@ -55,6 +55,10 @@ function shortenText(value: string, maxLength: number): string {
 
 function pickPreferredMomentTitle(moment: Moment): string {
   return shortenText(moment.content, 72);
+}
+
+function pickPreferredGalleryTitle(item: GalleryItem): string {
+  return item.title?.trim() || "Untitled image";
 }
 
 export function normalizeGalleryImageUrl(raw: string): string | null {
@@ -247,7 +251,7 @@ export function aggregateGalleryImages(
   input: GalleryAggregationInput
 ): GalleryImageAggregate[] {
   const map = new Map<string, MutableAggregate>();
-  const { locale, posts, moments } = input;
+  const { locale, posts, moments, gallery = [] } = input;
 
   for (const post of posts) {
     const sourceDate = post.publishedAt ?? post.createdAt;
@@ -341,6 +345,47 @@ export function aggregateGalleryImages(
         }
       );
     });
+  }
+
+  for (const galleryItem of gallery) {
+    const sourceDate = galleryItem.publishedAt ?? galleryItem.createdAt;
+    const normalized = normalizeGalleryImageUrl(galleryItem.fileUrl);
+    if (!normalized || isVideoUrl(normalized)) {
+      continue;
+    }
+
+    const imageId = stableImageId(normalized);
+    const galleryPath = toLocalizedPath(locale, `/gallery/${imageId}`);
+
+    addSource(
+      map,
+      locale,
+      normalized,
+      pickPreferredGalleryTitle(galleryItem),
+      false,
+      sourceDate,
+      {
+        sourceType: "gallery",
+        sourceId: galleryItem.id,
+        sourcePath: galleryPath,
+        sourceTitle: pickPreferredGalleryTitle(galleryItem),
+        sourceDate,
+        position: "gallery_item",
+      },
+      {
+        width: galleryItem.width ?? undefined,
+        height: galleryItem.height ?? undefined,
+        capturedAt: galleryItem.capturedAt ?? undefined,
+        camera: galleryItem.camera ?? undefined,
+        lens: galleryItem.lens ?? undefined,
+        focalLength: galleryItem.focalLength ?? undefined,
+        aperture: galleryItem.aperture ?? undefined,
+        iso: galleryItem.iso ?? undefined,
+        latitude: galleryItem.latitude ?? undefined,
+        longitude: galleryItem.longitude ?? undefined,
+        thumbUrl: galleryItem.thumbUrl ?? undefined,
+      }
+    );
   }
 
   return Array.from(map.values())
@@ -446,17 +491,19 @@ export function serializeGalleryImage(item: GalleryImageAggregate): GalleryImage
 }
 
 export async function getAggregatedGalleryImages(locale: Locale): Promise<GalleryImageAggregate[]> {
-  const { getPublicMoments, getPublicPosts } = await import("../content/read");
+  const { getPublicGallery, getPublicMoments, getPublicPosts } = await import("../content/read");
   const normalizedLocale: Locale = locale === "zh" ? "zh" : "en";
-  const [posts, moments] = await Promise.all([
+  const [posts, moments, gallery] = await Promise.all([
     getPublicPosts(normalizedLocale),
     getPublicMoments(normalizedLocale),
+    getPublicGallery(normalizedLocale),
   ]);
 
   return aggregateGalleryImages({
     locale: normalizedLocale,
     posts,
     moments,
+    gallery,
   });
 }
 

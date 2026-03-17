@@ -495,15 +495,16 @@ func (s *Store) GetPostByID(ctx context.Context, id string) (Post, error) {
 }
 
 type CreatePostInput struct {
-	Locale    string
-	Title     string
-	Slug      string
-	Excerpt   *string
-	Content   string
-	CoverURL  *string
-	Tags      []string
-	Status    string
-	UpdatedBy *string
+	Locale      string
+	Title       string
+	Slug        string
+	Excerpt     *string
+	Content     string
+	CoverURL    *string
+	Tags        []string
+	Status      string
+	PublishedAt *time.Time
+	UpdatedBy   *string
 }
 
 func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, error) {
@@ -514,7 +515,11 @@ func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, er
 
 	var publishedAt any = nil
 	if input.Status == "published" {
-		publishedAt = time.Now().UTC()
+		if input.PublishedAt != nil {
+			publishedAt = input.PublishedAt.UTC()
+		} else {
+			publishedAt = time.Now().UTC()
+		}
 	}
 
 	row := s.db.QueryRowContext(
@@ -789,12 +794,13 @@ func (s *Store) GetMomentByID(ctx context.Context, id string) (Moment, error) {
 }
 
 type CreateMomentInput struct {
-	Content    string
-	Locale     string
-	Visibility string
-	Location   *MomentLocation
-	Media      []MomentMediaItem
-	Status     string
+	Content     string
+	Locale      string
+	Visibility  string
+	Location    *MomentLocation
+	Media       []MomentMediaItem
+	Status      string
+	PublishedAt *time.Time
 }
 
 func (s *Store) CreateMoment(ctx context.Context, input CreateMomentInput) (Moment, error) {
@@ -813,7 +819,11 @@ func (s *Store) CreateMoment(ctx context.Context, input CreateMomentInput) (Mome
 
 	var publishedAt any
 	if input.Status == "published" {
-		publishedAt = time.Now().UTC()
+		if input.PublishedAt != nil {
+			publishedAt = input.PublishedAt.UTC()
+		} else {
+			publishedAt = time.Now().UTC()
+		}
 	}
 
 	row := s.db.QueryRowContext(
@@ -1103,12 +1113,17 @@ type CreateGalleryInput struct {
 	IsLivePhoto bool
 	VideoURL    *string
 	Status      string
+	PublishedAt *time.Time
 }
 
 func (s *Store) CreateGallery(ctx context.Context, input CreateGalleryInput) (GalleryItem, error) {
 	var publishedAt any
 	if input.Status == "published" {
-		publishedAt = time.Now().UTC()
+		if input.PublishedAt != nil {
+			publishedAt = input.PublishedAt.UTC()
+		} else {
+			publishedAt = time.Now().UTC()
+		}
 	}
 
 	row := s.db.QueryRowContext(

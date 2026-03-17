@@ -1,16 +1,13 @@
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDetail";
+import { MomentDetailPage } from "@/components/content/MomentDetailPage";
+import { PostDetailPage } from "@/components/content/PostDetailPage";
 import { GalleryMomentDetail } from "@/components/stitch-details/GalleryMomentDetail";
-import { MomentDetailCard } from "@/components/bento/cards/MomentDetailCard";
-import { TextMomentDetailCard } from "@/components/bento/cards/TextMomentDetailCard";
 import { loadPreviewPayloadFromApi } from "@/lib/previewApi";
 import {
   toPreviewGallery,
   toPreviewMoment,
   toPreviewPost,
 } from "@/lib/publish/previewMappers";
-import { formatDate } from "@/lib/utils";
+import { normalizeLocale } from "@/lib/locale";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +20,7 @@ function PreviewError({ message }: { message: string }) {
     <div className="flex min-h-screen items-center justify-center bg-page-surface p-6 font-display">
       <div className="w-full max-w-md rounded-2xl border border-black/10 bg-white p-6 text-center shadow-sm dark:border-white/14 dark:bg-[#2c3541]">
         <p className="font-mono text-[10px] uppercase tracking-widest text-[#999]">
-          Preview Unavailable
+          预览不可用
         </p>
         <p className="mt-3 text-sm text-[#444]">{message}</p>
       </div>
@@ -45,40 +42,23 @@ export default async function PreviewDetailPage({
 
   if (payload.kind === "post") {
     const post = toPreviewPost(payload.data);
-    const postTags = post.tags ?? [];
     return (
-      <div className="min-h-screen bg-page-surface p-6">
-        <ArticlePaperDetail
-          title={post.title}
-          excerpt={post.excerpt || undefined}
-          kicker={postTags[0] || "Reflections"}
-          category={postTags[0] || "Journal"}
-          readingTime={`${Math.max(1, Math.ceil(post.content.split(/\s+/).length / 200))} min read`}
-          publishedDate={formatDate(post.publishedAt || post.createdAt, post.locale)}
-          content={
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {post.content}
-            </ReactMarkdown>
-          }
-          showDock={false}
-        />
-      </div>
+      <PostDetailPage
+        locale={normalizeLocale(post.locale)}
+        post={post}
+        hideLocaleToggle
+      />
     );
   }
 
   if (payload.kind === "moment") {
     const moment = toPreviewMoment(payload.data);
-    const hasMedia = (moment.media ?? []).length > 0;
     return (
-      <div className="min-h-screen bg-page-surface p-6 font-display">
-        <div className="mx-auto flex min-h-[80vh] max-w-5xl items-center justify-center">
-          {hasMedia ? (
-            <MomentDetailCard moment={moment} />
-          ) : (
-            <TextMomentDetailCard moment={moment} />
-          )}
-        </div>
-      </div>
+      <MomentDetailPage
+        locale={normalizeLocale(moment.locale)}
+        moment={moment}
+        hideLocaleToggle
+      />
     );
   }
 
@@ -88,19 +68,19 @@ export default async function PreviewDetailPage({
   return (
     <div className="min-h-screen bg-page-surface p-6 font-display">
       <GalleryMomentDetail
-        title={item.title || "Gallery Preview"}
-        author="Preview"
-        seriesLabel="Draft"
+        title={item.title || "相册预览"}
+        author="预览"
+        seriesLabel="草稿"
         paragraphs={[
-          "This is a live detail preview rendered by the main site component.",
-          "Adjust title or media in publisher and the layout updates in near real time.",
+          "这是由主站详情组件实时渲染的预览页面。",
+          "你在发布台修改标题或媒体后，这里会接近实时更新。",
         ]}
         images={[
           {
             id: item.id,
             src,
             thumbSrc: item.thumbUrl || item.fileUrl,
-            alt: item.title || "Preview image",
+            alt: item.title || "预览图片",
             width: item.width || undefined,
             height: item.height || undefined,
           },

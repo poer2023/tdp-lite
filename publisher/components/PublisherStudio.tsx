@@ -53,7 +53,7 @@ type DraftState = {
 
 const defaultMomentDraft: MomentDraft = {
   content: "",
-  locale: "en",
+  locale: "zh",
   visibility: "public",
   locationName: "",
   media: [],
@@ -64,13 +64,13 @@ const defaultPostDraft: PostDraft = {
   content: "",
   excerpt: "",
   tags: "",
-  locale: "en",
+  locale: "zh",
   status: "draft",
   coverUrl: "",
 };
 
 const defaultGalleryDraft: GalleryDraft = {
-  locale: "en",
+  locale: "zh",
   title: "",
   fileUrl: "",
   thumbUrl: "",
@@ -82,6 +82,10 @@ const defaultDraftState: DraftState = {
   post: defaultPostDraft,
   gallery: defaultGalleryDraft,
 };
+
+function normalizePublisherTab(value: PublisherTab | string | undefined): "moment" | "post" {
+  return value === "post" ? "post" : "moment";
+}
 
 function parseStoredDraft(value: string | null): DraftState {
   if (!value) return defaultDraftState;
@@ -101,7 +105,7 @@ function parseStoredDraft(value: string | null): DraftState {
     }
 
     return {
-      tab: parsed.data.tab || "moment",
+      tab: normalizePublisherTab(parsed.data.tab),
       moment: {
         ...defaultMomentDraft,
         ...parsed.data.moment,
@@ -126,7 +130,7 @@ function toPayload(draft: DraftState): PreviewDraftPayload {
       kind: "moment",
       data: {
         content: draft.moment.content,
-        locale: draft.moment.locale,
+        locale: "zh",
         visibility: draft.moment.visibility,
         locationName: draft.moment.locationName.trim() || undefined,
         media: draft.moment.media,
@@ -146,7 +150,7 @@ function toPayload(draft: DraftState): PreviewDraftPayload {
         title: draft.post.title,
         content: draft.post.content,
         excerpt: draft.post.excerpt.trim() || undefined,
-        locale: draft.post.locale,
+        locale: "zh",
         tags,
         status: draft.post.status,
         coverUrl: draft.post.coverUrl.trim() || undefined,
@@ -157,7 +161,7 @@ function toPayload(draft: DraftState): PreviewDraftPayload {
   return {
     kind: "gallery",
     data: {
-      locale: draft.gallery.locale,
+      locale: "zh",
       title: draft.gallery.title.trim() || undefined,
       fileUrl: draft.gallery.fileUrl,
       thumbUrl: draft.gallery.thumbUrl.trim() || undefined,
@@ -167,12 +171,15 @@ function toPayload(draft: DraftState): PreviewDraftPayload {
 
 function payloadHasContent(payload: PreviewDraftPayload): boolean {
   if (payload.kind === "moment") {
-    return payload.data.content.trim().length > 0 || payload.data.media.length > 0;
+    return (
+      payload.data.content.trim().length > 0 || payload.data.media.length > 0
+    );
   }
 
   if (payload.kind === "post") {
     return (
-      payload.data.title.trim().length > 0 || payload.data.content.trim().length > 0
+      payload.data.title.trim().length > 0 ||
+      payload.data.content.trim().length > 0
     );
   }
 
@@ -181,11 +188,14 @@ function payloadHasContent(payload: PreviewDraftPayload): boolean {
 
 function payloadReadyForPublish(payload: PreviewDraftPayload): boolean {
   if (payload.kind === "moment") {
-    return payload.data.content.trim().length > 0;
+    return (
+      payload.data.content.trim().length > 0 || payload.data.media.length > 0
+    );
   }
   if (payload.kind === "post") {
     return (
-      payload.data.title.trim().length > 0 && payload.data.content.trim().length > 0
+      payload.data.title.trim().length > 0 &&
+      payload.data.content.trim().length > 0
     );
   }
   return payload.data.fileUrl.trim().length > 0;
@@ -230,24 +240,34 @@ function ChoiceGroup<T extends string>(props: {
 }
 
 export function PublisherStudio() {
-  const [draft, setDraft] = useState<DraftState>(() =>
-    parseStoredDraft(
-      typeof window === "undefined" ? null : window.localStorage.getItem(STORAGE_KEY)
-    )
-  );
+  const [draft, setDraft] = useState<DraftState>(defaultDraftState);
+  const [hasLoadedStoredDraft, setHasLoadedStoredDraft] = useState(false);
 
   const [previewMode, setPreviewMode] = useState<PreviewMode>("card");
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const sessionIdRef = useRef<string | null>(null);
   const [preview, setPreview] = useState<PreviewSessionResponse | null>(null);
-  const [previewMessage, setPreviewMessage] = useState<string>("Waiting for input...");
+  const [previewMessage, setPreviewMessage] = useState<string>("等待输入...");
   const [isSyncingPreview, setIsSyncingPreview] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [lastPublishResult, setLastPublishResult] = useState<PublishResult | null>(null);
+  const [lastPublishResult, setLastPublishResult] =
+    useState<PublishResult | null>(null);
 
   useEffect(() => {
+    const storedDraft = parseStoredDraft(
+      window.localStorage.getItem(STORAGE_KEY)
+    );
+    setDraft(storedDraft);
+    setHasLoadedStoredDraft(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedStoredDraft) {
+      return;
+    }
+
     window.localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({
@@ -255,14 +275,14 @@ export function PublisherStudio() {
         data: draft,
       })
     );
-  }, [draft]);
+  }, [draft, hasLoadedStoredDraft]);
 
   const payload = useMemo(() => toPayload(draft), [draft]);
 
   useEffect(() => {
     if (!payloadHasContent(payload)) {
       setPreview(null);
-      setPreviewMessage("Waiting for input...");
+      setPreviewMessage("等待输入...");
       return;
     }
 
@@ -285,13 +305,15 @@ export function PublisherStudio() {
         const next = await parseJsonResponse<PreviewSessionResponse>(response);
         sessionIdRef.current = next.sessionId;
         setPreview(next);
-        setPreviewMessage("Preview synced");
+        setPreviewMessage("预览已同步");
       } catch (syncError) {
         if (!controller.signal.aborted) {
           const message =
-            syncError instanceof Error ? syncError.message : "Failed to sync preview";
+            syncError instanceof Error
+              ? syncError.message
+              : "Failed to sync preview";
           setError(message);
-          setPreviewMessage("Preview failed, please retry");
+          setPreviewMessage("预览同步失败，请重试");
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -349,7 +371,7 @@ export function PublisherStudio() {
       setLastPublishResult(published);
       sessionIdRef.current = null;
       setPreview(null);
-      setPreviewMessage("Published. Start a new draft.");
+      setPreviewMessage("发布成功，可以继续创建下一条内容。");
 
       setDraft((prev) => {
         if (prev.tab === "moment") {
@@ -370,16 +392,18 @@ export function PublisherStudio() {
   };
 
   const activePreviewUrl =
-    previewMode === "card" ? preview?.cardPreviewUrl : preview?.detailPreviewUrl;
+    previewMode === "card"
+      ? preview?.cardPreviewUrl
+      : preview?.detailPreviewUrl;
 
   return (
     <main className="publisher-shell">
       <header className="publisher-header">
         <div>
-          <p className="publisher-kicker">TDP Publisher</p>
-          <h1>Lightweight Composer</h1>
+          <p className="publisher-kicker">TDP 发布台</p>
+          <h1>轻量发布工作台</h1>
           <p className="publisher-subtitle">
-            Focus on compose, preview, publish. No history panel.
+            专注于动态与文章的撰写、预览和发布，固定为中文内容流程。
           </p>
         </div>
         <div className="publisher-actions">
@@ -393,10 +417,10 @@ export function PublisherStudio() {
               sessionIdRef.current = null;
               setLastPublishResult(null);
               setError(null);
-              setPreviewMessage("Draft reset");
+              setPreviewMessage("草稿已重置");
             }}
           >
-            Reset Draft
+            重置草稿
           </button>
           <button
             type="button"
@@ -404,7 +428,7 @@ export function PublisherStudio() {
             onClick={handlePublish}
             disabled={isPublishing || !payloadReadyForPublish(payload)}
           >
-            {isPublishing ? "Publishing..." : "Publish"}
+            {isPublishing ? "发布中..." : "发布"}
           </button>
         </div>
       </header>
@@ -412,14 +436,21 @@ export function PublisherStudio() {
       <div className="publisher-main">
         <section className="compose-panel">
           <div className="tab-row">
-            {(["moment", "post", "gallery"] as const).map((tab) => (
+            {(
+              [
+                { value: "moment", label: "动态" },
+                { value: "post", label: "文章" },
+              ] as const
+            ).map((tab) => (
               <button
                 type="button"
-                key={tab}
-                className={draft.tab === tab ? "tab active" : "tab"}
-                onClick={() => setDraft((prev) => ({ ...prev, tab }))}
+                key={tab.value}
+                className={draft.tab === tab.value ? "tab active" : "tab"}
+                onClick={() =>
+                  setDraft((prev) => ({ ...prev, tab: tab.value }))
+                }
               >
-                {tab}
+                {tab.label}
               </button>
             ))}
           </div>
@@ -427,10 +458,10 @@ export function PublisherStudio() {
           {draft.tab === "moment" ? (
             <div className="form-stack">
               <label>
-                Content
+                内容
                 <textarea
                   rows={7}
-                  placeholder="Write a short moment"
+                  placeholder="写一条动态"
                   value={draft.moment.content}
                   onChange={(event) =>
                     setDraft((prev) => ({
@@ -442,29 +473,12 @@ export function PublisherStudio() {
               </label>
 
               <label>
-                Locale
-                <ChoiceGroup<"en" | "zh">
-                  value={draft.moment.locale}
-                  options={[
-                    { value: "en", label: "English" },
-                    { value: "zh", label: "中文" },
-                  ]}
-                  onChange={(locale) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      moment: { ...prev.moment, locale },
-                    }))
-                  }
-                />
-              </label>
-
-              <label>
-                Visibility
+                可见性
                 <ChoiceGroup<"public" | "private">
                   value={draft.moment.visibility}
                   options={[
-                    { value: "public", label: "Public" },
-                    { value: "private", label: "Private" },
+                    { value: "public", label: "公开" },
+                    { value: "private", label: "私密" },
                   ]}
                   onChange={(visibility) =>
                     setDraft((prev) => ({
@@ -476,21 +490,24 @@ export function PublisherStudio() {
               </label>
 
               <label>
-                Location (optional)
+                地点（可选）
                 <input
                   value={draft.moment.locationName}
                   onChange={(event) =>
                     setDraft((prev) => ({
                       ...prev,
-                      moment: { ...prev.moment, locationName: event.target.value },
+                      moment: {
+                        ...prev.moment,
+                        locationName: event.target.value,
+                      },
                     }))
                   }
-                  placeholder="Tokyo"
+                  placeholder="东京"
                 />
               </label>
 
               <label className="upload-label">
-                Add Media (image/video)
+                添加媒体（图片/视频）
                 <input
                   type="file"
                   multiple
@@ -531,12 +548,15 @@ export function PublisherStudio() {
                           ...prev,
                           moment: {
                             ...prev.moment,
-                            media: prev.moment.media.filter((_, i) => i !== index),
+                            media: prev.moment.media.filter(
+                              (_, i) => i !== index
+                            ),
                           },
                         }))
                       }
                     >
-                      {media.type} #{index + 1} ×
+                      {(media.type === "image" ? "图片" : "视频") +
+                        ` #${index + 1} ×`}
                     </button>
                   ))}
                 </div>
@@ -547,9 +567,9 @@ export function PublisherStudio() {
           {draft.tab === "post" ? (
             <div className="form-stack">
               <label>
-                Title
+                标题
                 <input
-                  placeholder="Post title"
+                  placeholder="文章标题"
                   value={draft.post.title}
                   onChange={(event) =>
                     setDraft((prev) => ({
@@ -561,10 +581,10 @@ export function PublisherStudio() {
               </label>
 
               <label>
-                Content (Markdown)
+                正文（Markdown）
                 <textarea
                   rows={9}
-                  placeholder="Write content"
+                  placeholder="写正文内容"
                   value={draft.post.content}
                   onChange={(event) =>
                     setDraft((prev) => ({
@@ -576,9 +596,9 @@ export function PublisherStudio() {
               </label>
 
               <label>
-                Excerpt (optional)
+                摘要（可选）
                 <input
-                  placeholder="Short summary"
+                  placeholder="简短摘要"
                   value={draft.post.excerpt}
                   onChange={(event) =>
                     setDraft((prev) => ({
@@ -590,9 +610,9 @@ export function PublisherStudio() {
               </label>
 
               <label>
-                Tags (comma separated)
+                标签（逗号分隔）
                 <input
-                  placeholder="design, note"
+                  placeholder="设计, 随笔"
                   value={draft.post.tags}
                   onChange={(event) =>
                     setDraft((prev) => ({
@@ -604,29 +624,12 @@ export function PublisherStudio() {
               </label>
 
               <label>
-                Locale
-                <ChoiceGroup<"en" | "zh">
-                  value={draft.post.locale}
-                  options={[
-                    { value: "en", label: "English" },
-                    { value: "zh", label: "中文" },
-                  ]}
-                  onChange={(locale) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      post: { ...prev.post, locale },
-                    }))
-                  }
-                />
-              </label>
-
-              <label>
-                Status
+                状态
                 <ChoiceGroup<"draft" | "published">
                   value={draft.post.status}
                   options={[
-                    { value: "draft", label: "Draft" },
-                    { value: "published", label: "Published" },
+                    { value: "draft", label: "草稿" },
+                    { value: "published", label: "已发布" },
                   ]}
                   onChange={(status) =>
                     setDraft((prev) => ({
@@ -638,7 +641,7 @@ export function PublisherStudio() {
               </label>
 
               <label className="upload-label">
-                Cover Media (image/video)
+                封面媒体（图片/视频）
                 <input
                   type="file"
                   accept="image/*,video/mp4,video/webm,video/quicktime,video/x-m4v"
@@ -657,126 +660,67 @@ export function PublisherStudio() {
               </label>
 
               {draft.post.coverUrl ? (
-                <p className="hint">Cover uploaded: {draft.post.coverUrl}</p>
+                <p className="hint">封面已上传：{draft.post.coverUrl}</p>
               ) : null}
             </div>
           ) : null}
 
           {draft.tab === "gallery" ? (
-            <div className="form-stack">
-              <label className="upload-label">
-                Upload Image/Video
-                <input
-                  type="file"
-                  accept="image/*,video/mp4,video/webm,video/quicktime,video/x-m4v"
-                  onChange={async (event) => {
-                    const file = event.target.files?.[0];
-                    if (!file) return;
-                    const uploaded = await handleUpload(file, "gallery-file");
-                    if (!uploaded) return;
-                    setDraft((prev) => ({
-                      ...prev,
-                      gallery: {
-                        ...prev.gallery,
-                        fileUrl: uploaded.url,
-                        thumbUrl:
-                          uploaded.kind === "image" ? uploaded.url : prev.gallery.thumbUrl,
-                      },
-                    }));
-                    event.currentTarget.value = "";
-                  }}
-                />
-              </label>
-
-              <label>
-                Title (optional)
-                <input
-                  value={draft.gallery.title}
-                  onChange={(event) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      gallery: { ...prev.gallery, title: event.target.value },
-                    }))
-                  }
-                  placeholder="Gallery title"
-                />
-              </label>
-
-              <label>
-                Locale
-                <ChoiceGroup<"en" | "zh">
-                  value={draft.gallery.locale}
-                  options={[
-                    { value: "en", label: "English" },
-                    { value: "zh", label: "中文" },
-                  ]}
-                  onChange={(locale) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      gallery: { ...prev.gallery, locale },
-                    }))
-                  }
-                />
-              </label>
-
-              <label>
-                Video thumb (optional)
-                <input
-                  placeholder="https://cdn.example.com/thumb.jpg"
-                  value={draft.gallery.thumbUrl}
-                  onChange={(event) =>
-                    setDraft((prev) => ({
-                      ...prev,
-                      gallery: { ...prev.gallery, thumbUrl: event.target.value },
-                    }))
-                  }
-                />
-              </label>
-
-              {draft.gallery.fileUrl ? (
-                <p className="hint">Asset uploaded: {draft.gallery.fileUrl}</p>
-              ) : null}
-            </div>
+            null
           ) : null}
         </section>
 
         <section className="preview-panel">
           <div className="preview-toolbar">
             <div className="tab-row compact">
-              {(["card", "detail"] as const).map((mode) => (
+              {(
+                [
+                  { value: "card", label: "卡片" },
+                  { value: "detail", label: "详情" },
+                ] as const
+              ).map((mode) => (
                 <button
                   type="button"
-                  key={mode}
-                  className={previewMode === mode ? "tab active" : "tab"}
-                  onClick={() => setPreviewMode(mode)}
+                  key={mode.value}
+                  className={previewMode === mode.value ? "tab active" : "tab"}
+                  onClick={() => setPreviewMode(mode.value)}
                 >
-                  {mode}
+                  {mode.label}
                 </button>
               ))}
             </div>
 
             <div className="tab-row compact">
-              {(["desktop", "mobile"] as const).map((mode) => (
+              {(
+                [
+                  { value: "desktop", label: "桌面" },
+                  { value: "mobile", label: "手机" },
+                ] as const
+              ).map((mode) => (
                 <button
                   type="button"
-                  key={mode}
-                  className={deviceMode === mode ? "tab active" : "tab"}
-                  onClick={() => setDeviceMode(mode)}
+                  key={mode.value}
+                  className={deviceMode === mode.value ? "tab active" : "tab"}
+                  onClick={() => setDeviceMode(mode.value)}
                 >
-                  {mode}
+                  {mode.label}
                 </button>
               ))}
             </div>
           </div>
 
           <div
-            className={deviceMode === "desktop" ? "frame-wrap desktop" : "frame-wrap mobile"}
+            className={
+              deviceMode === "desktop"
+                ? "frame-wrap desktop"
+                : "frame-wrap mobile"
+            }
           >
             {activePreviewUrl ? (
               <iframe
                 key={`${previewMode}-${deviceMode}-${activePreviewUrl}`}
                 src={activePreviewUrl}
-                title="Live preview"
+                title="实时预览"
                 className="preview-frame"
               />
             ) : (
@@ -785,17 +729,24 @@ export function PublisherStudio() {
           </div>
 
           <div className="status-row">
-            <span>{isSyncingPreview ? "Syncing preview..." : previewMessage}</span>
-            {uploadingField ? <span>Uploading: {uploadingField}</span> : null}
+            <span>{isSyncingPreview ? "正在同步预览..." : previewMessage}</span>
+            {uploadingField ? <span>正在上传：{uploadingField}</span> : null}
           </div>
 
           {error ? <div className="error-box">{error}</div> : null}
 
           {lastPublishResult ? (
             <div className="success-box">
-              <p>Published {lastPublishResult.kind} successfully.</p>
+              <p>
+                {lastPublishResult.kind === "moment"
+                  ? "动态"
+                  : lastPublishResult.kind === "post"
+                    ? "文章"
+                    : "相册"}
+                发布成功。
+              </p>
               <a href={lastPublishResult.url} target="_blank" rel="noreferrer">
-                Open published page
+                打开已发布页面
               </a>
             </div>
           ) : null}

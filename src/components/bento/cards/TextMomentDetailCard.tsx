@@ -3,6 +3,7 @@
 import { Quote, Clock, MapPin } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import type { Moment } from "@/lib/content/types";
+import { resolveMomentDisplay } from "@/lib/content/momentDisplay";
 
 interface TextMomentDetailCardProps {
   moment: Moment;
@@ -26,6 +27,11 @@ export function TextMomentDetailCard({
         fragment: "Fragment",
       };
   const locationName = moment.location?.name ?? null;
+  const momentDisplay = resolveMomentDisplay({
+    content: moment.content,
+    mediaTitle: moment.media?.[0]?.title,
+    locale,
+  });
 
   return (
     <div className={cn("relative w-full max-w-4xl mx-auto", className)}>
@@ -91,7 +97,7 @@ export function TextMomentDetailCard({
               "text-[#1a1a1a] mb-8"
             )}
           >
-            {moment.content}
+            {momentDisplay.text}
           </h2>
 
           {/* Divider */}

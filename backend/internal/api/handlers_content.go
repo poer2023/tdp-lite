@@ -13,14 +13,15 @@ import (
 )
 
 type createPostRequest struct {
-	Locale   string   `json:"locale"`
-	Title    string   `json:"title"`
-	Slug     string   `json:"slug"`
-	Excerpt  *string  `json:"excerpt"`
-	Content  string   `json:"content"`
-	CoverURL *string  `json:"coverUrl"`
-	Tags     []string `json:"tags"`
-	Status   string   `json:"status"`
+	Locale      string     `json:"locale"`
+	Title       string     `json:"title"`
+	Slug        string     `json:"slug"`
+	Excerpt     *string    `json:"excerpt"`
+	Content     string     `json:"content"`
+	CoverURL    *string    `json:"coverUrl"`
+	Tags        []string   `json:"tags"`
+	Status      string     `json:"status"`
+	PublishedAt *time.Time `json:"publishedAt"`
 }
 
 type updatePostRequest struct {
@@ -97,15 +98,16 @@ func (s *Server) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := s.runWithIdempotency(w, r, req, func() (any, error) {
 		item, err := s.store.CreatePost(r.Context(), store.CreatePostInput{
-			Locale:    req.Locale,
-			Title:     req.Title,
-			Slug:      req.Slug,
-			Excerpt:   trimPtr(req.Excerpt),
-			Content:   req.Content,
-			CoverURL:  trimPtr(req.CoverURL),
-			Tags:      req.Tags,
-			Status:    req.Status,
-			UpdatedBy: ptr(actorKeyID(r)),
+			Locale:      req.Locale,
+			Title:       req.Title,
+			Slug:        req.Slug,
+			Excerpt:     trimPtr(req.Excerpt),
+			Content:     req.Content,
+			CoverURL:    trimPtr(req.CoverURL),
+			Tags:        req.Tags,
+			Status:      req.Status,
+			PublishedAt: req.PublishedAt,
+			UpdatedBy:   ptr(actorKeyID(r)),
 		})
 		if err != nil {
 			return nil, err
@@ -206,12 +208,13 @@ func (s *Server) handleDeletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 type createMomentRequest struct {
-	Content    string                  `json:"content"`
-	Locale     string                  `json:"locale"`
-	Visibility string                  `json:"visibility"`
-	Location   *store.MomentLocation   `json:"location"`
-	Media      []store.MomentMediaItem `json:"media"`
-	Status     string                  `json:"status"`
+	Content     string                  `json:"content"`
+	Locale      string                  `json:"locale"`
+	Visibility  string                  `json:"visibility"`
+	Location    *store.MomentLocation   `json:"location"`
+	Media       []store.MomentMediaItem `json:"media"`
+	Status      string                  `json:"status"`
+	PublishedAt *time.Time              `json:"publishedAt"`
 }
 
 type updateMomentRequest struct {
@@ -240,12 +243,13 @@ func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := s.runWithIdempotency(w, r, req, func() (any, error) {
 		item, err := s.store.CreateMoment(r.Context(), store.CreateMomentInput{
-			Content:    req.Content,
-			Locale:     req.Locale,
-			Visibility: req.Visibility,
-			Location:   req.Location,
-			Media:      req.Media,
-			Status:     req.Status,
+			Content:     req.Content,
+			Locale:      req.Locale,
+			Visibility:  req.Visibility,
+			Location:    req.Location,
+			Media:       req.Media,
+			Status:      req.Status,
+			PublishedAt: req.PublishedAt,
 		})
 		if err != nil {
 			return nil, err
@@ -355,6 +359,7 @@ type createGalleryRequest struct {
 	IsLivePhoto bool       `json:"isLivePhoto"`
 	VideoURL    *string    `json:"videoUrl"`
 	Status      string     `json:"status"`
+	PublishedAt *time.Time `json:"publishedAt"`
 }
 
 type updateGalleryRequest struct {
@@ -409,6 +414,7 @@ func (s *Server) handleCreateGalleryItem(w http.ResponseWriter, r *http.Request)
 			IsLivePhoto: req.IsLivePhoto,
 			VideoURL:    trimPtr(req.VideoURL),
 			Status:      req.Status,
+			PublishedAt: req.PublishedAt,
 		})
 		if err != nil {
 			return nil, err

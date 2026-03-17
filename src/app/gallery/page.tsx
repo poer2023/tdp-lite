@@ -1,7 +1,5 @@
-import LocaleGalleryPage from "../[locale]/gallery/page";
+import { redirect } from "next/navigation";
 
 export default function GalleryPage() {
-  return LocaleGalleryPage({
-    params: Promise.resolve({ locale: "zh" as const }),
-  });
+  redirect("/moments");
 }

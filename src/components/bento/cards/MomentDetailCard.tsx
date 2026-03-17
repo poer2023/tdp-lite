@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Music2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Moment } from "@/lib/content/types";
+import { resolveMomentDisplay } from "@/lib/content/momentDisplay";
 
 interface MomentDetailCardProps {
   moment: Moment;
@@ -43,6 +44,11 @@ export function MomentDetailCard({
   const primaryMedia = hasMedia
     ? mediaList[Math.min(activeMediaIndex, mediaList.length - 1)] ?? mediaList[0]
     : null;
+  const momentDisplay = resolveMomentDisplay({
+    content: moment.content,
+    mediaTitle: primaryMedia?.title,
+    locale,
+  });
   const skipOptimization =
     primaryMedia?.url.startsWith("blob:") || primaryMedia?.url.startsWith("data:");
 
@@ -102,7 +108,7 @@ export function MomentDetailCard({
                   Music
                 </span>
                 <p className="px-8 text-center font-display text-xl font-medium">
-                  {primaryMedia.title || moment.content}
+                  {momentDisplay.text}
                 </p>
                 {primaryMedia.artist ? (
                   <p className="font-mono text-xs text-white/70">{primaryMedia.artist}</p>
@@ -188,7 +194,7 @@ export function MomentDetailCard({
 
         {/* Content body */}
         <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-          {moment.content}
+          {momentDisplay.text}
         </p>
       </div>
     </div>

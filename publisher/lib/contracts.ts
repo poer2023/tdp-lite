@@ -12,8 +12,21 @@ export const mediaItemSchema = z.object({
   thumbnailUrl: z.string().url().optional(),
 });
 
-export const publishMomentInputSchema = z.object({
-  content: z.string().trim().min(1),
+export const publishMomentInputSchema = z
+  .object({
+    content: z.string().trim(),
+    locale: localeSchema,
+    visibility: visibilitySchema,
+    locationName: z.string().trim().min(1).optional(),
+    media: z.array(mediaItemSchema).default([]),
+  })
+  .refine((value) => value.content.length > 0 || value.media.length > 0, {
+    message: "content or media is required",
+    path: ["content"],
+  });
+
+export const previewMomentInputSchema = z.object({
+  content: z.string().trim().default(""),
   locale: localeSchema,
   visibility: visibilitySchema,
   locationName: z.string().trim().min(1).optional(),
@@ -23,6 +36,16 @@ export const publishMomentInputSchema = z.object({
 export const publishPostInputSchema = z.object({
   title: z.string().trim().min(1),
   content: z.string().trim().min(1),
+  excerpt: z.string().trim().min(1).optional(),
+  locale: localeSchema,
+  tags: z.array(z.string().trim().min(1)).default([]),
+  status: postStatusSchema,
+  coverUrl: z.string().url().optional(),
+});
+
+export const previewPostInputSchema = z.object({
+  title: z.string().trim().default(""),
+  content: z.string().trim().default(""),
   excerpt: z.string().trim().min(1).optional(),
   locale: localeSchema,
   tags: z.array(z.string().trim().min(1)).default([]),
@@ -49,10 +72,18 @@ export const publishGalleryInputSchema = z.object({
   videoUrl: z.string().url().optional(),
 });
 
-export const previewDraftPayloadSchema = z.discriminatedUnion("kind", [
+export const previewGalleryInputSchema = publishGalleryInputSchema;
+
+export const publishDraftPayloadSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("moment"), data: publishMomentInputSchema }),
   z.object({ kind: z.literal("post"), data: publishPostInputSchema }),
   z.object({ kind: z.literal("gallery"), data: publishGalleryInputSchema }),
+]);
+
+export const previewDraftPayloadSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("moment"), data: previewMomentInputSchema }),
+  z.object({ kind: z.literal("post"), data: previewPostInputSchema }),
+  z.object({ kind: z.literal("gallery"), data: previewGalleryInputSchema }),
 ]);
 
 export const previewSessionRequestSchema = z.object({
@@ -62,7 +93,7 @@ export const previewSessionRequestSchema = z.object({
 
 export const publishRequestSchema = z.object({
   idempotencyKey: z.string().trim().min(1).max(128).optional(),
-  payload: previewDraftPayloadSchema,
+  payload: publishDraftPayloadSchema,
 });
 
 export const previewSessionResponseSchema = z.object({
@@ -86,10 +117,13 @@ export const publishResultSchema = z.object({
   publishedAt: z.string().datetime(),
 });
 
+export type PublishDraftPayload = z.infer<typeof publishDraftPayloadSchema>;
 export type PreviewDraftPayload = z.infer<typeof previewDraftPayloadSchema>;
 export type PreviewSessionRequest = z.infer<typeof previewSessionRequestSchema>;
 export type PublishRequest = z.infer<typeof publishRequestSchema>;
-export type PreviewSessionResponse = z.infer<typeof previewSessionResponseSchema>;
+export type PreviewSessionResponse = z.infer<
+  typeof previewSessionResponseSchema
+>;
 export type MediaUploadResponse = z.infer<typeof mediaUploadResponseSchema>;
 export type PublishResult = z.infer<typeof publishResultSchema>;
 

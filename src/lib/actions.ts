@@ -33,7 +33,10 @@ function requireEnv(name: string): string {
 
 function apiConfig() {
   return {
-    baseUrl: (process.env.TDP_API_BASE_URL || "http://localhost:8080").replace(/\/$/, ""),
+    baseUrl: (process.env.TDP_API_BASE_URL || "http://localhost:8080").replace(
+      /\/$/,
+      ""
+    ),
     keyId: requireEnv("TDP_INTERNAL_KEY_ID"),
     keySecret: requireEnv("TDP_INTERNAL_KEY_SECRET"),
   };
@@ -69,14 +72,17 @@ function buildSignature(params: {
   return createHmac("sha256", params.secret).update(canonical).digest("hex");
 }
 
-async function signedRequest(pathWithQuery: string, init: {
-  method: "GET" | "POST" | "PATCH" | "DELETE";
-  body?: unknown;
-  rawBody?: Uint8Array;
-  contentType?: string;
-  idempotencyKey?: string;
-  extraHeaders?: Record<string, string>;
-}): Promise<Response> {
+async function signedRequest(
+  pathWithQuery: string,
+  init: {
+    method: "GET" | "POST" | "PATCH" | "DELETE";
+    body?: unknown;
+    rawBody?: Uint8Array;
+    contentType?: string;
+    idempotencyKey?: string;
+    extraHeaders?: Record<string, string>;
+  }
+): Promise<Response> {
   const cfg = apiConfig();
   const [path, query = ""] = pathWithQuery.split("?");
 
@@ -133,7 +139,9 @@ async function signedRequest(pathWithQuery: string, init: {
     });
   } catch (error) {
     const reason =
-      error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      error instanceof Error
+        ? `${error.name}: ${error.message}`
+        : String(error);
     throw new Error(
       `operation api network error: ${url}. ${reason}. Hint: ensure Go backend is running and TDP_API_BASE_URL points to it.`
     );
@@ -161,7 +169,9 @@ async function parseResponse<T>(response: Response): Promise<T> {
     const parsedObject = asObject(parsed);
     const errorObject = asObject(parsedObject.error);
     const message =
-      (typeof errorObject.message === "string" ? errorObject.message : undefined) ||
+      (typeof errorObject.message === "string"
+        ? errorObject.message
+        : undefined) ||
       response.statusText ||
       "request failed";
     throw new Error(message);
@@ -178,7 +188,9 @@ async function requireAuth() {
   return session.user;
 }
 
-async function uploadFile(file: File): Promise<{ url: string; mimeType: string; id: string }> {
+async function uploadFile(
+  file: File
+): Promise<{ url: string; mimeType: string; id: string }> {
   const bytes = new Uint8Array(await file.arrayBuffer());
   const hash = sha256Hex(bytes);
 
@@ -226,9 +238,9 @@ async function uploadFile(file: File): Promise<{ url: string; mimeType: string; 
     }
   );
 
-  const completeData = await parseResponse<{ asset: { id: string; url: string; mime: string } }>(
-    completeRes
-  );
+  const completeData = await parseResponse<{
+    asset: { id: string; url: string; mime: string };
+  }>(completeRes);
 
   return {
     id: completeData.asset.id,
@@ -241,12 +253,9 @@ export async function createMoment(formData: FormData) {
   await requireAuth();
 
   const content = String(formData.get("content") || "").trim();
-  if (!content) {
-    throw new Error("Content is required");
-  }
-
   const locale = normalizeLocale(String(formData.get("locale") || ""));
-  const visibility = formData.get("visibility") === "private" ? "private" : "public";
+  const visibility =
+    formData.get("visibility") === "private" ? "private" : "public";
   const locationName = String(formData.get("locationName") || "").trim();
 
   const files = formData.getAll("images") as File[];
@@ -260,6 +269,10 @@ export async function createMoment(formData: FormData) {
         url: upload.url,
       });
     }
+  }
+
+  if (!content && media.length === 0) {
+    throw new Error("Content or media is required");
   }
 
   const response = await signedRequest("/v1/moments", {

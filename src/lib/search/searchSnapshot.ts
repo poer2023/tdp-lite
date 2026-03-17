@@ -482,15 +482,17 @@ export async function listSnapshotGalleryImages(
   locale: SupportedLocale
 ): Promise<GalleryImageAggregate[]> {
   const normalizedLocale = normalizeLocale(locale);
-  const [posts, moments] = await Promise.all([
+  const [posts, moments, gallery] = await Promise.all([
     listSnapshotPosts(normalizedLocale),
     listSnapshotMoments(normalizedLocale),
+    listSnapshotGalleryItems(normalizedLocale),
   ]);
 
   return aggregateGalleryImages({
     locale: normalizedLocale,
     posts,
     moments,
+    gallery,
   });
 }
 

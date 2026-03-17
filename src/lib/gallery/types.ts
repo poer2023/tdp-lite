@@ -1,7 +1,11 @@
-import type { Moment, Post } from "@/lib/content/types";
+import type { GalleryItem, Moment, Post } from "@/lib/content/types";
 
-export type GallerySourceType = "post" | "moment";
-export type GallerySourcePosition = "post_cover" | "post_body" | "moment_media";
+export type GallerySourceType = "post" | "moment" | "gallery";
+export type GallerySourcePosition =
+  | "post_cover"
+  | "post_body"
+  | "moment_media"
+  | "gallery_item";
 export type GalleryTimePreset = "all" | "today" | "7d" | "30d";
 
 export interface GallerySourceEntry {
@@ -77,4 +81,5 @@ export interface GalleryAggregationInput {
   locale: "en" | "zh";
   posts: Post[];
   moments: Moment[];
+  gallery?: GalleryItem[];
 }

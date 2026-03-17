@@ -24,6 +24,7 @@ type Tab = "home" | "gallery" | "search" | "about";
 interface BottomNavProps {
   locale: string;
   activeTab: Tab;
+  hideLocaleToggle?: boolean;
 }
 
 interface TabConfig {
@@ -95,15 +96,27 @@ const tabs: TabConfig[] = [
 
 const THEME_STORAGE_KEY = "tdp-theme-preference";
 
-export function BottomNav({ locale, activeTab }: BottomNavProps) {
+export function BottomNav({
+  locale,
+  activeTab,
+  hideLocaleToggle = false,
+}: BottomNavProps) {
   return (
     <Suspense fallback={null}>
-      <BottomNavInner locale={locale} activeTab={activeTab} />
+      <BottomNavInner
+        locale={locale}
+        activeTab={activeTab}
+        hideLocaleToggle={hideLocaleToggle}
+      />
     </Suspense>
   );
 }
 
-function BottomNavInner({ locale, activeTab }: BottomNavProps) {
+function BottomNavInner({
+  locale,
+  activeTab,
+  hideLocaleToggle = false,
+}: BottomNavProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const previewDockContext = usePreviewDockContext();
@@ -348,6 +361,23 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
   const previewCounter = `${previewDock?.currentIndex ?? 1}/${previewDock?.total ?? 1}`;
   const canCycle = Boolean(previewDock?.canCycle);
   const normalizedLocale = locale === "en" ? "en" : "zh";
+  const isZh = normalizedLocale === "zh";
+  const localizedTabs = tabs.map((tab) => ({
+    ...tab,
+    label:
+      tab.id === "home"
+        ? isZh
+          ? "首页"
+          : "Home"
+        : tab.id === "gallery"
+          ? isZh
+            ? "相册"
+            : "Gallery"
+          : isZh
+            ? "搜索"
+            : "Search",
+  }));
+  const aboutLabel = isZh ? "关于" : "About";
   const nextLocale = normalizedLocale === "zh" ? "en" : "zh";
   const localeButtonAriaLabel =
     normalizedLocale === "zh" ? "Switch to English" : "切换到中文";
@@ -413,15 +443,15 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
           className="inline-flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.38)] bg-[rgba(255,255,255,0.78)] px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-[rgba(0,0,0,0.05)]"
         >
           <div className="inline-flex items-center gap-1">
-            {tabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
+            {localizedTabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <IconNavItem
-                  key={`measure-${tab.id}`}
-                  href={`/${locale}${tab.path}`}
-                  icon={<Icon className="h-5 w-5" />}
-                  label={tab.label}
+              <IconNavItem
+                key={`measure-${tab.id}`}
+                href={`/${locale}${tab.path}`}
+                icon={<Icon className="h-5 w-5" />}
+                label={tab.label}
                   active={isActive}
                 />
               );
@@ -429,7 +459,7 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
             <IconNavItem
               href={`/${locale}/about`}
               icon={<User className="h-5 w-5" />}
-              label="About"
+              label={aboutLabel}
               active={activeTab === "about"}
             />
           </div>
@@ -450,7 +480,7 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
           className="mt-3 inline-flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.38)] bg-[rgba(255,255,255,0.78)] px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-[rgba(0,0,0,0.05)]"
         >
           <div className="inline-flex items-center gap-1">
-            {tabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
+            {localizedTabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
@@ -466,7 +496,7 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
             <IconNavItem
               href={`/${locale}/about`}
               icon={<User className="h-5 w-5" />}
-              label="About"
+              label={aboutLabel}
               active={activeTab === "about"}
             />
           </div>
@@ -479,13 +509,15 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
             >
               <Wrench className="h-4 w-4" />
             </button>
-            <Link
-              href={localeTargetHref}
-              aria-label={localeButtonAriaLabel}
-              className={localeButtonClass}
-            >
-              <LocaleToggleGlyph toLocale={nextLocale} />
-            </Link>
+            {hideLocaleToggle ? null : (
+              <Link
+                href={localeTargetHref}
+                aria-label={localeButtonAriaLabel}
+                className={localeButtonClass}
+              >
+                <LocaleToggleGlyph toLocale={nextLocale} />
+              </Link>
+            )}
             <button
               type="button"
               aria-label={themeButtonAriaLabel}
@@ -539,7 +571,7 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
           <div className="relative h-11 w-full">
             <div className={navLayerClass}>
               <div className="inline-flex items-center gap-1">
-                {tabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
+                {localizedTabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
                   const Icon = tab.icon;
                   const isActive = activeTab === tab.id;
                   return (
@@ -555,7 +587,7 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
                 <IconNavItem
                   href={`/${locale}/about`}
                   icon={<User className="h-5 w-5" />}
-                  label="About"
+                  label={aboutLabel}
                   active={activeTab === "about"}
                 />
               </div>
@@ -570,13 +602,15 @@ function BottomNavInner({ locale, activeTab }: BottomNavProps) {
                   <Wrench className="h-4 w-4" />
                 </button>
                 <div className={toolsPanelClass}>
-                  <Link
-                    href={localeTargetHref}
-                    aria-label={localeButtonAriaLabel}
-                    className={localeButtonClass}
-                  >
-                    <LocaleToggleGlyph toLocale={nextLocale} />
-                  </Link>
+                  {hideLocaleToggle ? null : (
+                    <Link
+                      href={localeTargetHref}
+                      aria-label={localeButtonAriaLabel}
+                      className={localeButtonClass}
+                    >
+                      <LocaleToggleGlyph toLocale={nextLocale} />
+                    </Link>
+                  )}
                   <button
                     type="button"
                     aria-label={themeButtonAriaLabel}

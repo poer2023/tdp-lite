@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Moment, Post } from "@/lib/content/types";
+import type { GalleryItem, Moment, Post } from "@/lib/content/types";
 import {
   aggregateGalleryImages,
   extractImageUrlsFromPostContent,
@@ -37,6 +37,34 @@ function createMoment(overrides: Partial<Moment>): Moment {
     publishedAt: overrides.publishedAt ?? new Date("2026-02-11T08:00:00.000Z"),
     createdAt: overrides.createdAt ?? new Date("2026-02-11T08:00:00.000Z"),
     updatedAt: overrides.updatedAt ?? new Date("2026-02-11T08:00:00.000Z"),
+    deletedAt: overrides.deletedAt ?? null,
+  };
+}
+
+function createGalleryItem(overrides: Partial<GalleryItem>): GalleryItem {
+  return {
+    id: overrides.id ?? "gallery-1",
+    translationKey: overrides.translationKey ?? `translation-${overrides.id ?? "gallery-1"}`,
+    locale: overrides.locale ?? "en",
+    fileUrl: overrides.fileUrl ?? "https://cdn.example.com/gallery.jpg",
+    thumbUrl: overrides.thumbUrl ?? null,
+    title: overrides.title ?? "Gallery Title",
+    width: overrides.width ?? 1600,
+    height: overrides.height ?? 900,
+    capturedAt: overrides.capturedAt ?? null,
+    camera: overrides.camera ?? null,
+    lens: overrides.lens ?? null,
+    focalLength: overrides.focalLength ?? null,
+    aperture: overrides.aperture ?? null,
+    iso: overrides.iso ?? null,
+    latitude: overrides.latitude ?? null,
+    longitude: overrides.longitude ?? null,
+    isLivePhoto: overrides.isLivePhoto ?? false,
+    videoUrl: overrides.videoUrl ?? null,
+    status: overrides.status ?? "published",
+    publishedAt: overrides.publishedAt ?? new Date("2026-02-12T08:00:00.000Z"),
+    createdAt: overrides.createdAt ?? new Date("2026-02-12T08:00:00.000Z"),
+    updatedAt: overrides.updatedAt ?? new Date("2026-02-12T08:00:00.000Z"),
     deletedAt: overrides.deletedAt ?? null,
   };
 }
@@ -182,6 +210,31 @@ describe("gallery aggregation", () => {
     });
     expect(timeFiltered).toHaveLength(1);
     expect(timeFiltered[0]?.imageUrl).toBe("https://cdn.example.com/post-filter.jpg");
+  });
+
+  it("includes direct gallery items in the aggregate", () => {
+    const gallery = createGalleryItem({
+      id: "gallery-a",
+      fileUrl: "https://cdn.example.com/direct-gallery.jpg",
+      thumbUrl: "https://cdn.example.com/direct-gallery-thumb.jpg",
+      title: "Direct Gallery",
+      camera: "Leica Q3",
+      publishedAt: new Date("2026-02-12T10:00:00.000Z"),
+    });
+
+    const items = aggregateGalleryImages({
+      locale: "en",
+      posts: [],
+      moments: [],
+      gallery: [gallery],
+    });
+
+    expect(items).toHaveLength(1);
+    expect(items[0]?.imageUrl).toBe("https://cdn.example.com/direct-gallery.jpg");
+    expect(items[0]?.thumbUrl).toBe("https://cdn.example.com/direct-gallery-thumb.jpg");
+    expect(items[0]?.camera).toBe("Leica Q3");
+    expect(items[0]?.sourceTypes).toEqual(["gallery"]);
+    expect(items[0]?.sources[0]?.position).toBe("gallery_item");
   });
 
   it("generates stable imageId for the same normalized URL", () => {
