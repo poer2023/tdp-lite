@@ -3,6 +3,10 @@ import { z } from "zod";
 export const localeSchema = z.enum(["en", "zh"]).default("en");
 export const visibilitySchema = z.enum(["public", "private"]).default("public");
 export const postStatusSchema = z.enum(["draft", "published"]).default("draft");
+export const manageContentKindSchema = z.enum(["moment", "post"]);
+export const manageContentStatusSchema = z
+  .enum(["all", "draft", "published", "archived"])
+  .default("all");
 
 export const mediaItemSchema = z.object({
   type: z.enum(["image", "video"]),
@@ -11,6 +15,10 @@ export const mediaItemSchema = z.object({
   height: z.number().int().positive().optional(),
   thumbnailUrl: z.string().url().optional(),
 });
+
+const timestampStringSchema = z.string().refine((value) => {
+  return !Number.isNaN(new Date(value).getTime());
+}, "Invalid datetime");
 
 export const publishMomentInputSchema = z
   .object({
@@ -117,6 +125,61 @@ export const publishResultSchema = z.object({
   publishedAt: z.string().datetime(),
 });
 
+export const managedPostSchema = z.object({
+  id: z.string().uuid(),
+  slug: z.string(),
+  locale: localeSchema,
+  title: z.string(),
+  excerpt: z.string().optional(),
+  content: z.string(),
+  coverUrl: z.string().url().optional(),
+  tags: z.array(z.string()).default([]),
+  status: z.enum(["draft", "published", "archived"]),
+  publishedAt: timestampStringSchema.optional(),
+  createdAt: timestampStringSchema,
+  updatedAt: timestampStringSchema,
+  revision: z.number().int().positive(),
+});
+
+export const managedMomentSchema = z.object({
+  id: z.string().uuid(),
+  content: z.string(),
+  media: z.array(mediaItemSchema).default([]),
+  locale: localeSchema,
+  visibility: visibilitySchema,
+  location: z
+    .object({
+      name: z.string(),
+      lat: z.number().optional(),
+      lng: z.number().optional(),
+    })
+    .optional(),
+  status: z.enum(["draft", "published", "archived"]),
+  publishedAt: timestampStringSchema.optional(),
+  createdAt: timestampStringSchema,
+  updatedAt: timestampStringSchema,
+});
+
+export const managedPostListResponseSchema = z.object({
+  items: z.array(managedPostSchema),
+  limit: z.number().int().positive(),
+  offset: z.number().int().nonnegative(),
+  locale: localeSchema,
+  status: manageContentStatusSchema,
+});
+
+export const managedMomentListResponseSchema = z.object({
+  items: z.array(managedMomentSchema),
+  limit: z.number().int().positive(),
+  offset: z.number().int().nonnegative(),
+  locale: localeSchema,
+  status: manageContentStatusSchema,
+});
+
+export const manageActionResultSchema = z.object({
+  ok: z.literal(true),
+});
+
 export type PublishDraftPayload = z.infer<typeof publishDraftPayloadSchema>;
 export type PreviewDraftPayload = z.infer<typeof previewDraftPayloadSchema>;
 export type PreviewSessionRequest = z.infer<typeof previewSessionRequestSchema>;
@@ -126,5 +189,16 @@ export type PreviewSessionResponse = z.infer<
 >;
 export type MediaUploadResponse = z.infer<typeof mediaUploadResponseSchema>;
 export type PublishResult = z.infer<typeof publishResultSchema>;
+export type ManageContentKind = z.infer<typeof manageContentKindSchema>;
+export type ManageContentStatus = z.infer<typeof manageContentStatusSchema>;
+export type ManagedPost = z.infer<typeof managedPostSchema>;
+export type ManagedMoment = z.infer<typeof managedMomentSchema>;
+export type ManagedPostListResponse = z.infer<
+  typeof managedPostListResponseSchema
+>;
+export type ManagedMomentListResponse = z.infer<
+  typeof managedMomentListResponseSchema
+>;
+export type ManageActionResult = z.infer<typeof manageActionResultSchema>;
 
 export type PublisherTab = PreviewDraftPayload["kind"];

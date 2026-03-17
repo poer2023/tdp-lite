@@ -453,6 +453,50 @@ func (s *Store) ListPublicPosts(ctx context.Context, locale string, limit, offse
 	return items, rows.Err()
 }
 
+func (s *Store) ListPostsForAdmin(ctx context.Context, locale, status string, limit, offset int) ([]Post, error) {
+	args := make([]any, 0, 4)
+	addArg := func(value any) string {
+		args = append(args, value)
+		return fmt.Sprintf("$%d", len(args))
+	}
+
+	where := []string{"deleted_at IS NULL"}
+	if strings.TrimSpace(locale) != "" {
+		where = append(where, "locale = "+addArg(locale))
+	}
+	if strings.TrimSpace(status) != "" {
+		where = append(where, "status = "+addArg(status))
+	}
+
+	query := fmt.Sprintf(
+		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status,
+		        published_at, created_at, updated_at, COALESCE(revision, 1)
+		 FROM posts
+		 WHERE %s
+		 ORDER BY COALESCE(published_at, created_at) DESC
+		 LIMIT %s OFFSET %s`,
+		strings.Join(where, " AND "),
+		addArg(limit),
+		addArg(offset),
+	)
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]Post, 0)
+	for rows.Next() {
+		item, err := scanPost(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
+}
+
 func (s *Store) GetPublicPostBySlug(ctx context.Context, locale, slug string) (Post, error) {
 	row := s.db.QueryRowContext(
 		ctx,
@@ -738,6 +782,49 @@ func (s *Store) ListPublicMoments(ctx context.Context, locale string, limit, off
 		limit,
 		offset,
 	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make([]Moment, 0)
+	for rows.Next() {
+		item, err := scanMoment(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	return items, rows.Err()
+}
+
+func (s *Store) ListMomentsForAdmin(ctx context.Context, locale, status string, limit, offset int) ([]Moment, error) {
+	args := make([]any, 0, 4)
+	addArg := func(value any) string {
+		args = append(args, value)
+		return fmt.Sprintf("$%d", len(args))
+	}
+
+	where := []string{"deleted_at IS NULL"}
+	if strings.TrimSpace(locale) != "" {
+		where = append(where, "locale = "+addArg(locale))
+	}
+	if strings.TrimSpace(status) != "" {
+		where = append(where, "status = "+addArg(status))
+	}
+
+	query := fmt.Sprintf(
+		`SELECT id::text, content, media, locale, visibility, location, status, published_at, created_at, updated_at
+		 FROM moments
+		 WHERE %s
+		 ORDER BY COALESCE(published_at, created_at) DESC
+		 LIMIT %s OFFSET %s`,
+		strings.Join(where, " AND "),
+		addArg(limit),
+		addArg(offset),
+	)
+
+	rows, err := s.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

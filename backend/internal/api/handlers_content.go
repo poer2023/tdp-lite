@@ -58,6 +58,17 @@ func normalizeVisibility(input string) string {
 	return "public"
 }
 
+func normalizedListStatus(input string) (string, bool) {
+	switch strings.TrimSpace(input) {
+	case "", "all":
+		return "all", true
+	case "draft", "published", "archived":
+		return input, true
+	default:
+		return "", false
+	}
+}
+
 func trimPtr(input *string) *string {
 	if input == nil {
 		return nil
@@ -118,6 +129,35 @@ func (s *Server) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	}); err != nil {
 		writeStoreError(w, r, err)
 	}
+}
+
+func (s *Server) handleListPosts(w http.ResponseWriter, r *http.Request) {
+	limit, offset := parsePagination(r, 50, 200)
+	locale := normalizedLocale(strings.TrimSpace(r.URL.Query().Get("locale")))
+	status, ok := normalizedListStatus(r.URL.Query().Get("status"))
+	if !ok {
+		writeError(w, http.StatusBadRequest, "invalid_filters", "status must be one of all|draft|published|archived", false, requestIDFromContext(r.Context()))
+		return
+	}
+
+	storeStatus := ""
+	if status != "all" {
+		storeStatus = status
+	}
+
+	items, err := s.store.ListPostsForAdmin(r.Context(), locale, storeStatus, limit, offset)
+	if err != nil {
+		writeStoreError(w, r, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"items":  items,
+		"limit":  limit,
+		"offset": offset,
+		"locale": locale,
+		"status": status,
+	})
 }
 
 func (s *Server) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
@@ -260,6 +300,35 @@ func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
 	}); err != nil {
 		writeStoreError(w, r, err)
 	}
+}
+
+func (s *Server) handleListMoments(w http.ResponseWriter, r *http.Request) {
+	limit, offset := parsePagination(r, 50, 200)
+	locale := normalizedLocale(strings.TrimSpace(r.URL.Query().Get("locale")))
+	status, ok := normalizedListStatus(r.URL.Query().Get("status"))
+	if !ok {
+		writeError(w, http.StatusBadRequest, "invalid_filters", "status must be one of all|draft|published|archived", false, requestIDFromContext(r.Context()))
+		return
+	}
+
+	storeStatus := ""
+	if status != "all" {
+		storeStatus = status
+	}
+
+	items, err := s.store.ListMomentsForAdmin(r.Context(), locale, storeStatus, limit, offset)
+	if err != nil {
+		writeStoreError(w, r, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"items":  items,
+		"limit":  limit,
+		"offset": offset,
+		"locale": locale,
+		"status": status,
+	})
 }
 
 func (s *Server) handleUpdateMoment(w http.ResponseWriter, r *http.Request) {

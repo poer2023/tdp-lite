@@ -1,8 +1,19 @@
 import { randomUUID } from "node:crypto";
 import {
+  manageActionResultSchema,
+  managedMomentListResponseSchema,
+  managedMomentSchema,
+  managedPostListResponseSchema,
+  managedPostSchema,
   mediaUploadResponseSchema,
   previewSessionResponseSchema,
   publishResultSchema,
+  type ManageActionResult,
+  type ManageContentStatus,
+  type ManagedMoment,
+  type ManagedMomentListResponse,
+  type ManagedPost,
+  type ManagedPostListResponse,
   type PreviewSessionRequest,
   type PublishRequest,
 } from "@/lib/contracts";
@@ -18,7 +29,7 @@ export class SiteClientError extends Error {
   }
 }
 
-type HttpMethod = "POST" | "PATCH" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 type TargetConfig = {
   baseUrl: string;
@@ -28,8 +39,7 @@ type TargetConfig = {
 
 function getTargetConfig(): TargetConfig {
   const baseUrl = process.env.PUBLISH_TARGET_BASE_URL?.replace(/\/$/, "");
-  const keyId =
-    process.env.TDP_INTERNAL_KEY_ID || process.env.PUBLISHER_KEY_ID;
+  const keyId = process.env.TDP_INTERNAL_KEY_ID || process.env.PUBLISHER_KEY_ID;
   const keySecret =
     process.env.TDP_INTERNAL_KEY_SECRET || process.env.PUBLISHER_KEY_SECRET;
 
@@ -137,7 +147,7 @@ async function signedFetch(params: {
         : {}),
       ...(params.headers || {}),
     },
-    body: Buffer.from(params.body),
+    body: params.method === "GET" ? undefined : Buffer.from(params.body),
     cache: "no-store",
   });
 
@@ -176,6 +186,15 @@ async function signedJson(params: {
   });
 }
 
+async function signedGetJson(path: string): Promise<unknown> {
+  return signedFetch({
+    path,
+    method: "GET",
+    body: new Uint8Array(),
+    contentType: "application/json",
+  });
+}
+
 function normalizeLocale(value: string): "en" | "zh" {
   return value === "zh" ? "zh" : "en";
 }
@@ -199,6 +218,18 @@ function resolvePublishedAt(item: Record<string, unknown>): string {
 
 function inferMediaKind(mimeType: string): "image" | "video" {
   return mimeType.startsWith("video/") ? "video" : "image";
+}
+
+function buildQueryString(params: Record<string, string | number | undefined>) {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") {
+      continue;
+    }
+    searchParams.set(key, String(value));
+  }
+  const query = searchParams.toString();
+  return query ? `?${query}` : "";
 }
 
 export async function uploadMediaToSite(params: {
@@ -433,4 +464,82 @@ export async function publishToSite(body: PublishRequest) {
     return publishPost(body);
   }
   return publishGallery(body);
+}
+
+export async function listPostsOnSite(params: {
+  locale: "en" | "zh";
+  status: ManageContentStatus;
+  limit?: number;
+  offset?: number;
+}): Promise<ManagedPostListResponse> {
+  const data = await signedGetJson(
+    `/v1/posts${buildQueryString({
+      locale: params.locale,
+      status: params.status,
+      limit: params.limit ?? 50,
+      offset: params.offset ?? 0,
+    })}`
+  );
+  return managedPostListResponseSchema.parse(data);
+}
+
+export async function listMomentsOnSite(params: {
+  locale: "en" | "zh";
+  status: ManageContentStatus;
+  limit?: number;
+  offset?: number;
+}): Promise<ManagedMomentListResponse> {
+  const data = await signedGetJson(
+    `/v1/moments${buildQueryString({
+      locale: params.locale,
+      status: params.status,
+      limit: params.limit ?? 50,
+      offset: params.offset ?? 0,
+    })}`
+  );
+  return managedMomentListResponseSchema.parse(data);
+}
+
+export async function unpublishPostOnSite(id: string): Promise<ManagedPost> {
+  const data = await signedJson({
+    path: `/v1/posts/${encodeURIComponent(id)}/unpublish`,
+    body: {},
+    idempotencyKey: randomUUID(),
+  });
+  return managedPostSchema.parse(asObject(asObject(data).item));
+}
+
+export async function unpublishMomentOnSite(
+  id: string
+): Promise<ManagedMoment> {
+  const data = await signedJson({
+    path: `/v1/moments/${encodeURIComponent(id)}/unpublish`,
+    body: {},
+    idempotencyKey: randomUUID(),
+  });
+  return managedMomentSchema.parse(asObject(asObject(data).item));
+}
+
+export async function deletePostOnSite(
+  id: string
+): Promise<ManageActionResult> {
+  const data = await signedJson({
+    path: `/v1/posts/${encodeURIComponent(id)}`,
+    method: "DELETE",
+    body: {},
+    idempotencyKey: randomUUID(),
+  });
+  return manageActionResultSchema.parse(data);
+}
+
+export async function deleteMomentOnSite(
+  id: string
+): Promise<ManageActionResult> {
+  const data = await signedJson({
+    path: `/v1/moments/${encodeURIComponent(id)}`,
+    method: "DELETE",
+    body: {},
+    idempotencyKey: randomUUID(),
+  });
+  return manageActionResultSchema.parse(data);
 }

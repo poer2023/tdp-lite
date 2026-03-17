@@ -92,6 +92,7 @@ func (s *Server) Router() http.Handler {
 		})
 
 		r.Group(func(r chi.Router) {
+			r.Get("/posts", auth.RequireScope("content:write", s.handleListPosts))
 			r.Post("/posts", auth.RequireScope("content:write", s.handleCreatePost))
 			r.Patch("/posts/{id}", auth.RequireScope("content:write", s.handleUpdatePost))
 			r.Post("/posts/{id}/publish", auth.RequireScope("content:write", s.handlePublishPost))
@@ -100,6 +101,7 @@ func (s *Server) Router() http.Handler {
 		})
 
 		r.Group(func(r chi.Router) {
+			r.Get("/moments", auth.RequireScope("content:write", s.handleListMoments))
 			r.Post("/moments", auth.RequireScope("content:write", s.handleCreateMoment))
 			r.Patch("/moments/{id}", auth.RequireScope("content:write", s.handleUpdateMoment))
 			r.Post("/moments/{id}/publish", auth.RequireScope("content:write", s.handlePublishMoment))

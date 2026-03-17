@@ -83,7 +83,9 @@ const defaultDraftState: DraftState = {
   gallery: defaultGalleryDraft,
 };
 
-function normalizePublisherTab(value: PublisherTab | string | undefined): "moment" | "post" {
+function normalizePublisherTab(
+  value: PublisherTab | string | undefined
+): "moment" | "post" {
   return value === "post" ? "post" : "moment";
 }
 
@@ -407,6 +409,9 @@ export function PublisherStudio() {
           </p>
         </div>
         <div className="publisher-actions">
+          <a href="/manage" className="ghost">
+            内容管理
+          </a>
           <button
             type="button"
             className="ghost"
@@ -665,9 +670,7 @@ export function PublisherStudio() {
             </div>
           ) : null}
 
-          {draft.tab === "gallery" ? (
-            null
-          ) : null}
+          {draft.tab === "gallery" ? null : null}
         </section>
 
         <section className="preview-panel">
