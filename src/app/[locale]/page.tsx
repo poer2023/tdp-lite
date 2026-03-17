@@ -14,10 +14,12 @@ interface HomePageProps {
   params: Promise<{ locale: Locale }>;
 }
 
+const HOME_FEED_LIMIT = 100;
+
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
   const [items, presence] = await Promise.all([
-    getPublicFeed(locale, 10),
+    getPublicFeed(locale, HOME_FEED_LIMIT),
     getPublicPresence(),
   ]);
   const t =
