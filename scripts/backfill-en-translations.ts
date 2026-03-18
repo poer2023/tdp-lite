@@ -85,7 +85,7 @@ const POST_TRANSLATIONS: Record<string, PostTranslation> = {
     title: "I'm Really Out of Options",
     slug: "im-really-out-of-options",
     excerpt: "Being a product manager is my karmic punishment.",
-    content: `#I Spent an Hour Explaining the Logic, and He Still Didn't Get It
+    content: `# I Spent an Hour Explaining the Logic, and He Still Didn't Get It
 
 Today was so absurd I could only laugh. To help a developer understand a business rule that honestly was not even that complicated, I spent nearly a full hour walking through everything from start to finish: the background, the scenario, the inputs and outputs, the edge cases, the exact calculations, and the decision rules. I even broke every branch down separately and illustrated each one with examples.
 
@@ -104,7 +104,7 @@ When you've already explained both the calculation and the judgment criteria to 
     slug: "test-blog-1",
     excerpt: "The secret of testing is testing itself.",
     content:
-      "##A test article ought to contain some test content\n###Markdown preview",
+      "## A test article ought to contain some test content\n### Markdown preview",
     tags: ["Learning"],
   },
 };
@@ -305,9 +305,20 @@ async function upsertPosts(
 
   for (const source of zhPosts) {
     const translation = translationForPost(source);
-    const payload = {
+    const createPayload = {
       translationKey: source.translationKey,
       locale: "en",
+      title: translation.title,
+      slug: translation.slug,
+      excerpt: translation.excerpt,
+      content: translation.content,
+      coverUrl: source.coverUrl ?? null,
+      tags: translation.tags,
+      status: "published",
+      cardSpan: source.cardSpan ?? "auto",
+      publishedAt: source.publishedAt ?? source.createdAt,
+    };
+    const updatePayload = {
       title: translation.title,
       slug: translation.slug,
       excerpt: translation.excerpt,
@@ -324,7 +335,7 @@ async function upsertPosts(
       await signedRequest({
         method: "PATCH",
         path: `/v1/posts/${existing.id}`,
-        body: payload,
+        body: updatePayload,
         idempotencyKey: randomUUID(),
       });
       updated += 1;
@@ -335,7 +346,7 @@ async function upsertPosts(
     await signedRequest({
       method: "POST",
       path: "/v1/posts",
-      body: payload,
+      body: createPayload,
       idempotencyKey: randomUUID(),
     });
     created += 1;
@@ -357,10 +368,19 @@ async function upsertMoments(
   let updated = 0;
 
   for (const source of zhMoments) {
-    const payload = {
+    const createPayload = {
       translationKey: source.translationKey,
       content: translationForMoment(source),
       locale: "en",
+      visibility: source.visibility,
+      location: source.location ?? null,
+      media: source.media,
+      status: "published",
+      cardSpan: source.cardSpan ?? "auto",
+      publishedAt: source.publishedAt ?? source.createdAt,
+    };
+    const updatePayload = {
+      content: translationForMoment(source),
       visibility: source.visibility,
       location: source.location ?? null,
       media: source.media,
@@ -374,7 +394,7 @@ async function upsertMoments(
       await signedRequest({
         method: "PATCH",
         path: `/v1/moments/${existing.id}`,
-        body: payload,
+        body: updatePayload,
         idempotencyKey: randomUUID(),
       });
       updated += 1;
@@ -385,7 +405,7 @@ async function upsertMoments(
     await signedRequest({
       method: "POST",
       path: "/v1/moments",
-      body: payload,
+      body: createPayload,
       idempotencyKey: randomUUID(),
     });
     created += 1;
