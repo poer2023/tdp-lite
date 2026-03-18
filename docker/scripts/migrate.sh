@@ -23,7 +23,11 @@ for migration in \
   /migrations/0004_posts_slug_locale_unique.sql \
   /migrations/0005_preview_sessions_and_translation_defaults.sql \
   /migrations/0006_presence_status.sql \
-  /migrations/0007_profile_snapshots.sql
+  /migrations/0007_profile_snapshots.sql \
+  /migrations/0008_search_snapshots.sql \
+  /migrations/0009_search_snapshot_refresh_state.sql \
+  /migrations/0010_card_span_preferences.sql \
+  /migrations/0011_backfill_imported_content_timestamps.sql
 do
   echo "Applying ${migration}"
   psql "${DATABASE_URL}" -v ON_ERROR_STOP=1 -f "${migration}"

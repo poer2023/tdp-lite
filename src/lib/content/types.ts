@@ -24,6 +24,8 @@ export interface Location {
   lng?: number;
 }
 
+export type CardSpan = "1x1" | "1x2" | "2x1" | "2x2";
+
 export interface Post {
   id: string;
   translationKey: string;
@@ -35,6 +37,7 @@ export interface Post {
   coverUrl: string | null;
   tags: string[] | null;
   status: string;
+  cardSpan?: CardSpan | null;
   publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
@@ -49,6 +52,7 @@ export interface Moment {
   visibility: string;
   location: Location | null;
   status: string;
+  cardSpan?: CardSpan | null;
   publishedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;

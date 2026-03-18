@@ -6,6 +6,7 @@ import {
   computeBentoSpans,
   getFeedItemLayoutKey,
   getHighlightedItemId,
+  resolvePreferredBentoSpan,
   type BentoSpanKey,
 } from "../layoutEngine";
 
@@ -21,6 +22,7 @@ function createPost(id: string, options?: { withCover?: boolean }): FeedItem {
     coverUrl: options?.withCover === false ? null : `https://example.com/${id}.jpg`,
     tags: [],
     status: "published",
+    cardSpan: null,
     publishedAt: new Date("2026-02-16T00:00:00.000Z"),
     createdAt: new Date("2026-02-16T00:00:00.000Z"),
     updatedAt: new Date("2026-02-16T00:00:00.000Z"),
@@ -46,6 +48,7 @@ function createMoment(
     visibility: "public",
     location: null,
     status: "published",
+    cardSpan: null,
     publishedAt: now,
     createdAt: now,
     updatedAt: now,
@@ -115,6 +118,18 @@ function getSpanKey(layout: Record<string, string>, item: FeedItem): BentoSpanKe
 
 function countSpan(items: FeedItem[], layout: Record<string, string>, span: BentoSpanKey): number {
   return items.filter((item) => getSpanKey(layout, item) === span).length;
+}
+
+function areaForSpan(span: BentoSpanKey): number {
+  switch (span) {
+    case "2x2":
+      return 4;
+    case "1x2":
+    case "2x1":
+      return 2;
+    default:
+      return 1;
+  }
 }
 
 describe("layoutEngine", () => {
@@ -276,6 +291,45 @@ describe("layoutEngine", () => {
 
     expect(verticalTall).toBeGreaterThan(horizontalTall);
     expect(horizontalWide).toBeGreaterThan(verticalWide);
+  });
+
+  it("never gives longer text a smaller preferred text-only card area", () => {
+    const shortMoment = createMoment("moment-short", {
+      withMedia: false,
+      contentLength: 24,
+    });
+    const mediumMoment = createMoment("moment-medium", {
+      withMedia: false,
+      contentLength: 120,
+    });
+    const longMoment = createMoment("moment-long", {
+      withMedia: false,
+      contentLength: 260,
+    });
+
+    const shortArea = areaForSpan(resolvePreferredBentoSpan(shortMoment));
+    const mediumArea = areaForSpan(resolvePreferredBentoSpan(mediumMoment));
+    const longArea = areaForSpan(resolvePreferredBentoSpan(longMoment));
+
+    expect(mediumArea).toBeGreaterThanOrEqual(shortArea);
+    expect(longArea).toBeGreaterThanOrEqual(mediumArea);
+  });
+
+  it("respects manually assigned card spans", () => {
+    const item = createMoment("moment-manual", {
+      withMedia: false,
+      contentLength: 12,
+    });
+
+    if (item.type !== "moment") {
+      throw new Error("Expected moment item");
+    }
+
+    item.cardSpan = "2x2";
+    const layout = computeBentoSpans([item]);
+
+    expect(resolvePreferredBentoSpan(item)).toBe("2x2");
+    expect(getSpanKey(layout, item)).toBe("2x2");
   });
 
   it("always keeps action cards as 1x1", () => {

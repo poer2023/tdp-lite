@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type {
+  ManageCardSpanValue,
   ManageContentStatus,
   ManagedMoment,
   ManagedMomentListResponse,
@@ -28,6 +29,14 @@ const statusOptions: Array<{ value: ManageContentStatus; label: string }> = [
   { value: "published", label: "已发布" },
   { value: "draft", label: "草稿" },
   { value: "archived", label: "归档" },
+];
+
+const cardSpanOptions: Array<{ value: ManageCardSpanValue; label: string }> = [
+  { value: "auto", label: "自动" },
+  { value: "1x1", label: "1×1" },
+  { value: "1x2", label: "1×2" },
+  { value: "2x1", label: "2×1" },
+  { value: "2x2", label: "2×2" },
 ];
 
 function formatDateLabel(value: string | undefined): string {
@@ -61,6 +70,21 @@ function formatStatusLabel(
       return "归档";
     default:
       return "全部";
+  }
+}
+
+function formatCardSpanLabel(value: ManageCardSpanValue | null | undefined) {
+  switch (value) {
+    case "1x1":
+      return "1×1";
+    case "1x2":
+      return "1×2";
+    case "2x1":
+      return "2×1";
+    case "2x2":
+      return "2×2";
+    default:
+      return "自动";
   }
 }
 
@@ -268,6 +292,34 @@ export function ContentManager() {
     }
   };
 
+  const handleCardSpanChange = async (
+    id: string,
+    cardSpan: ManageCardSpanValue
+  ) => {
+    setActingId(id);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const response = await fetch(`/api/manage/content/${kind}/${id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ cardSpan }),
+      });
+      const payload = await parseJsonResponse<{ item: ManagedItem }>(response);
+      setItems((current) =>
+        current.map((item) => (item.id === id ? payload.item : item))
+      );
+      setMessage(`卡片样式已更新为 ${formatCardSpanLabel(cardSpan)}。`);
+    } catch (actionError) {
+      const nextMessage =
+        actionError instanceof Error ? actionError.message : "卡片样式更新失败";
+      setError(nextMessage);
+    } finally {
+      setActingId(null);
+    }
+  };
+
   const renderPostCard = (item: ManagedPost) => {
     const isActing = actingId === item.id;
     const tagCount = Array.isArray(item.tags) ? item.tags.length : 0;
@@ -309,6 +361,26 @@ export function ContentManager() {
           <span>标签 {tagCount} 个</span>
           <span>修订 {revision}</span>
         </div>
+
+        <label className="manager-card-select-row">
+          <span>卡片样式</span>
+          <select
+            value={item.cardSpan ?? "auto"}
+            onChange={(event) =>
+              void handleCardSpanChange(
+                item.id,
+                event.target.value as ManageCardSpanValue
+              )
+            }
+            disabled={isActing}
+          >
+            {cardSpanOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="manager-card-actions">
           {item.status === "published" ? (
@@ -387,6 +459,26 @@ export function ContentManager() {
           <span>ID · {shortId}</span>
           <span>{item.location?.name || "未设置位置"}</span>
         </div>
+
+        <label className="manager-card-select-row">
+          <span>卡片样式</span>
+          <select
+            value={item.cardSpan ?? "auto"}
+            onChange={(event) =>
+              void handleCardSpanChange(
+                item.id,
+                event.target.value as ManageCardSpanValue
+              )
+            }
+            disabled={isActing}
+          >
+            {cardSpanOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="manager-card-actions">
           {item.status === "published" ? (

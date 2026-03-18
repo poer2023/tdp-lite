@@ -39,6 +39,7 @@ func (s *Server) buildPreviewPayloadFromContent(r *http.Request, kind, contentID
 				"tags":     post.Tags,
 				"status":   post.Status,
 				"coverUrl": post.CoverURL,
+				"cardSpan": post.CardSpan,
 			},
 		})
 		return payload, err
@@ -59,6 +60,7 @@ func (s *Server) buildPreviewPayloadFromContent(r *http.Request, kind, contentID
 				"visibility":   moment.Visibility,
 				"locationName": locationName,
 				"media":        moment.Media,
+				"cardSpan":     moment.CardSpan,
 			},
 		})
 		return payload, err

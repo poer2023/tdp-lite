@@ -10,7 +10,7 @@ import {
   uniqueIndex,
   index,
 } from "drizzle-orm/pg-core";
-import type { Location, MediaItem } from "./content/types";
+import type { CardSpan, Location, MediaItem } from "./content/types";
 
 // Posts - 长文章
 export const posts = pgTable(
@@ -26,6 +26,7 @@ export const posts = pgTable(
     coverUrl: text("cover_url"),
     tags: jsonb("tags").$type<string[]>().default([]),
     status: text("status").notNull().default("draft"), // draft | published
+    cardSpan: text("card_span").$type<CardSpan | null>(),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
@@ -55,6 +56,7 @@ export const moments = pgTable(
     visibility: text("visibility").notNull().default("public"), // public | private
     location: jsonb("location").$type<Location | null>(),
     status: text("status").notNull().default("published"),
+    cardSpan: text("card_span").$type<CardSpan | null>(),
     publishedAt: timestamp("published_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

@@ -13,6 +13,7 @@ export interface SearchSerializedPostFeedItem {
   coverUrl: string | null;
   tags: string[];
   status: string;
+  cardSpan: Post["cardSpan"];
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -52,6 +53,7 @@ export interface SearchSerializedMomentFeedItem {
     lng?: number;
   } | null;
   status: string;
+  cardSpan: Moment["cardSpan"];
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -170,6 +172,7 @@ export function serializePostFeedItem(post: Post): SearchSerializedPostFeedItem 
     coverUrl: post.coverUrl,
     tags: Array.isArray(post.tags) ? post.tags.filter(Boolean) : [],
     status: post.status,
+    cardSpan: post.cardSpan,
     publishedAt: toIsoString(post.publishedAt),
     createdAt: toRequiredIsoString(post.createdAt),
     updatedAt: toRequiredIsoString(post.updatedAt),
@@ -193,6 +196,7 @@ export function serializeMomentFeedItem(moment: Moment): SearchSerializedMomentF
         }
       : null,
     status: moment.status,
+    cardSpan: moment.cardSpan,
     publishedAt: toIsoString(moment.publishedAt),
     createdAt: toRequiredIsoString(moment.createdAt),
     updatedAt: toRequiredIsoString(moment.updatedAt),
@@ -243,6 +247,7 @@ export function reviveSearchFeedItem(item: SearchSerializedFeedItem): FeedItem {
       coverUrl: item.coverUrl,
       tags: item.tags,
       status: item.status,
+      cardSpan: item.cardSpan ?? null,
       publishedAt: toDate(item.publishedAt),
       createdAt: toDate(item.createdAt) ?? new Date(0),
       updatedAt: toDate(item.updatedAt) ?? new Date(0),
@@ -266,6 +271,7 @@ export function reviveSearchFeedItem(item: SearchSerializedFeedItem): FeedItem {
           }
         : null,
       status: item.status,
+      cardSpan: item.cardSpan ?? null,
       publishedAt: toDate(item.publishedAt),
       createdAt: toDate(item.createdAt) ?? new Date(0),
       updatedAt: toDate(item.updatedAt) ?? new Date(0),

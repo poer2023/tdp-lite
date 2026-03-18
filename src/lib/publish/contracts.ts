@@ -3,6 +3,7 @@ import { z } from "zod";
 export const localeSchema = z.enum(["en", "zh"]).default("en");
 export const visibilitySchema = z.enum(["public", "private"]).default("public");
 export const postStatusSchema = z.enum(["draft", "published"]).default("draft");
+export const cardSpanSchema = z.enum(["1x1", "1x2", "2x1", "2x2"]);
 
 export const mediaItemSchema = z.object({
   type: z.enum(["image", "video", "audio"]),
@@ -31,6 +32,7 @@ export const publishMomentInputSchema = z
     visibility: visibilitySchema,
     locationName: z.string().trim().min(1).optional(),
     media: z.array(mediaItemSchema).default([]),
+    cardSpan: cardSpanSchema.optional(),
   })
   .refine((value) => value.content.length > 0 || value.media.length > 0, {
     message: "content or media is required",
@@ -43,6 +45,7 @@ export const previewMomentInputSchema = z.object({
   visibility: visibilitySchema,
   locationName: z.string().trim().min(1).optional(),
   media: z.array(mediaItemSchema).default([]),
+  cardSpan: cardSpanSchema.optional(),
 });
 
 export const publishPostInputSchema = z.object({
@@ -53,6 +56,7 @@ export const publishPostInputSchema = z.object({
   tags: z.array(z.string().trim().min(1)).default([]),
   status: postStatusSchema,
   coverUrl: z.string().url().optional(),
+  cardSpan: cardSpanSchema.optional(),
 });
 
 export const previewPostInputSchema = z.object({
@@ -63,6 +67,7 @@ export const previewPostInputSchema = z.object({
   tags: z.array(z.string().trim().min(1)).default([]),
   status: postStatusSchema,
   coverUrl: z.string().url().optional(),
+  cardSpan: cardSpanSchema.optional(),
 });
 
 export const publishGalleryInputSchema = z.object({

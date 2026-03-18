@@ -1,10 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { manageContentKindSchema } from "@/lib/contracts";
+import {
+  manageCardSpanUpdateSchema,
+  manageContentKindSchema,
+} from "@/lib/contracts";
 import {
   SiteClientError,
   deleteMomentOnSite,
   deletePostOnSite,
+  updateMomentCardSpanOnSite,
+  updatePostCardSpanOnSite,
 } from "@/lib/siteClient";
 
 export const runtime = "nodejs";
@@ -43,6 +48,51 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       );
     }
     const message = error instanceof Error ? error.message : "delete failed";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: Request, { params }: RouteContext) {
+  try {
+    const parsedParams = paramsSchema.safeParse(await params);
+    if (!parsedParams.success) {
+      return NextResponse.json(
+        { error: "invalid management target" },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    const parsedBody = manageCardSpanUpdateSchema.safeParse(body);
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        { error: "invalid card span payload" },
+        { status: 400 }
+      );
+    }
+
+    if (parsedParams.data.kind === "post") {
+      const item = await updatePostCardSpanOnSite(
+        parsedParams.data.id,
+        parsedBody.data.cardSpan
+      );
+      return NextResponse.json({ item });
+    }
+
+    const item = await updateMomentCardSpanOnSite(
+      parsedParams.data.id,
+      parsedBody.data.cardSpan
+    );
+    return NextResponse.json({ item });
+  } catch (error) {
+    if (error instanceof SiteClientError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
+    const message =
+      error instanceof Error ? error.message : "card span update failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,7 +1,12 @@
 import { GalleryCard } from "@/components/bento/cards/GalleryCard";
 import { MomentCard } from "@/components/bento/cards/MomentCard";
 import { PostCard } from "@/components/bento/cards/PostCard";
+import {
+  BENTO_SPAN_CLASS,
+  resolvePreferredBentoSpan,
+} from "@/components/bento/layoutEngine";
 import { loadPreviewPayloadFromApi } from "@/lib/previewApi";
+import { cn } from "@/lib/utils";
 import {
   inferPostCoverMediaType,
   toPreviewGallery,
@@ -37,34 +42,45 @@ export default async function PreviewCardPage({ searchParams }: PreviewCardPageP
   }
 
   const payload = resolved.payload;
+  const previewItem =
+    payload.kind === "moment"
+      ? ({ type: "moment" as const, ...toPreviewMoment(payload.data) } as const)
+      : payload.kind === "post"
+        ? ({ type: "post" as const, ...toPreviewPost(payload.data) } as const)
+        : ({ type: "gallery" as const, ...toPreviewGallery(payload.data) } as const);
+  const previewSpanClass = BENTO_SPAN_CLASS[resolvePreferredBentoSpan(previewItem)];
 
   return (
     <div className="min-h-screen bg-page-surface p-6 font-display">
-      <div className="mx-auto max-w-3xl">
-        {payload.kind === "moment" ? (
-          <MomentCard
-            moment={toPreviewMoment(payload.data)}
-            preview
-            className="min-h-[460px]"
-          />
-        ) : null}
+      <div className="mx-auto max-w-5xl">
+        <div className="grid auto-rows-[220px] grid-cols-1 gap-6 md:grid-cols-3">
+          <div className={cn("col-span-1", previewSpanClass)}>
+            {payload.kind === "moment" ? (
+              <MomentCard
+                moment={toPreviewMoment(payload.data)}
+                preview
+                className="h-full min-h-[220px]"
+              />
+            ) : null}
 
-        {payload.kind === "post" ? (
-          <PostCard
-            post={toPreviewPost(payload.data)}
-            coverMediaType={inferPostCoverMediaType(payload.data)}
-            preview
-            className="min-h-[460px]"
-          />
-        ) : null}
+            {payload.kind === "post" ? (
+              <PostCard
+                post={toPreviewPost(payload.data)}
+                coverMediaType={inferPostCoverMediaType(payload.data)}
+                preview
+                className="h-full min-h-[220px]"
+              />
+            ) : null}
 
-        {payload.kind === "gallery" ? (
-          <GalleryCard
-            item={toPreviewGallery(payload.data)}
-            preview
-            className="min-h-[460px]"
-          />
-        ) : null}
+            {payload.kind === "gallery" ? (
+              <GalleryCard
+                item={toPreviewGallery(payload.data)}
+                preview
+                className="h-full min-h-[220px]"
+              />
+            ) : null}
+          </div>
+        </div>
       </div>
     </div>
   );

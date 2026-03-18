@@ -14,12 +14,14 @@ const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 type DeviceMode = "desktop" | "mobile";
 type PreviewMode = "card" | "detail";
+type CardStyleChoice = "auto" | "1x1" | "1x2" | "2x1" | "2x2";
 
 type MomentDraft = {
   content: string;
   locale: "en" | "zh";
   visibility: "public" | "private";
   locationName: string;
+  cardSpan: CardStyleChoice;
   media: Array<{
     type: "image" | "video";
     url: string;
@@ -34,6 +36,7 @@ type PostDraft = {
   tags: string;
   locale: "en" | "zh";
   status: "draft" | "published";
+  cardSpan: CardStyleChoice;
   coverUrl: string;
 };
 
@@ -56,6 +59,7 @@ const defaultMomentDraft: MomentDraft = {
   locale: "zh",
   visibility: "public",
   locationName: "",
+  cardSpan: "auto",
   media: [],
 };
 
@@ -66,6 +70,7 @@ const defaultPostDraft: PostDraft = {
   tags: "",
   locale: "zh",
   status: "draft",
+  cardSpan: "auto",
   coverUrl: "",
 };
 
@@ -82,6 +87,14 @@ const defaultDraftState: DraftState = {
   post: defaultPostDraft,
   gallery: defaultGalleryDraft,
 };
+
+const cardStyleOptions: Array<ChoiceOption<CardStyleChoice>> = [
+  { value: "auto", label: "自动" },
+  { value: "1x1", label: "1×1" },
+  { value: "1x2", label: "1×2" },
+  { value: "2x1", label: "2×1" },
+  { value: "2x2", label: "2×2" },
+];
 
 function normalizePublisherTab(
   value: PublisherTab | string | undefined
@@ -136,6 +149,8 @@ function toPayload(draft: DraftState): PreviewDraftPayload {
         visibility: draft.moment.visibility,
         locationName: draft.moment.locationName.trim() || undefined,
         media: draft.moment.media,
+        cardSpan:
+          draft.moment.cardSpan === "auto" ? undefined : draft.moment.cardSpan,
       },
     };
   }
@@ -156,6 +171,8 @@ function toPayload(draft: DraftState): PreviewDraftPayload {
         tags,
         status: draft.post.status,
         coverUrl: draft.post.coverUrl.trim() || undefined,
+        cardSpan:
+          draft.post.cardSpan === "auto" ? undefined : draft.post.cardSpan,
       },
     };
   }
@@ -495,6 +512,20 @@ export function PublisherStudio() {
               </label>
 
               <label>
+                卡片样式
+                <ChoiceGroup<CardStyleChoice>
+                  value={draft.moment.cardSpan}
+                  options={cardStyleOptions}
+                  onChange={(cardSpan) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      moment: { ...prev.moment, cardSpan },
+                    }))
+                  }
+                />
+              </label>
+
+              <label>
                 地点（可选）
                 <input
                   value={draft.moment.locationName}
@@ -640,6 +671,20 @@ export function PublisherStudio() {
                     setDraft((prev) => ({
                       ...prev,
                       post: { ...prev.post, status },
+                    }))
+                  }
+                />
+              </label>
+
+              <label>
+                卡片样式
+                <ChoiceGroup<CardStyleChoice>
+                  value={draft.post.cardSpan}
+                  options={cardStyleOptions}
+                  onChange={(cardSpan) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      post: { ...prev.post, cardSpan },
                     }))
                   }
                 />

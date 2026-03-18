@@ -395,6 +395,7 @@ func scanPost(scanner interface{ Scan(dest ...any) error }) (Post, error) {
 	var tagsRaw []byte
 	var excerpt sql.NullString
 	var coverURL sql.NullString
+	var cardSpan sql.NullString
 	var publishedAt sql.NullTime
 	if err := scanner.Scan(
 		&post.ID,
@@ -406,6 +407,7 @@ func scanPost(scanner interface{ Scan(dest ...any) error }) (Post, error) {
 		&coverURL,
 		&tagsRaw,
 		&post.Status,
+		&cardSpan,
 		&publishedAt,
 		&post.CreatedAt,
 		&post.UpdatedAt,
@@ -420,6 +422,7 @@ func scanPost(scanner interface{ Scan(dest ...any) error }) (Post, error) {
 	post.Tags = tags
 	post.Excerpt = nullableString(excerpt)
 	post.CoverURL = nullableString(coverURL)
+	post.CardSpan = nullableString(cardSpan)
 	post.PublishedAt = nullableTime(publishedAt)
 	return post, nil
 }
@@ -427,7 +430,7 @@ func scanPost(scanner interface{ Scan(dest ...any) error }) (Post, error) {
 func (s *Store) ListPublicPosts(ctx context.Context, locale string, limit, offset int) ([]Post, error) {
 	rows, err := s.db.QueryContext(
 		ctx,
-		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status,
+		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		        published_at, created_at, updated_at, COALESCE(revision, 1)
 		 FROM posts
 		 WHERE status = 'published' AND deleted_at IS NULL AND locale = $1
@@ -469,7 +472,7 @@ func (s *Store) ListPostsForAdmin(ctx context.Context, locale, status string, li
 	}
 
 	query := fmt.Sprintf(
-		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status,
+		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		        published_at, created_at, updated_at, COALESCE(revision, 1)
 		 FROM posts
 		 WHERE %s
@@ -500,7 +503,7 @@ func (s *Store) ListPostsForAdmin(ctx context.Context, locale, status string, li
 func (s *Store) GetPublicPostBySlug(ctx context.Context, locale, slug string) (Post, error) {
 	row := s.db.QueryRowContext(
 		ctx,
-		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status,
+		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		        published_at, created_at, updated_at, COALESCE(revision, 1)
 		 FROM posts
 		 WHERE status = 'published' AND deleted_at IS NULL AND locale = $1 AND slug = $2
@@ -521,7 +524,7 @@ func (s *Store) GetPublicPostBySlug(ctx context.Context, locale, slug string) (P
 func (s *Store) GetPostByID(ctx context.Context, id string) (Post, error) {
 	row := s.db.QueryRowContext(
 		ctx,
-		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status,
+		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		        published_at, created_at, updated_at, COALESCE(revision, 1)
 		 FROM posts
 		 WHERE id = $1 AND deleted_at IS NULL
@@ -547,6 +550,7 @@ type CreatePostInput struct {
 	CoverURL    *string
 	Tags        []string
 	Status      string
+	CardSpan    *string
 	PublishedAt *time.Time
 	UpdatedBy   *string
 }
@@ -568,9 +572,9 @@ func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, er
 
 	row := s.db.QueryRowContext(
 		ctx,
-		`INSERT INTO posts (slug, locale, title, excerpt, content, cover_url, tags, status, published_at, revision, updated_by)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, 1, $10)
-		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status,
+		`INSERT INTO posts (slug, locale, title, excerpt, content, cover_url, tags, status, card_span, published_at, revision, updated_by)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, 1, $11)
+		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		           published_at, created_at, updated_at, COALESCE(revision, 1)`,
 		input.Slug,
 		input.Locale,
@@ -580,6 +584,7 @@ func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, er
 		input.CoverURL,
 		string(tagsRaw),
 		input.Status,
+		input.CardSpan,
 		publishedAt,
 		input.UpdatedBy,
 	)
@@ -587,15 +592,17 @@ func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, er
 }
 
 type UpdatePostInput struct {
-	Title     *string
-	Slug      *string
-	Excerpt   *string
-	Content   *string
-	CoverURL  *string
-	Tags      *[]string
-	Locale    *string
-	Status    *string
-	UpdatedBy *string
+	Title       *string
+	Slug        *string
+	Excerpt     *string
+	Content     *string
+	CoverURL    *string
+	Tags        *[]string
+	Locale      *string
+	Status      *string
+	CardSpan    *string
+	CardSpanSet bool
+	UpdatedBy   *string
 }
 
 func (s *Store) UpdatePost(ctx context.Context, id string, input UpdatePostInput) (Post, error) {
@@ -628,6 +635,9 @@ func (s *Store) UpdatePost(ctx context.Context, id string, input UpdatePostInput
 	if input.Status != nil {
 		existing.Status = *input.Status
 	}
+	if input.CardSpanSet {
+		existing.CardSpan = input.CardSpan
+	}
 
 	tagsRaw, err := json.Marshal(existing.Tags)
 	if err != nil {
@@ -656,12 +666,13 @@ func (s *Store) UpdatePost(ctx context.Context, id string, input UpdatePostInput
 		     cover_url = $7,
 		     tags = $8::jsonb,
 		     status = $9,
-		     published_at = $10,
+		     card_span = $10,
+		     published_at = $11,
 		     revision = COALESCE(revision, 1) + 1,
-		     updated_by = $11,
+		     updated_by = $12,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status,
+		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		           published_at, created_at, updated_at, COALESCE(revision, 1)`,
 		id,
 		existing.Slug,
@@ -672,6 +683,7 @@ func (s *Store) UpdatePost(ctx context.Context, id string, input UpdatePostInput
 		existing.CoverURL,
 		string(tagsRaw),
 		existing.Status,
+		existing.CardSpan,
 		publishedAt,
 		input.UpdatedBy,
 	)
@@ -702,7 +714,7 @@ func (s *Store) SetPostStatus(ctx context.Context, id, status string, updatedBy 
 		     updated_by = $4,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status,
+		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		           published_at, created_at, updated_at, COALESCE(revision, 1)`,
 		id,
 		status,
@@ -735,6 +747,7 @@ func scanMoment(scanner interface{ Scan(dest ...any) error }) (Moment, error) {
 	var item Moment
 	var mediaRaw []byte
 	var locationRaw []byte
+	var cardSpan sql.NullString
 	var publishedAt sql.NullTime
 	var updatedAt sql.NullTime
 	if err := scanner.Scan(
@@ -745,6 +758,7 @@ func scanMoment(scanner interface{ Scan(dest ...any) error }) (Moment, error) {
 		&item.Visibility,
 		&locationRaw,
 		&item.Status,
+		&cardSpan,
 		&publishedAt,
 		&item.CreatedAt,
 		&updatedAt,
@@ -761,6 +775,7 @@ func scanMoment(scanner interface{ Scan(dest ...any) error }) (Moment, error) {
 		return Moment{}, err
 	}
 	item.Location = location
+	item.CardSpan = nullableString(cardSpan)
 	item.PublishedAt = nullableTime(publishedAt)
 	if updatedAt.Valid {
 		item.UpdatedAt = updatedAt.Time
@@ -773,7 +788,7 @@ func scanMoment(scanner interface{ Scan(dest ...any) error }) (Moment, error) {
 func (s *Store) ListPublicMoments(ctx context.Context, locale string, limit, offset int) ([]Moment, error) {
 	rows, err := s.db.QueryContext(
 		ctx,
-		`SELECT id::text, content, media, locale, visibility, location, status, published_at, created_at, updated_at
+		`SELECT id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
 		 FROM moments
 		 WHERE status = 'published' AND visibility = 'public' AND deleted_at IS NULL AND locale = $1
 		 ORDER BY COALESCE(published_at, created_at) DESC
@@ -814,7 +829,7 @@ func (s *Store) ListMomentsForAdmin(ctx context.Context, locale, status string, 
 	}
 
 	query := fmt.Sprintf(
-		`SELECT id::text, content, media, locale, visibility, location, status, published_at, created_at, updated_at
+		`SELECT id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
 		 FROM moments
 		 WHERE %s
 		 ORDER BY COALESCE(published_at, created_at) DESC
@@ -844,7 +859,7 @@ func (s *Store) ListMomentsForAdmin(ctx context.Context, locale, status string, 
 func (s *Store) GetPublicMomentByID(ctx context.Context, locale, id string) (Moment, error) {
 	row := s.db.QueryRowContext(
 		ctx,
-		`SELECT id::text, content, media, locale, visibility, location, status, published_at, created_at, updated_at
+		`SELECT id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
 		 FROM moments
 		 WHERE id = $1 AND locale = $2 AND status = 'published' AND visibility = 'public' AND deleted_at IS NULL
 		 LIMIT 1`,
@@ -864,7 +879,7 @@ func (s *Store) GetPublicMomentByID(ctx context.Context, locale, id string) (Mom
 func (s *Store) GetMomentByID(ctx context.Context, id string) (Moment, error) {
 	row := s.db.QueryRowContext(
 		ctx,
-		`SELECT id::text, content, media, locale, visibility, location, status, published_at, created_at, updated_at
+		`SELECT id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
 		 FROM moments
 		 WHERE id = $1 AND deleted_at IS NULL
 		 LIMIT 1`,
@@ -887,6 +902,7 @@ type CreateMomentInput struct {
 	Location    *MomentLocation
 	Media       []MomentMediaItem
 	Status      string
+	CardSpan    *string
 	PublishedAt *time.Time
 }
 
@@ -915,27 +931,30 @@ func (s *Store) CreateMoment(ctx context.Context, input CreateMomentInput) (Mome
 
 	row := s.db.QueryRowContext(
 		ctx,
-		`INSERT INTO moments (content, media, locale, visibility, location, status, published_at, updated_at)
-		 VALUES ($1, $2::jsonb, $3, $4, $5::jsonb, $6, $7, NOW())
-		 RETURNING id::text, content, media, locale, visibility, location, status, published_at, created_at, updated_at`,
+		`INSERT INTO moments (content, media, locale, visibility, location, status, card_span, published_at, updated_at)
+		 VALUES ($1, $2::jsonb, $3, $4, $5::jsonb, $6, $7, $8, NOW())
+		 RETURNING id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
 		input.Content,
 		string(mediaRaw),
 		input.Locale,
 		input.Visibility,
 		string(locationRaw),
 		input.Status,
+		input.CardSpan,
 		publishedAt,
 	)
 	return scanMoment(row)
 }
 
 type UpdateMomentInput struct {
-	Content    *string
-	Locale     *string
-	Visibility *string
-	Location   *MomentLocation
-	Media      *[]MomentMediaItem
-	Status     *string
+	Content     *string
+	Locale      *string
+	Visibility  *string
+	Location    *MomentLocation
+	Media       *[]MomentMediaItem
+	Status      *string
+	CardSpan    *string
+	CardSpanSet bool
 }
 
 func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentInput) (Moment, error) {
@@ -960,6 +979,9 @@ func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentI
 	}
 	if input.Status != nil {
 		existing.Status = *input.Status
+	}
+	if input.CardSpanSet {
+		existing.CardSpan = input.CardSpan
 	}
 
 	if strings.TrimSpace(existing.Content) == "" && len(existing.Media) == 0 {
@@ -993,10 +1015,11 @@ func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentI
 		     visibility = $5,
 		     location = $6::jsonb,
 		     status = $7,
-		     published_at = $8,
+		     card_span = $8,
+		     published_at = $9,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, content, media, locale, visibility, location, status, published_at, created_at, updated_at`,
+		 RETURNING id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
 		id,
 		existing.Content,
 		string(mediaRaw),
@@ -1004,6 +1027,7 @@ func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentI
 		existing.Visibility,
 		string(locationRaw),
 		existing.Status,
+		existing.CardSpan,
 		publishedAt,
 	)
 	item, err := scanMoment(row)
@@ -1028,7 +1052,7 @@ func (s *Store) SetMomentStatus(ctx context.Context, id, status string) (Moment,
 		     published_at = $3,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, content, media, locale, visibility, location, status, published_at, created_at, updated_at`,
+		 RETURNING id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
 		id,
 		status,
 		publishedAt,

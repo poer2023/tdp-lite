@@ -1,7 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import type { FeedItem } from "@/components/bento/types";
-import type { GalleryItem, Moment, Post } from "@/lib/content/types";
+import type { CardSpan, GalleryItem, Moment, Post } from "@/lib/content/types";
 
 import { type AppLocale } from "@/lib/locale";
 import {
@@ -110,6 +110,18 @@ function asString(value: unknown, fallback: string = ""): string {
 
 function asNullableString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function asCardSpan(value: unknown): CardSpan | null {
+  switch (value) {
+    case "1x1":
+    case "1x2":
+    case "2x1":
+    case "2x2":
+      return value;
+    default:
+      return null;
+  }
 }
 
 function asNumberOrNull(value: unknown): number | null {
@@ -328,6 +340,7 @@ function toPost(raw: unknown): Post {
     coverUrl: asNullableString(obj.coverUrl),
     tags: asArray(obj.tags).map((tag) => asString(tag)).filter(Boolean),
     status: obj.status === "published" ? "published" : "draft",
+    cardSpan: asCardSpan(obj.cardSpan),
     publishedAt: obj.publishedAt ? toDate(obj.publishedAt) : null,
     createdAt: toDate(obj.createdAt),
     updatedAt: toDate(obj.updatedAt),
@@ -376,6 +389,7 @@ function toMoment(raw: unknown): Moment {
     locale: obj.locale === "zh" ? "zh" : "en",
     visibility: obj.visibility === "private" ? "private" : "public",
     status: asString(obj.status, "published"),
+    cardSpan: asCardSpan(obj.cardSpan),
     publishedAt: obj.publishedAt ? toDate(obj.publishedAt) : null,
     location,
     createdAt: toDate(obj.createdAt),

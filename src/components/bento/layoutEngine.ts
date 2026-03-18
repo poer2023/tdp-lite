@@ -2,11 +2,6 @@ import { FeedItem } from "./types";
 
 export type BentoSpanKey = "1x1" | "1x2" | "2x1" | "2x2";
 
-type WeightedSpan = {
-  span: BentoSpanKey;
-  weight: number;
-};
-
 export const BENTO_SPAN_CLASS: Record<BentoSpanKey, string> = {
   "1x1": "col-span-1 row-span-1",
   "1x2": "col-span-1 row-span-2",
@@ -25,151 +20,164 @@ export function getFeedItemLayoutKey(item: FeedItem): string {
   return `${item.type}:${stableId}`;
 }
 
-function hashString(input: string): number {
-  let hash = 2166136261;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function seededRandom(seed: string): number {
-  return hashString(seed) / 4294967295;
-}
-
-function pickWeighted(candidates: WeightedSpan[], random: number): BentoSpanKey {
-  const total = candidates.reduce((sum, candidate) => sum + candidate.weight, 0);
-  if (total <= 0) {
+function getGalleryAutoSpan(item: Extract<FeedItem, { type: "gallery" }>): BentoSpanKey {
+  if (!item.width || !item.height || item.height === 0) {
     return "1x1";
   }
 
-  let cursor = random * total;
-  for (const candidate of candidates) {
-    cursor -= candidate.weight;
-    if (cursor <= 0) {
-      return candidate.span;
-    }
-  }
-
-  return candidates[candidates.length - 1]?.span ?? "1x1";
-}
-
-function getGalleryCandidates(item: Extract<FeedItem, { type: "gallery" }>): WeightedSpan[] {
-  if (!item.width || !item.height || item.height === 0) {
-    return [
-      { span: "1x1", weight: 0.65 },
-      { span: "2x1", weight: 0.2 },
-      { span: "1x2", weight: 0.15 },
-    ];
-  }
-
   const ratio = item.width / item.height;
-  if (ratio >= 1.25) {
-    return [
-      { span: "2x1", weight: 0.55 },
-      { span: "1x1", weight: 0.35 },
-      { span: "1x2", weight: 0.1 },
-    ];
+  if (ratio >= 1.4) {
+    return "2x1";
   }
 
-  if (ratio <= 0.8) {
-    return [
-      { span: "1x2", weight: 0.55 },
-      { span: "1x1", weight: 0.35 },
-      { span: "2x1", weight: 0.1 },
-    ];
+  if (ratio <= 0.78) {
+    return "1x2";
   }
 
-  return [
-    { span: "1x1", weight: 0.65 },
-    { span: "2x1", weight: 0.2 },
-    { span: "1x2", weight: 0.15 },
-  ];
+  return "1x1";
 }
 
-function getMomentTextCandidates(contentLength: number): WeightedSpan[] {
-  if (contentLength > 200) {
-    return [
-      { span: "1x2", weight: 0.55 },
-      { span: "1x1", weight: 0.35 },
-      { span: "2x1", weight: 0.1 },
-    ];
+function getMomentTextAutoSpan(contentLength: number): BentoSpanKey {
+  if (contentLength > 260) {
+    return "2x2";
   }
 
   if (contentLength > 120) {
-    return [
-      { span: "1x2", weight: 0.4 },
-      { span: "1x1", weight: 0.5 },
-      { span: "2x1", weight: 0.1 },
-    ];
+    return "1x2";
   }
 
-  return [
-    { span: "1x1", weight: 0.75 },
-    { span: "1x2", weight: 0.2 },
-    { span: "2x1", weight: 0.05 },
-  ];
+  if (contentLength > 36) {
+    return "2x1";
+  }
+
+  return "1x1";
 }
 
-function getBaseCandidates(item: FeedItem): WeightedSpan[] {
+function getPostTextWeight(item: Extract<FeedItem, { type: "post" }>): number {
+  const titleWeight = item.title.trim().length * 2;
+  const excerptWeight = item.excerpt?.trim().length ?? 0;
+  const contentWeight = Math.min(item.content.trim().length, 320);
+  return titleWeight + excerptWeight + contentWeight;
+}
+
+function getMomentMediaAutoSpan(item: Extract<FeedItem, { type: "moment" }>): BentoSpanKey {
+  const media = item.media ?? [];
+  const primary = media[0];
+
+  if (primary?.width && primary?.height && primary.height > 0) {
+    const ratio = primary.width / primary.height;
+    if (ratio >= 1.35) {
+      return "2x1";
+    }
+    if (ratio <= 0.82) {
+      return "1x2";
+    }
+  }
+
+  if (media.length >= 3) {
+    return "2x2";
+  }
+
+  return media.length >= 2 ? "2x1" : "1x2";
+}
+
+function getPostAutoSpan(item: Extract<FeedItem, { type: "post" }>): BentoSpanKey {
+  const textWeight = getPostTextWeight(item);
+
+  if (item.coverUrl) {
+    return textWeight > 280 ? "2x2" : "2x1";
+  }
+
+  if (textWeight > 320) {
+    return "2x2";
+  }
+
+  if (textWeight > 180) {
+    return "1x2";
+  }
+
+  if (textWeight > 60) {
+    return "2x1";
+  }
+
+  return "1x1";
+}
+
+function getExplicitSpan(item: FeedItem): BentoSpanKey | null {
+  if (item.type === "action" || item.type === "gallery") {
+    return null;
+  }
+
+  return item.cardSpan ?? null;
+}
+
+function getAutoSpan(item: FeedItem): BentoSpanKey {
   if (item.type === "action") {
-    return [{ span: "1x1", weight: 1 }];
+    return "1x1";
   }
 
   if (item.type === "post") {
-    if (item.coverUrl) {
-      return [
-        { span: "2x1", weight: 0.58 },
-        { span: "1x2", weight: 0.27 },
-        { span: "2x2", weight: 0.15 },
-      ];
-    }
-
-    return [
-      { span: "1x1", weight: 0.72 },
-      { span: "2x1", weight: 0.28 },
-    ];
+    return getPostAutoSpan(item);
   }
 
   if (item.type === "moment") {
     if (item.media && item.media.length > 0) {
-      return [
-        { span: "1x2", weight: 0.62 },
-        { span: "2x1", weight: 0.38 },
-      ];
+      return getMomentMediaAutoSpan(item);
     }
 
-    return getMomentTextCandidates(item.content.trim().length);
+    return getMomentTextAutoSpan(item.content.trim().length);
   }
 
   if (item.type === "gallery") {
-    return getGalleryCandidates(item);
+    return getGalleryAutoSpan(item);
   }
 
-  return [{ span: "1x1", weight: 1 }];
+  return "1x1";
 }
 
-function applyConstraints(
-  candidates: WeightedSpan[],
+function downgradeSpan(
+  span: BentoSpanKey,
+  options: { avoidLarge: boolean }
+): BentoSpanKey {
+  const downgradeOrder: Record<BentoSpanKey, BentoSpanKey[]> = {
+    "2x2": ["2x1", "1x2", "1x1"],
+    "2x1": ["1x1"],
+    "1x2": ["1x1"],
+    "1x1": ["1x1"],
+  };
+
+  for (const candidate of downgradeOrder[span]) {
+    if (!options.avoidLarge || !LARGE_SPANS.has(candidate)) {
+      return candidate;
+    }
+  }
+
+  return "1x1";
+}
+
+export function resolvePreferredBentoSpan(item: FeedItem): BentoSpanKey {
+  return getExplicitSpan(item) ?? getAutoSpan(item);
+}
+
+function applyAutoConstraints(
+  preferred: BentoSpanKey,
   options: {
     prevWasLarge: boolean;
     twoByTwoCount: number;
     maxTwoByTwo: number;
   }
-): WeightedSpan[] {
-  let next = candidates;
+): BentoSpanKey {
+  let next = preferred;
 
-  if (options.maxTwoByTwo === 0 || options.twoByTwoCount >= options.maxTwoByTwo) {
-    next = next.filter((candidate) => candidate.span !== "2x2");
+  if (next === "2x2" && (options.maxTwoByTwo === 0 || options.twoByTwoCount >= options.maxTwoByTwo)) {
+    next = downgradeSpan(next, { avoidLarge: false });
   }
 
-  if (options.prevWasLarge) {
-    const oneByOneCandidate = next.find((candidate) => candidate.span === "1x1");
-    return oneByOneCandidate ? [oneByOneCandidate] : [{ span: "1x1", weight: 1 }];
+  if (options.prevWasLarge && LARGE_SPANS.has(next)) {
+    next = downgradeSpan(next, { avoidLarge: true });
   }
 
-  return next.length > 0 ? next : [{ span: "1x1", weight: 1 }];
+  return next;
 }
 
 export function computeBentoSpans(items: FeedItem[]): Record<string, string> {
@@ -181,16 +189,15 @@ export function computeBentoSpans(items: FeedItem[]): Record<string, string> {
   let twoByTwoCount = 0;
 
   items.forEach((item) => {
-    const baseCandidates = getBaseCandidates(item);
-    const constrainedCandidates = applyConstraints(baseCandidates, {
-      prevWasLarge,
-      twoByTwoCount,
-      maxTwoByTwo,
-    });
-    const pickedSpan = pickWeighted(
-      constrainedCandidates,
-      seededRandom(getFeedItemLayoutKey(item))
-    );
+    const explicitSpan = getExplicitSpan(item);
+    const preferredSpan = explicitSpan ?? getAutoSpan(item);
+    const pickedSpan = explicitSpan
+      ? explicitSpan
+      : applyAutoConstraints(preferredSpan, {
+          prevWasLarge,
+          twoByTwoCount,
+          maxTwoByTwo,
+        });
 
     if (pickedSpan === "2x2") {
       twoByTwoCount += 1;

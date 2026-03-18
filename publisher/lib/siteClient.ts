@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import {
   manageActionResultSchema,
+  manageCardSpanValueSchema,
   managedMomentListResponseSchema,
   managedMomentSchema,
   managedPostListResponseSchema,
@@ -9,6 +10,7 @@ import {
   previewSessionResponseSchema,
   publishResultSchema,
   type ManageActionResult,
+  type ManageCardSpanValue,
   type ManageContentStatus,
   type ManagedMoment,
   type ManagedMomentListResponse,
@@ -352,6 +354,7 @@ async function publishMoment(
       location: draft.locationName ? { name: draft.locationName } : undefined,
       media: draft.media,
       status: "published",
+      cardSpan: draft.cardSpan,
     },
     idempotencyKey: request.idempotencyKey || randomUUID(),
   });
@@ -389,6 +392,7 @@ async function publishPost(
       tags: draft.tags,
       status: draft.status,
       coverUrl: draft.coverUrl,
+      cardSpan: draft.cardSpan,
     },
     idempotencyKey: request.idempotencyKey || randomUUID(),
   });
@@ -542,4 +546,47 @@ export async function deleteMomentOnSite(
     idempotencyKey: randomUUID(),
   });
   return manageActionResultSchema.parse(data);
+}
+
+async function updateContentCardSpanOnSite(params: {
+  kind: "post" | "moment";
+  id: string;
+  cardSpan: ManageCardSpanValue;
+}) {
+  const normalizedCardSpan = manageCardSpanValueSchema.parse(params.cardSpan);
+  const data = await signedJson({
+    path: `/v1/${params.kind === "post" ? "posts" : "moments"}/${encodeURIComponent(params.id)}`,
+    method: "PATCH",
+    body: {
+      cardSpan: normalizedCardSpan,
+    },
+    idempotencyKey: randomUUID(),
+  });
+
+  const item = asObject(asObject(data).item);
+  return params.kind === "post"
+    ? managedPostSchema.parse(item)
+    : managedMomentSchema.parse(item);
+}
+
+export async function updatePostCardSpanOnSite(
+  id: string,
+  cardSpan: ManageCardSpanValue
+): Promise<ManagedPost> {
+  return updateContentCardSpanOnSite({
+    kind: "post",
+    id,
+    cardSpan,
+  }) as Promise<ManagedPost>;
+}
+
+export async function updateMomentCardSpanOnSite(
+  id: string,
+  cardSpan: ManageCardSpanValue
+): Promise<ManagedMoment> {
+  return updateContentCardSpanOnSite({
+    kind: "moment",
+    id,
+    cardSpan,
+  }) as Promise<ManagedMoment>;
 }

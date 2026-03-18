@@ -3,6 +3,14 @@ import { z } from "zod";
 export const localeSchema = z.enum(["en", "zh"]).default("en");
 export const visibilitySchema = z.enum(["public", "private"]).default("public");
 export const postStatusSchema = z.enum(["draft", "published"]).default("draft");
+export const cardSpanSchema = z.enum(["1x1", "1x2", "2x1", "2x2"]);
+export const manageCardSpanValueSchema = z.enum([
+  "auto",
+  "1x1",
+  "1x2",
+  "2x1",
+  "2x2",
+]);
 export const manageContentKindSchema = z.enum(["moment", "post"]);
 export const manageContentStatusSchema = z
   .enum(["all", "draft", "published", "archived"])
@@ -27,6 +35,7 @@ export const publishMomentInputSchema = z
     visibility: visibilitySchema,
     locationName: z.string().trim().min(1).optional(),
     media: z.array(mediaItemSchema).default([]),
+    cardSpan: cardSpanSchema.optional(),
   })
   .refine((value) => value.content.length > 0 || value.media.length > 0, {
     message: "content or media is required",
@@ -39,6 +48,7 @@ export const previewMomentInputSchema = z.object({
   visibility: visibilitySchema,
   locationName: z.string().trim().min(1).optional(),
   media: z.array(mediaItemSchema).default([]),
+  cardSpan: cardSpanSchema.optional(),
 });
 
 export const publishPostInputSchema = z.object({
@@ -49,6 +59,7 @@ export const publishPostInputSchema = z.object({
   tags: z.array(z.string().trim().min(1)).default([]),
   status: postStatusSchema,
   coverUrl: z.string().url().optional(),
+  cardSpan: cardSpanSchema.optional(),
 });
 
 export const previewPostInputSchema = z.object({
@@ -59,6 +70,7 @@ export const previewPostInputSchema = z.object({
   tags: z.array(z.string().trim().min(1)).default([]),
   status: postStatusSchema,
   coverUrl: z.string().url().optional(),
+  cardSpan: cardSpanSchema.optional(),
 });
 
 export const publishGalleryInputSchema = z.object({
@@ -135,6 +147,7 @@ export const managedPostSchema = z.object({
   coverUrl: z.string().url().optional(),
   tags: z.array(z.string()).default([]),
   status: z.enum(["draft", "published", "archived"]),
+  cardSpan: z.union([cardSpanSchema, z.null()]).optional(),
   publishedAt: timestampStringSchema.optional(),
   createdAt: timestampStringSchema,
   updatedAt: timestampStringSchema,
@@ -155,6 +168,7 @@ export const managedMomentSchema = z.object({
     })
     .optional(),
   status: z.enum(["draft", "published", "archived"]),
+  cardSpan: z.union([cardSpanSchema, z.null()]).optional(),
   publishedAt: timestampStringSchema.optional(),
   createdAt: timestampStringSchema,
   updatedAt: timestampStringSchema,
@@ -180,6 +194,10 @@ export const manageActionResultSchema = z.object({
   ok: z.literal(true),
 });
 
+export const manageCardSpanUpdateSchema = z.object({
+  cardSpan: manageCardSpanValueSchema,
+});
+
 export type PublishDraftPayload = z.infer<typeof publishDraftPayloadSchema>;
 export type PreviewDraftPayload = z.infer<typeof previewDraftPayloadSchema>;
 export type PreviewSessionRequest = z.infer<typeof previewSessionRequestSchema>;
@@ -200,5 +218,7 @@ export type ManagedMomentListResponse = z.infer<
   typeof managedMomentListResponseSchema
 >;
 export type ManageActionResult = z.infer<typeof manageActionResultSchema>;
+export type ManageCardSpanValue = z.infer<typeof manageCardSpanValueSchema>;
+export type ManageCardSpanUpdate = z.infer<typeof manageCardSpanUpdateSchema>;
 
 export type PublisherTab = PreviewDraftPayload["kind"];

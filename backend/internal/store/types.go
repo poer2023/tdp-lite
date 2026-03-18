@@ -23,6 +23,7 @@ type Post struct {
 	CoverURL    *string    `json:"coverUrl,omitempty"`
 	Tags        []string   `json:"tags"`
 	Status      string     `json:"status"`
+	CardSpan    *string    `json:"cardSpan,omitempty"`
 	PublishedAt *time.Time `json:"publishedAt,omitempty"`
 	CreatedAt   time.Time  `json:"createdAt"`
 	UpdatedAt   time.Time  `json:"updatedAt"`
@@ -59,6 +60,7 @@ type Moment struct {
 	Visibility  string            `json:"visibility"`
 	Location    *MomentLocation   `json:"location,omitempty"`
 	Status      string            `json:"status"`
+	CardSpan    *string           `json:"cardSpan,omitempty"`
 	PublishedAt *time.Time        `json:"publishedAt,omitempty"`
 	CreatedAt   time.Time         `json:"createdAt"`
 	UpdatedAt   time.Time         `json:"updatedAt"`

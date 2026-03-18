@@ -21,6 +21,7 @@ type createPostRequest struct {
 	CoverURL    *string    `json:"coverUrl"`
 	Tags        []string   `json:"tags"`
 	Status      string     `json:"status"`
+	CardSpan    *string    `json:"cardSpan"`
 	PublishedAt *time.Time `json:"publishedAt"`
 }
 
@@ -33,6 +34,7 @@ type updatePostRequest struct {
 	CoverURL *string   `json:"coverUrl"`
 	Tags     *[]string `json:"tags"`
 	Status   *string   `json:"status"`
+	CardSpan *string   `json:"cardSpan"`
 }
 
 func normalizedLocale(input string) string {
@@ -56,6 +58,24 @@ func normalizeVisibility(input string) string {
 		return "private"
 	}
 	return "public"
+}
+
+func normalizeOptionalCardSpan(input *string) (*string, bool) {
+	if input == nil {
+		return nil, true
+	}
+
+	value := strings.TrimSpace(*input)
+	if value == "" || value == "auto" {
+		return nil, true
+	}
+
+	switch value {
+	case "1x1", "1x2", "2x1", "2x2":
+		return &value, true
+	default:
+		return nil, false
+	}
 }
 
 func normalizedListStatus(input string) (string, bool) {
@@ -106,6 +126,11 @@ func (s *Server) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Locale = normalizedLocale(strings.TrimSpace(req.Locale))
 	req.Status = normalizedStatus(strings.TrimSpace(req.Status))
+	cardSpan, ok := normalizeOptionalCardSpan(req.CardSpan)
+	if !ok {
+		writeError(w, http.StatusBadRequest, "invalid_payload", "cardSpan must be one of auto|1x1|1x2|2x1|2x2", false, requestIDFromContext(r.Context()))
+		return
+	}
 
 	if _, err := s.runWithIdempotency(w, r, req, func() (any, error) {
 		item, err := s.store.CreatePost(r.Context(), store.CreatePostInput{
@@ -117,6 +142,7 @@ func (s *Server) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 			CoverURL:    trimPtr(req.CoverURL),
 			Tags:        req.Tags,
 			Status:      req.Status,
+			CardSpan:    cardSpan,
 			PublishedAt: req.PublishedAt,
 			UpdatedBy:   ptr(actorKeyID(r)),
 		})
@@ -188,18 +214,25 @@ func (s *Server) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
 		value := strings.TrimSpace(*req.Content)
 		req.Content = &value
 	}
+	cardSpan, ok := normalizeOptionalCardSpan(req.CardSpan)
+	if req.CardSpan != nil && !ok {
+		writeError(w, http.StatusBadRequest, "invalid_payload", "cardSpan must be one of auto|1x1|1x2|2x1|2x2", false, requestIDFromContext(r.Context()))
+		return
+	}
 
 	if _, err := s.runWithIdempotency(w, r, map[string]any{"id": id, "payload": req}, func() (any, error) {
 		item, err := s.store.UpdatePost(r.Context(), id, store.UpdatePostInput{
-			Locale:    req.Locale,
-			Title:     req.Title,
-			Slug:      req.Slug,
-			Excerpt:   trimPtr(req.Excerpt),
-			Content:   req.Content,
-			CoverURL:  trimPtr(req.CoverURL),
-			Tags:      req.Tags,
-			Status:    req.Status,
-			UpdatedBy: ptr(actorKeyID(r)),
+			Locale:      req.Locale,
+			Title:       req.Title,
+			Slug:        req.Slug,
+			Excerpt:     trimPtr(req.Excerpt),
+			Content:     req.Content,
+			CoverURL:    trimPtr(req.CoverURL),
+			Tags:        req.Tags,
+			Status:      req.Status,
+			CardSpan:    cardSpan,
+			CardSpanSet: req.CardSpan != nil,
+			UpdatedBy:   ptr(actorKeyID(r)),
 		})
 		if err != nil {
 			return nil, err
@@ -254,6 +287,7 @@ type createMomentRequest struct {
 	Location    *store.MomentLocation   `json:"location"`
 	Media       []store.MomentMediaItem `json:"media"`
 	Status      string                  `json:"status"`
+	CardSpan    *string                 `json:"cardSpan"`
 	PublishedAt *time.Time              `json:"publishedAt"`
 }
 
@@ -264,6 +298,7 @@ type updateMomentRequest struct {
 	Location   *store.MomentLocation    `json:"location"`
 	Media      *[]store.MomentMediaItem `json:"media"`
 	Status     *string                  `json:"status"`
+	CardSpan   *string                  `json:"cardSpan"`
 }
 
 func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
@@ -280,6 +315,11 @@ func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
 	req.Locale = normalizedLocale(req.Locale)
 	req.Visibility = normalizeVisibility(req.Visibility)
 	req.Status = normalizedStatus(req.Status)
+	cardSpan, ok := normalizeOptionalCardSpan(req.CardSpan)
+	if !ok {
+		writeError(w, http.StatusBadRequest, "invalid_payload", "cardSpan must be one of auto|1x1|1x2|2x1|2x2", false, requestIDFromContext(r.Context()))
+		return
+	}
 
 	if _, err := s.runWithIdempotency(w, r, req, func() (any, error) {
 		item, err := s.store.CreateMoment(r.Context(), store.CreateMomentInput{
@@ -289,6 +329,7 @@ func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
 			Location:    req.Location,
 			Media:       req.Media,
 			Status:      req.Status,
+			CardSpan:    cardSpan,
 			PublishedAt: req.PublishedAt,
 		})
 		if err != nil {
@@ -354,15 +395,22 @@ func (s *Server) handleUpdateMoment(w http.ResponseWriter, r *http.Request) {
 		value := normalizedStatus(*req.Status)
 		req.Status = &value
 	}
+	cardSpan, ok := normalizeOptionalCardSpan(req.CardSpan)
+	if req.CardSpan != nil && !ok {
+		writeError(w, http.StatusBadRequest, "invalid_payload", "cardSpan must be one of auto|1x1|1x2|2x1|2x2", false, requestIDFromContext(r.Context()))
+		return
+	}
 
 	if _, err := s.runWithIdempotency(w, r, map[string]any{"id": id, "payload": req}, func() (any, error) {
 		item, err := s.store.UpdateMoment(r.Context(), id, store.UpdateMomentInput{
-			Content:    req.Content,
-			Locale:     req.Locale,
-			Visibility: req.Visibility,
-			Location:   req.Location,
-			Media:      req.Media,
-			Status:     req.Status,
+			Content:     req.Content,
+			Locale:      req.Locale,
+			Visibility:  req.Visibility,
+			Location:    req.Location,
+			Media:       req.Media,
+			Status:      req.Status,
+			CardSpan:    cardSpan,
+			CardSpanSet: req.CardSpan != nil,
 		})
 		if err != nil {
 			return nil, err
