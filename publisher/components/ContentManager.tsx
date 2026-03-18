@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import type {
   ManageContentStatus,
   ManagedMoment,
+  ManagedMomentListResponse,
   ManagedPost,
+  ManagedPostListResponse,
+} from "@/lib/contracts";
+import {
+  managedMomentListResponseSchema,
+  managedPostListResponseSchema,
 } from "@/lib/contracts";
 
 type ContentKind = "moment" | "post";
@@ -63,7 +69,9 @@ function summarizePost(item: ManagedPost): string {
     return item.excerpt.trim();
   }
 
-  const summary = item.content.replace(/\s+/g, " ").trim();
+  const summary = String(item.content || "")
+    .replace(/\s+/g, " ")
+    .trim();
   if (!summary) {
     return "未填写正文";
   }
@@ -72,13 +80,14 @@ function summarizePost(item: ManagedPost): string {
 }
 
 function summarizeMoment(item: ManagedMoment): string {
-  const mediaLabel =
-    item.media.length > 0 ? `媒体 ${item.media.length} 项` : "无媒体";
+  const mediaCount = Array.isArray(item.media) ? item.media.length : 0;
+  const content = typeof item.content === "string" ? item.content.trim() : "";
+  const mediaLabel = mediaCount > 0 ? `媒体 ${mediaCount} 项` : "无媒体";
   const locationLabel = item.location?.name ? ` · ${item.location.name}` : "";
   const visibilityLabel = item.visibility === "public" ? "公开" : "私密";
 
-  if (item.content.trim()) {
-    return `${item.content.trim().slice(0, 120)} · ${mediaLabel} · ${visibilityLabel}${locationLabel}`;
+  if (content) {
+    return `${content.slice(0, 120)} · ${mediaLabel} · ${visibilityLabel}${locationLabel}`;
   }
 
   return `纯媒体动态 · ${mediaLabel} · ${visibilityLabel}${locationLabel}`;
@@ -97,6 +106,22 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
   }
 
   return payload as T;
+}
+
+function parseManagementItems(
+  kind: ContentKind,
+  payload: unknown
+): ManagedMomentListResponse | ManagedPostListResponse {
+  const parsed =
+    kind === "post"
+      ? managedPostListResponseSchema.safeParse(payload)
+      : managedMomentListResponseSchema.safeParse(payload);
+
+  if (!parsed.success) {
+    throw new Error("内容列表数据格式异常，请刷新后重试。");
+  }
+
+  return parsed.data;
 }
 
 export function ContentManager() {
@@ -120,10 +145,9 @@ export function ContentManager() {
         `/api/manage/content?kind=${nextKind}&status=${nextStatus}&limit=${PAGE_SIZE}`,
         { cache: "no-store" }
       );
-      const payload = await parseJsonResponse<{ items: ManagedItem[] }>(
-        response
-      );
-      setItems(payload.items);
+      const payload = await parseJsonResponse<unknown>(response);
+      const parsed = parseManagementItems(nextKind, payload);
+      setItems(parsed.items);
       return true;
     } catch (loadError) {
       const nextMessage =
@@ -210,6 +234,14 @@ export function ContentManager() {
     const isActing = actingId === item.id;
     const tagCount = Array.isArray(item.tags) ? item.tags.length : 0;
     const revision = typeof item.revision === "number" ? item.revision : 1;
+    const title =
+      typeof item.title === "string" && item.title.trim()
+        ? item.title.trim()
+        : "未命名文章";
+    const slug =
+      typeof item.slug === "string" && item.slug.trim()
+        ? item.slug.trim()
+        : "未生成";
 
     return (
       <article key={item.id} className="manager-card">
@@ -225,11 +257,11 @@ export function ContentManager() {
           </span>
         </div>
 
-        <h2 className="manager-card-title">{item.title}</h2>
+        <h2 className="manager-card-title">{title}</h2>
         <p className="manager-card-summary">{summarizePost(item)}</p>
 
         <div className="manager-card-meta">
-          <span>Slug · {item.slug}</span>
+          <span>Slug · {slug}</span>
           <span>标签 {tagCount} 个</span>
           <span>修订 {revision}</span>
         </div>
@@ -260,7 +292,14 @@ export function ContentManager() {
 
   const renderMomentCard = (item: ManagedMoment) => {
     const isActing = actingId === item.id;
-    const title = item.content.trim() || "纯媒体动态";
+    const mediaCount = Array.isArray(item.media) ? item.media.length : 0;
+    const safeContent =
+      typeof item.content === "string" ? item.content.trim() : "";
+    const title = safeContent || "纯媒体动态";
+    const shortId =
+      typeof item.id === "string" && item.id.length >= 8
+        ? item.id.slice(0, 8)
+        : "unknown";
 
     return (
       <article key={item.id} className="manager-card">
@@ -282,8 +321,8 @@ export function ContentManager() {
         <p className="manager-card-summary">{summarizeMoment(item)}</p>
 
         <div className="manager-card-meta">
-          <span>媒体 {item.media.length} 项</span>
-          <span>ID · {item.id.slice(0, 8)}</span>
+          <span>媒体 {mediaCount} 项</span>
+          <span>ID · {shortId}</span>
           <span>{item.location?.name || "未设置位置"}</span>
         </div>
 
