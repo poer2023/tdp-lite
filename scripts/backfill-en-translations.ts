@@ -170,7 +170,10 @@ function requireEnv(name: string): string {
 
 function targetConfig() {
   return {
-    baseUrl: requireEnv("PUBLISH_TARGET_BASE_URL").replace(/\/$/, ""),
+    baseUrl: (
+      process.env.PUBLISH_TARGET_BASE_URL ||
+      requireEnv("COOLIFY_PUBLISH_TARGET_BASE_URL")
+    ).replace(/\/$/, ""),
     keyId: requireEnv("TDP_INTERNAL_KEY_ID"),
     keySecret: requireEnv("TDP_INTERNAL_KEY_SECRET"),
   };
