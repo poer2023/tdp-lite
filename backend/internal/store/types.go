@@ -14,20 +14,21 @@ type APIKeyRecord struct {
 }
 
 type Post struct {
-	ID          string     `json:"id"`
-	Slug        string     `json:"slug"`
-	Locale      string     `json:"locale"`
-	Title       string     `json:"title"`
-	Excerpt     *string    `json:"excerpt,omitempty"`
-	Content     string     `json:"content"`
-	CoverURL    *string    `json:"coverUrl,omitempty"`
-	Tags        []string   `json:"tags"`
-	Status      string     `json:"status"`
-	CardSpan    *string    `json:"cardSpan,omitempty"`
-	PublishedAt *time.Time `json:"publishedAt,omitempty"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	Revision    int        `json:"revision"`
+	ID             string     `json:"id"`
+	TranslationKey string     `json:"translationKey"`
+	Slug           string     `json:"slug"`
+	Locale         string     `json:"locale"`
+	Title          string     `json:"title"`
+	Excerpt        *string    `json:"excerpt,omitempty"`
+	Content        string     `json:"content"`
+	CoverURL       *string    `json:"coverUrl,omitempty"`
+	Tags           []string   `json:"tags"`
+	Status         string     `json:"status"`
+	CardSpan       *string    `json:"cardSpan,omitempty"`
+	PublishedAt    *time.Time `json:"publishedAt,omitempty"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
+	Revision       int        `json:"revision"`
 }
 
 type MomentMediaItem struct {
@@ -53,41 +54,43 @@ type MomentLocation struct {
 }
 
 type Moment struct {
-	ID          string            `json:"id"`
-	Content     string            `json:"content"`
-	Media       []MomentMediaItem `json:"media"`
-	Locale      string            `json:"locale"`
-	Visibility  string            `json:"visibility"`
-	Location    *MomentLocation   `json:"location,omitempty"`
-	Status      string            `json:"status"`
-	CardSpan    *string           `json:"cardSpan,omitempty"`
-	PublishedAt *time.Time        `json:"publishedAt,omitempty"`
-	CreatedAt   time.Time         `json:"createdAt"`
-	UpdatedAt   time.Time         `json:"updatedAt"`
+	ID             string            `json:"id"`
+	TranslationKey string            `json:"translationKey"`
+	Content        string            `json:"content"`
+	Media          []MomentMediaItem `json:"media"`
+	Locale         string            `json:"locale"`
+	Visibility     string            `json:"visibility"`
+	Location       *MomentLocation   `json:"location,omitempty"`
+	Status         string            `json:"status"`
+	CardSpan       *string           `json:"cardSpan,omitempty"`
+	PublishedAt    *time.Time        `json:"publishedAt,omitempty"`
+	CreatedAt      time.Time         `json:"createdAt"`
+	UpdatedAt      time.Time         `json:"updatedAt"`
 }
 
 type GalleryItem struct {
-	ID          string     `json:"id"`
-	Locale      string     `json:"locale"`
-	FileURL     string     `json:"fileUrl"`
-	ThumbURL    *string    `json:"thumbUrl,omitempty"`
-	Title       *string    `json:"title,omitempty"`
-	Width       *int       `json:"width,omitempty"`
-	Height      *int       `json:"height,omitempty"`
-	CapturedAt  *time.Time `json:"capturedAt,omitempty"`
-	Camera      *string    `json:"camera,omitempty"`
-	Lens        *string    `json:"lens,omitempty"`
-	FocalLength *string    `json:"focalLength,omitempty"`
-	Aperture    *string    `json:"aperture,omitempty"`
-	ISO         *int       `json:"iso,omitempty"`
-	Latitude    *float64   `json:"latitude,omitempty"`
-	Longitude   *float64   `json:"longitude,omitempty"`
-	IsLivePhoto bool       `json:"isLivePhoto"`
-	VideoURL    *string    `json:"videoUrl,omitempty"`
-	Status      string     `json:"status"`
-	PublishedAt *time.Time `json:"publishedAt,omitempty"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
+	ID             string     `json:"id"`
+	TranslationKey string     `json:"translationKey"`
+	Locale         string     `json:"locale"`
+	FileURL        string     `json:"fileUrl"`
+	ThumbURL       *string    `json:"thumbUrl,omitempty"`
+	Title          *string    `json:"title,omitempty"`
+	Width          *int       `json:"width,omitempty"`
+	Height         *int       `json:"height,omitempty"`
+	CapturedAt     *time.Time `json:"capturedAt,omitempty"`
+	Camera         *string    `json:"camera,omitempty"`
+	Lens           *string    `json:"lens,omitempty"`
+	FocalLength    *string    `json:"focalLength,omitempty"`
+	Aperture       *string    `json:"aperture,omitempty"`
+	ISO            *int       `json:"iso,omitempty"`
+	Latitude       *float64   `json:"latitude,omitempty"`
+	Longitude      *float64   `json:"longitude,omitempty"`
+	IsLivePhoto    bool       `json:"isLivePhoto"`
+	VideoURL       *string    `json:"videoUrl,omitempty"`
+	Status         string     `json:"status"`
+	PublishedAt    *time.Time `json:"publishedAt,omitempty"`
+	CreatedAt      time.Time  `json:"createdAt"`
+	UpdatedAt      time.Time  `json:"updatedAt"`
 }
 
 type FeedItem struct {

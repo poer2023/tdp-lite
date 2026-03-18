@@ -19,6 +19,27 @@ var (
 	ErrMomentContentOrMediaRequired = errors.New("moment content or media is required")
 )
 
+const canonicalPublicLocale = "zh"
+
+func normalizePublicLocale(locale string) string {
+	if locale == canonicalPublicLocale {
+		return canonicalPublicLocale
+	}
+	return "en"
+}
+
+func postForLocaleView(item Post, locale string) Post {
+	next := item
+	next.Locale = locale
+	return next
+}
+
+func momentForLocaleView(item Moment, locale string) Moment {
+	next := item
+	next.Locale = locale
+	return next
+}
+
 type Store struct {
 	db *sql.DB
 }
@@ -399,6 +420,7 @@ func scanPost(scanner interface{ Scan(dest ...any) error }) (Post, error) {
 	var publishedAt sql.NullTime
 	if err := scanner.Scan(
 		&post.ID,
+		&post.TranslationKey,
 		&post.Slug,
 		&post.Locale,
 		&post.Title,
@@ -427,10 +449,10 @@ func scanPost(scanner interface{ Scan(dest ...any) error }) (Post, error) {
 	return post, nil
 }
 
-func (s *Store) ListPublicPosts(ctx context.Context, locale string, limit, offset int) ([]Post, error) {
+func (s *Store) listPublishedPostsByLocale(ctx context.Context, locale string, limit, offset int) ([]Post, error) {
 	rows, err := s.db.QueryContext(
 		ctx,
-		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		`SELECT id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		        published_at, created_at, updated_at, COALESCE(revision, 1)
 		 FROM posts
 		 WHERE status = 'published' AND deleted_at IS NULL AND locale = $1
@@ -456,6 +478,174 @@ func (s *Store) ListPublicPosts(ctx context.Context, locale string, limit, offse
 	return items, rows.Err()
 }
 
+func (s *Store) listPublishedPostsByTranslationKeys(
+	ctx context.Context,
+	locale string,
+	keys []string,
+) (map[string]Post, error) {
+	if len(keys) == 0 {
+		return map[string]Post{}, nil
+	}
+
+	args := make([]any, 0, len(keys)+1)
+	args = append(args, locale)
+	placeholders := make([]string, 0, len(keys))
+	for _, key := range keys {
+		args = append(args, key)
+		placeholders = append(placeholders, fmt.Sprintf("$%d", len(args)))
+	}
+
+	rows, err := s.db.QueryContext(
+		ctx,
+		fmt.Sprintf(
+			`SELECT id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+			        published_at, created_at, updated_at, COALESCE(revision, 1)
+			 FROM posts
+			 WHERE status = 'published' AND deleted_at IS NULL AND locale = $1 AND translation_key::text IN (%s)`,
+			strings.Join(placeholders, ", "),
+		),
+		args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make(map[string]Post, len(keys))
+	for rows.Next() {
+		item, err := scanPost(rows)
+		if err != nil {
+			return nil, err
+		}
+		items[item.TranslationKey] = item
+	}
+	return items, rows.Err()
+}
+
+func (s *Store) getPublishedPostBySlugForLocale(ctx context.Context, locale, slug string) (Post, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		        published_at, created_at, updated_at, COALESCE(revision, 1)
+		 FROM posts
+		 WHERE status = 'published' AND deleted_at IS NULL AND locale = $1 AND slug = $2
+		 LIMIT 1`,
+		locale,
+		slug,
+	)
+	item, err := scanPost(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Post{}, ErrNotFound
+		}
+		return Post{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) getPublishedPostBySlugAnyLocale(ctx context.Context, slug string) (Post, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		        published_at, created_at, updated_at, COALESCE(revision, 1)
+		 FROM posts
+		 WHERE status = 'published' AND deleted_at IS NULL AND slug = $1
+		 ORDER BY CASE WHEN locale = $2 THEN 0 ELSE 1 END
+		 LIMIT 1`,
+		slug,
+		canonicalPublicLocale,
+	)
+	item, err := scanPost(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Post{}, ErrNotFound
+		}
+		return Post{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) getPublishedPostByTranslationKeyForLocale(
+	ctx context.Context,
+	locale, translationKey string,
+) (Post, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		        published_at, created_at, updated_at, COALESCE(revision, 1)
+		 FROM posts
+		 WHERE status = 'published' AND deleted_at IS NULL AND locale = $1 AND translation_key::text = $2
+		 LIMIT 1`,
+		locale,
+		translationKey,
+	)
+	item, err := scanPost(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Post{}, ErrNotFound
+		}
+		return Post{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) resolveCanonicalPostBySlug(ctx context.Context, slug string) (Post, error) {
+	item, err := s.getPublishedPostBySlugForLocale(ctx, canonicalPublicLocale, slug)
+	if err == nil {
+		return item, nil
+	}
+	if !errors.Is(err, ErrNotFound) {
+		return Post{}, err
+	}
+
+	anyLocaleItem, err := s.getPublishedPostBySlugAnyLocale(ctx, slug)
+	if err != nil {
+		return Post{}, err
+	}
+	if anyLocaleItem.Locale == canonicalPublicLocale {
+		return anyLocaleItem, nil
+	}
+	return s.getPublishedPostByTranslationKeyForLocale(
+		ctx,
+		canonicalPublicLocale,
+		anyLocaleItem.TranslationKey,
+	)
+}
+
+func (s *Store) ListPublicPosts(ctx context.Context, locale string, limit, offset int) ([]Post, error) {
+	normalizedLocale := normalizePublicLocale(locale)
+	if normalizedLocale == canonicalPublicLocale {
+		return s.listPublishedPostsByLocale(ctx, canonicalPublicLocale, limit, offset)
+	}
+
+	canonicalItems, err := s.listPublishedPostsByLocale(ctx, canonicalPublicLocale, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	if len(canonicalItems) == 0 {
+		return []Post{}, nil
+	}
+
+	keys := make([]string, 0, len(canonicalItems))
+	for _, item := range canonicalItems {
+		keys = append(keys, item.TranslationKey)
+	}
+	localizedByKey, err := s.listPublishedPostsByTranslationKeys(ctx, normalizedLocale, keys)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]Post, 0, len(canonicalItems))
+	for _, item := range canonicalItems {
+		if localized, ok := localizedByKey[item.TranslationKey]; ok {
+			items = append(items, postForLocaleView(localized, normalizedLocale))
+			continue
+		}
+		items = append(items, postForLocaleView(item, normalizedLocale))
+	}
+	return items, nil
+}
+
 func (s *Store) ListPostsForAdmin(ctx context.Context, locale, status string, limit, offset int) ([]Post, error) {
 	args := make([]any, 0, 4)
 	addArg := func(value any) string {
@@ -472,7 +662,7 @@ func (s *Store) ListPostsForAdmin(ctx context.Context, locale, status string, li
 	}
 
 	query := fmt.Sprintf(
-		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		`SELECT id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		        published_at, created_at, updated_at, COALESCE(revision, 1)
 		 FROM posts
 		 WHERE %s
@@ -501,30 +691,37 @@ func (s *Store) ListPostsForAdmin(ctx context.Context, locale, status string, li
 }
 
 func (s *Store) GetPublicPostBySlug(ctx context.Context, locale, slug string) (Post, error) {
-	row := s.db.QueryRowContext(
-		ctx,
-		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
-		        published_at, created_at, updated_at, COALESCE(revision, 1)
-		 FROM posts
-		 WHERE status = 'published' AND deleted_at IS NULL AND locale = $1 AND slug = $2
-		 LIMIT 1`,
-		locale,
-		slug,
-	)
-	item, err := scanPost(row)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Post{}, ErrNotFound
+	normalizedLocale := normalizePublicLocale(locale)
+	if normalizedLocale == canonicalPublicLocale {
+		canonicalItem, err := s.resolveCanonicalPostBySlug(ctx, slug)
+		if err != nil {
+			return Post{}, err
 		}
+		return postForLocaleView(canonicalItem, canonicalPublicLocale), nil
+	}
+
+	canonicalItem, err := s.resolveCanonicalPostBySlug(ctx, slug)
+	if err != nil {
 		return Post{}, err
 	}
-	return item, nil
+	localizedItem, err := s.getPublishedPostByTranslationKeyForLocale(
+		ctx,
+		normalizedLocale,
+		canonicalItem.TranslationKey,
+	)
+	if err == nil {
+		return postForLocaleView(localizedItem, normalizedLocale), nil
+	}
+	if !errors.Is(err, ErrNotFound) {
+		return Post{}, err
+	}
+	return postForLocaleView(canonicalItem, normalizedLocale), nil
 }
 
 func (s *Store) GetPostByID(ctx context.Context, id string) (Post, error) {
 	row := s.db.QueryRowContext(
 		ctx,
-		`SELECT id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		`SELECT id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		        published_at, created_at, updated_at, COALESCE(revision, 1)
 		 FROM posts
 		 WHERE id = $1 AND deleted_at IS NULL
@@ -574,7 +771,7 @@ func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, er
 		ctx,
 		`INSERT INTO posts (slug, locale, title, excerpt, content, cover_url, tags, status, card_span, published_at, revision, updated_by)
 		 VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, 1, $11)
-		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		 RETURNING id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		           published_at, created_at, updated_at, COALESCE(revision, 1)`,
 		input.Slug,
 		input.Locale,
@@ -672,7 +869,7 @@ func (s *Store) UpdatePost(ctx context.Context, id string, input UpdatePostInput
 		     updated_by = $12,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		 RETURNING id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		           published_at, created_at, updated_at, COALESCE(revision, 1)`,
 		id,
 		existing.Slug,
@@ -714,7 +911,7 @@ func (s *Store) SetPostStatus(ctx context.Context, id, status string, updatedBy 
 		     updated_by = $4,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
+		 RETURNING id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		           published_at, created_at, updated_at, COALESCE(revision, 1)`,
 		id,
 		status,
@@ -752,6 +949,7 @@ func scanMoment(scanner interface{ Scan(dest ...any) error }) (Moment, error) {
 	var updatedAt sql.NullTime
 	if err := scanner.Scan(
 		&item.ID,
+		&item.TranslationKey,
 		&item.Content,
 		&mediaRaw,
 		&item.Locale,
@@ -785,10 +983,10 @@ func scanMoment(scanner interface{ Scan(dest ...any) error }) (Moment, error) {
 	return item, nil
 }
 
-func (s *Store) ListPublicMoments(ctx context.Context, locale string, limit, offset int) ([]Moment, error) {
+func (s *Store) listPublishedMomentsByLocale(ctx context.Context, locale string, limit, offset int) ([]Moment, error) {
 	rows, err := s.db.QueryContext(
 		ctx,
-		`SELECT id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
+		`SELECT id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
 		 FROM moments
 		 WHERE status = 'published' AND visibility = 'public' AND deleted_at IS NULL AND locale = $1
 		 ORDER BY COALESCE(published_at, created_at) DESC
@@ -813,6 +1011,170 @@ func (s *Store) ListPublicMoments(ctx context.Context, locale string, limit, off
 	return items, rows.Err()
 }
 
+func (s *Store) listPublishedMomentsByTranslationKeys(
+	ctx context.Context,
+	locale string,
+	keys []string,
+) (map[string]Moment, error) {
+	if len(keys) == 0 {
+		return map[string]Moment{}, nil
+	}
+
+	args := make([]any, 0, len(keys)+1)
+	args = append(args, locale)
+	placeholders := make([]string, 0, len(keys))
+	for _, key := range keys {
+		args = append(args, key)
+		placeholders = append(placeholders, fmt.Sprintf("$%d", len(args)))
+	}
+
+	rows, err := s.db.QueryContext(
+		ctx,
+		fmt.Sprintf(
+			`SELECT id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
+			 FROM moments
+			 WHERE status = 'published' AND visibility = 'public' AND deleted_at IS NULL AND locale = $1 AND translation_key::text IN (%s)`,
+			strings.Join(placeholders, ", "),
+		),
+		args...,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	items := make(map[string]Moment, len(keys))
+	for rows.Next() {
+		item, err := scanMoment(rows)
+		if err != nil {
+			return nil, err
+		}
+		items[item.TranslationKey] = item
+	}
+	return items, rows.Err()
+}
+
+func (s *Store) getPublishedMomentByIDForLocale(ctx context.Context, locale, id string) (Moment, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
+		 FROM moments
+		 WHERE id = $1 AND locale = $2 AND status = 'published' AND visibility = 'public' AND deleted_at IS NULL
+		 LIMIT 1`,
+		id,
+		locale,
+	)
+	item, err := scanMoment(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Moment{}, ErrNotFound
+		}
+		return Moment{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) getPublishedMomentByIDAnyLocale(ctx context.Context, id string) (Moment, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
+		 FROM moments
+		 WHERE id = $1 AND status = 'published' AND visibility = 'public' AND deleted_at IS NULL
+		 ORDER BY CASE WHEN locale = $2 THEN 0 ELSE 1 END
+		 LIMIT 1`,
+		id,
+		canonicalPublicLocale,
+	)
+	item, err := scanMoment(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Moment{}, ErrNotFound
+		}
+		return Moment{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) getPublishedMomentByTranslationKeyForLocale(
+	ctx context.Context,
+	locale, translationKey string,
+) (Moment, error) {
+	row := s.db.QueryRowContext(
+		ctx,
+		`SELECT id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
+		 FROM moments
+		 WHERE status = 'published' AND visibility = 'public' AND deleted_at IS NULL AND locale = $1 AND translation_key::text = $2
+		 LIMIT 1`,
+		locale,
+		translationKey,
+	)
+	item, err := scanMoment(row)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Moment{}, ErrNotFound
+		}
+		return Moment{}, err
+	}
+	return item, nil
+}
+
+func (s *Store) resolveCanonicalMomentByID(ctx context.Context, id string) (Moment, error) {
+	item, err := s.getPublishedMomentByIDForLocale(ctx, canonicalPublicLocale, id)
+	if err == nil {
+		return item, nil
+	}
+	if !errors.Is(err, ErrNotFound) {
+		return Moment{}, err
+	}
+
+	anyLocaleItem, err := s.getPublishedMomentByIDAnyLocale(ctx, id)
+	if err != nil {
+		return Moment{}, err
+	}
+	if anyLocaleItem.Locale == canonicalPublicLocale {
+		return anyLocaleItem, nil
+	}
+	return s.getPublishedMomentByTranslationKeyForLocale(
+		ctx,
+		canonicalPublicLocale,
+		anyLocaleItem.TranslationKey,
+	)
+}
+
+func (s *Store) ListPublicMoments(ctx context.Context, locale string, limit, offset int) ([]Moment, error) {
+	normalizedLocale := normalizePublicLocale(locale)
+	if normalizedLocale == canonicalPublicLocale {
+		return s.listPublishedMomentsByLocale(ctx, canonicalPublicLocale, limit, offset)
+	}
+
+	canonicalItems, err := s.listPublishedMomentsByLocale(ctx, canonicalPublicLocale, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	if len(canonicalItems) == 0 {
+		return []Moment{}, nil
+	}
+
+	keys := make([]string, 0, len(canonicalItems))
+	for _, item := range canonicalItems {
+		keys = append(keys, item.TranslationKey)
+	}
+	localizedByKey, err := s.listPublishedMomentsByTranslationKeys(ctx, normalizedLocale, keys)
+	if err != nil {
+		return nil, err
+	}
+
+	items := make([]Moment, 0, len(canonicalItems))
+	for _, item := range canonicalItems {
+		if localized, ok := localizedByKey[item.TranslationKey]; ok {
+			items = append(items, momentForLocaleView(localized, normalizedLocale))
+			continue
+		}
+		items = append(items, momentForLocaleView(item, normalizedLocale))
+	}
+	return items, nil
+}
+
 func (s *Store) ListMomentsForAdmin(ctx context.Context, locale, status string, limit, offset int) ([]Moment, error) {
 	args := make([]any, 0, 4)
 	addArg := func(value any) string {
@@ -829,7 +1191,7 @@ func (s *Store) ListMomentsForAdmin(ctx context.Context, locale, status string, 
 	}
 
 	query := fmt.Sprintf(
-		`SELECT id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
+		`SELECT id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
 		 FROM moments
 		 WHERE %s
 		 ORDER BY COALESCE(published_at, created_at) DESC
@@ -857,29 +1219,37 @@ func (s *Store) ListMomentsForAdmin(ctx context.Context, locale, status string, 
 }
 
 func (s *Store) GetPublicMomentByID(ctx context.Context, locale, id string) (Moment, error) {
-	row := s.db.QueryRowContext(
-		ctx,
-		`SELECT id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
-		 FROM moments
-		 WHERE id = $1 AND locale = $2 AND status = 'published' AND visibility = 'public' AND deleted_at IS NULL
-		 LIMIT 1`,
-		id,
-		locale,
-	)
-	item, err := scanMoment(row)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Moment{}, ErrNotFound
+	normalizedLocale := normalizePublicLocale(locale)
+	if normalizedLocale == canonicalPublicLocale {
+		canonicalItem, err := s.resolveCanonicalMomentByID(ctx, id)
+		if err != nil {
+			return Moment{}, err
 		}
+		return momentForLocaleView(canonicalItem, canonicalPublicLocale), nil
+	}
+
+	canonicalItem, err := s.resolveCanonicalMomentByID(ctx, id)
+	if err != nil {
 		return Moment{}, err
 	}
-	return item, nil
+	localizedItem, err := s.getPublishedMomentByTranslationKeyForLocale(
+		ctx,
+		normalizedLocale,
+		canonicalItem.TranslationKey,
+	)
+	if err == nil {
+		return momentForLocaleView(localizedItem, normalizedLocale), nil
+	}
+	if !errors.Is(err, ErrNotFound) {
+		return Moment{}, err
+	}
+	return momentForLocaleView(canonicalItem, normalizedLocale), nil
 }
 
 func (s *Store) GetMomentByID(ctx context.Context, id string) (Moment, error) {
 	row := s.db.QueryRowContext(
 		ctx,
-		`SELECT id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
+		`SELECT id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at
 		 FROM moments
 		 WHERE id = $1 AND deleted_at IS NULL
 		 LIMIT 1`,
@@ -933,7 +1303,7 @@ func (s *Store) CreateMoment(ctx context.Context, input CreateMomentInput) (Mome
 		ctx,
 		`INSERT INTO moments (content, media, locale, visibility, location, status, card_span, published_at, updated_at)
 		 VALUES ($1, $2::jsonb, $3, $4, $5::jsonb, $6, $7, $8, NOW())
-		 RETURNING id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
+		 RETURNING id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
 		input.Content,
 		string(mediaRaw),
 		input.Locale,
@@ -1019,7 +1389,7 @@ func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentI
 		     published_at = $9,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
+		 RETURNING id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
 		id,
 		existing.Content,
 		string(mediaRaw),
@@ -1052,7 +1422,7 @@ func (s *Store) SetMomentStatus(ctx context.Context, id, status string) (Moment,
 		     published_at = $3,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
+		 RETURNING id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
 		id,
 		status,
 		publishedAt,
@@ -1095,6 +1465,7 @@ func scanGallery(scanner interface{ Scan(dest ...any) error }) (GalleryItem, err
 	var publishedAt sql.NullTime
 	if err := scanner.Scan(
 		&item.ID,
+		&item.TranslationKey,
 		&item.Locale,
 		&item.FileURL,
 		&thumbURL,
@@ -1136,7 +1507,7 @@ func scanGallery(scanner interface{ Scan(dest ...any) error }) (GalleryItem, err
 func (s *Store) ListPublicGallery(ctx context.Context, locale string, limit, offset int) ([]GalleryItem, error) {
 	rows, err := s.db.QueryContext(
 		ctx,
-		`SELECT id::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
+		`SELECT id::text, translation_key::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
 		        focal_length, aperture, iso, latitude, longitude, COALESCE(is_live_photo, false), video_url,
 		        status, published_at, created_at, updated_at
 		 FROM gallery
@@ -1166,7 +1537,7 @@ func (s *Store) ListPublicGallery(ctx context.Context, locale string, limit, off
 func (s *Store) GetPublicGalleryByID(ctx context.Context, locale, id string) (GalleryItem, error) {
 	row := s.db.QueryRowContext(
 		ctx,
-		`SELECT id::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
+		`SELECT id::text, translation_key::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
 		        focal_length, aperture, iso, latitude, longitude, COALESCE(is_live_photo, false), video_url,
 		        status, published_at, created_at, updated_at
 		 FROM gallery
@@ -1188,7 +1559,7 @@ func (s *Store) GetPublicGalleryByID(ctx context.Context, locale, id string) (Ga
 func (s *Store) GetGalleryByID(ctx context.Context, id string) (GalleryItem, error) {
 	row := s.db.QueryRowContext(
 		ctx,
-		`SELECT id::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
+		`SELECT id::text, translation_key::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
 		        focal_length, aperture, iso, latitude, longitude, COALESCE(is_live_photo, false), video_url,
 		        status, published_at, created_at, updated_at
 		 FROM gallery
@@ -1245,7 +1616,7 @@ func (s *Store) CreateGallery(ctx context.Context, input CreateGalleryInput) (Ga
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9,
 		         $10, $11, $12, $13, $14, $15, $16,
 		         $17, $18, NOW())
-		 RETURNING id::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
+		 RETURNING id::text, translation_key::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
 		           focal_length, aperture, iso, latitude, longitude, COALESCE(is_live_photo, false), video_url,
 		           status, published_at, created_at, updated_at`,
 		input.Locale,
@@ -1379,7 +1750,7 @@ func (s *Store) UpdateGallery(ctx context.Context, id string, input UpdateGaller
 		     published_at = $19,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
+		 RETURNING id::text, translation_key::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
 		           focal_length, aperture, iso, latitude, longitude, COALESCE(is_live_photo, false), video_url,
 		           status, published_at, created_at, updated_at`,
 		id,
@@ -1424,7 +1795,7 @@ func (s *Store) SetGalleryStatus(ctx context.Context, id, status string) (Galler
 		     published_at = $3,
 		     updated_at = NOW()
 		 WHERE id = $1 AND deleted_at IS NULL
-		 RETURNING id::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
+		 RETURNING id::text, translation_key::text, locale, file_url, thumb_url, title, width, height, captured_at, camera, lens,
 		           focal_length, aperture, iso, latitude, longitude, COALESCE(is_live_photo, false), video_url,
 		           status, published_at, created_at, updated_at`,
 		id,
