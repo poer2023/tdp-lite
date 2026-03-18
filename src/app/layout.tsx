@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const documentBootstrapScript = `
@@ -31,8 +32,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const requestHeaders = await headers();
+  const localeHeader = requestHeaders.get("x-tdp-locale");
+  const documentLocale = localeHeader === "en" ? "en" : "zh";
+
   return (
-    <html lang="zh" suppressHydrationWarning>
+    <html lang={documentLocale} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: documentBootstrapScript }} />
       </head>
