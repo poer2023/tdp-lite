@@ -13,28 +13,30 @@ import (
 )
 
 type createPostRequest struct {
-	Locale      string     `json:"locale"`
-	Title       string     `json:"title"`
-	Slug        string     `json:"slug"`
-	Excerpt     *string    `json:"excerpt"`
-	Content     string     `json:"content"`
-	CoverURL    *string    `json:"coverUrl"`
-	Tags        []string   `json:"tags"`
-	Status      string     `json:"status"`
-	CardSpan    *string    `json:"cardSpan"`
-	PublishedAt *time.Time `json:"publishedAt"`
+	TranslationKey *string    `json:"translationKey"`
+	Locale         string     `json:"locale"`
+	Title          string     `json:"title"`
+	Slug           string     `json:"slug"`
+	Excerpt        *string    `json:"excerpt"`
+	Content        string     `json:"content"`
+	CoverURL       *string    `json:"coverUrl"`
+	Tags           []string   `json:"tags"`
+	Status         string     `json:"status"`
+	CardSpan       *string    `json:"cardSpan"`
+	PublishedAt    *time.Time `json:"publishedAt"`
 }
 
 type updatePostRequest struct {
-	Locale   *string   `json:"locale"`
-	Title    *string   `json:"title"`
-	Slug     *string   `json:"slug"`
-	Excerpt  *string   `json:"excerpt"`
-	Content  *string   `json:"content"`
-	CoverURL *string   `json:"coverUrl"`
-	Tags     *[]string `json:"tags"`
-	Status   *string   `json:"status"`
-	CardSpan *string   `json:"cardSpan"`
+	Locale      *string    `json:"locale"`
+	Title       *string    `json:"title"`
+	Slug        *string    `json:"slug"`
+	Excerpt     *string    `json:"excerpt"`
+	Content     *string    `json:"content"`
+	CoverURL    *string    `json:"coverUrl"`
+	Tags        *[]string  `json:"tags"`
+	Status      *string    `json:"status"`
+	CardSpan    *string    `json:"cardSpan"`
+	PublishedAt *time.Time `json:"publishedAt"`
 }
 
 func normalizedLocale(input string) string {
@@ -97,6 +99,14 @@ func trimPtr(input *string) *string {
 	return &value
 }
 
+func trimOptionalStringPtr(input *string) *string {
+	value := trimPtr(input)
+	if value == nil || *value == "" {
+		return nil
+	}
+	return value
+}
+
 func (s *Server) requestSearchSnapshotRefresh(r *http.Request, reason string) {
 	if _, err := s.store.RequestSearchSnapshotRefresh(r.Context()); err != nil {
 		log.Printf("search snapshot refresh request failed reason=%s err=%v", reason, err)
@@ -134,17 +144,18 @@ func (s *Server) handleCreatePost(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := s.runWithIdempotency(w, r, req, func() (any, error) {
 		item, err := s.store.CreatePost(r.Context(), store.CreatePostInput{
-			Locale:      req.Locale,
-			Title:       req.Title,
-			Slug:        req.Slug,
-			Excerpt:     trimPtr(req.Excerpt),
-			Content:     req.Content,
-			CoverURL:    trimPtr(req.CoverURL),
-			Tags:        req.Tags,
-			Status:      req.Status,
-			CardSpan:    cardSpan,
-			PublishedAt: req.PublishedAt,
-			UpdatedBy:   ptr(actorKeyID(r)),
+			TranslationKey: trimOptionalStringPtr(req.TranslationKey),
+			Locale:         req.Locale,
+			Title:          req.Title,
+			Slug:           req.Slug,
+			Excerpt:        trimPtr(req.Excerpt),
+			Content:        req.Content,
+			CoverURL:       trimPtr(req.CoverURL),
+			Tags:           req.Tags,
+			Status:         req.Status,
+			CardSpan:       cardSpan,
+			PublishedAt:    req.PublishedAt,
+			UpdatedBy:      ptr(actorKeyID(r)),
 		})
 		if err != nil {
 			return nil, err
@@ -222,17 +233,19 @@ func (s *Server) handleUpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := s.runWithIdempotency(w, r, map[string]any{"id": id, "payload": req}, func() (any, error) {
 		item, err := s.store.UpdatePost(r.Context(), id, store.UpdatePostInput{
-			Locale:      req.Locale,
-			Title:       req.Title,
-			Slug:        req.Slug,
-			Excerpt:     trimPtr(req.Excerpt),
-			Content:     req.Content,
-			CoverURL:    trimPtr(req.CoverURL),
-			Tags:        req.Tags,
-			Status:      req.Status,
-			CardSpan:    cardSpan,
-			CardSpanSet: req.CardSpan != nil,
-			UpdatedBy:   ptr(actorKeyID(r)),
+			Locale:         req.Locale,
+			Title:          req.Title,
+			Slug:           req.Slug,
+			Excerpt:        trimPtr(req.Excerpt),
+			Content:        req.Content,
+			CoverURL:       trimPtr(req.CoverURL),
+			Tags:           req.Tags,
+			Status:         req.Status,
+			CardSpan:       cardSpan,
+			CardSpanSet:    req.CardSpan != nil,
+			PublishedAt:    req.PublishedAt,
+			PublishedAtSet: req.PublishedAt != nil,
+			UpdatedBy:      ptr(actorKeyID(r)),
 		})
 		if err != nil {
 			return nil, err
@@ -281,24 +294,26 @@ func (s *Server) handleDeletePost(w http.ResponseWriter, r *http.Request) {
 }
 
 type createMomentRequest struct {
-	Content     string                  `json:"content"`
-	Locale      string                  `json:"locale"`
-	Visibility  string                  `json:"visibility"`
-	Location    *store.MomentLocation   `json:"location"`
-	Media       []store.MomentMediaItem `json:"media"`
-	Status      string                  `json:"status"`
-	CardSpan    *string                 `json:"cardSpan"`
-	PublishedAt *time.Time              `json:"publishedAt"`
+	TranslationKey *string                 `json:"translationKey"`
+	Content        string                  `json:"content"`
+	Locale         string                  `json:"locale"`
+	Visibility     string                  `json:"visibility"`
+	Location       *store.MomentLocation   `json:"location"`
+	Media          []store.MomentMediaItem `json:"media"`
+	Status         string                  `json:"status"`
+	CardSpan       *string                 `json:"cardSpan"`
+	PublishedAt    *time.Time              `json:"publishedAt"`
 }
 
 type updateMomentRequest struct {
-	Content    *string                  `json:"content"`
-	Locale     *string                  `json:"locale"`
-	Visibility *string                  `json:"visibility"`
-	Location   *store.MomentLocation    `json:"location"`
-	Media      *[]store.MomentMediaItem `json:"media"`
-	Status     *string                  `json:"status"`
-	CardSpan   *string                  `json:"cardSpan"`
+	Content     *string                  `json:"content"`
+	Locale      *string                  `json:"locale"`
+	Visibility  *string                  `json:"visibility"`
+	Location    *store.MomentLocation    `json:"location"`
+	Media       *[]store.MomentMediaItem `json:"media"`
+	Status      *string                  `json:"status"`
+	CardSpan    *string                  `json:"cardSpan"`
+	PublishedAt *time.Time               `json:"publishedAt"`
 }
 
 func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
@@ -323,14 +338,15 @@ func (s *Server) handleCreateMoment(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := s.runWithIdempotency(w, r, req, func() (any, error) {
 		item, err := s.store.CreateMoment(r.Context(), store.CreateMomentInput{
-			Content:     req.Content,
-			Locale:      req.Locale,
-			Visibility:  req.Visibility,
-			Location:    req.Location,
-			Media:       req.Media,
-			Status:      req.Status,
-			CardSpan:    cardSpan,
-			PublishedAt: req.PublishedAt,
+			TranslationKey: trimOptionalStringPtr(req.TranslationKey),
+			Content:        req.Content,
+			Locale:         req.Locale,
+			Visibility:     req.Visibility,
+			Location:       req.Location,
+			Media:          req.Media,
+			Status:         req.Status,
+			CardSpan:       cardSpan,
+			PublishedAt:    req.PublishedAt,
 		})
 		if err != nil {
 			return nil, err
@@ -403,14 +419,16 @@ func (s *Server) handleUpdateMoment(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := s.runWithIdempotency(w, r, map[string]any{"id": id, "payload": req}, func() (any, error) {
 		item, err := s.store.UpdateMoment(r.Context(), id, store.UpdateMomentInput{
-			Content:     req.Content,
-			Locale:      req.Locale,
-			Visibility:  req.Visibility,
-			Location:    req.Location,
-			Media:       req.Media,
-			Status:      req.Status,
-			CardSpan:    cardSpan,
-			CardSpanSet: req.CardSpan != nil,
+			Content:        req.Content,
+			Locale:         req.Locale,
+			Visibility:     req.Visibility,
+			Location:       req.Location,
+			Media:          req.Media,
+			Status:         req.Status,
+			CardSpan:       cardSpan,
+			CardSpanSet:    req.CardSpan != nil,
+			PublishedAt:    req.PublishedAt,
+			PublishedAtSet: req.PublishedAt != nil,
 		})
 		if err != nil {
 			return nil, err

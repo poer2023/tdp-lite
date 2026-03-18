@@ -739,17 +739,18 @@ func (s *Store) GetPostByID(ctx context.Context, id string) (Post, error) {
 }
 
 type CreatePostInput struct {
-	Locale      string
-	Title       string
-	Slug        string
-	Excerpt     *string
-	Content     string
-	CoverURL    *string
-	Tags        []string
-	Status      string
-	CardSpan    *string
-	PublishedAt *time.Time
-	UpdatedBy   *string
+	TranslationKey *string
+	Locale         string
+	Title          string
+	Slug           string
+	Excerpt        *string
+	Content        string
+	CoverURL       *string
+	Tags           []string
+	Status         string
+	CardSpan       *string
+	PublishedAt    *time.Time
+	UpdatedBy      *string
 }
 
 func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, error) {
@@ -769,10 +770,11 @@ func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, er
 
 	row := s.db.QueryRowContext(
 		ctx,
-		`INSERT INTO posts (slug, locale, title, excerpt, content, cover_url, tags, status, card_span, published_at, revision, updated_by)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, 1, $11)
+		`INSERT INTO posts (translation_key, slug, locale, title, excerpt, content, cover_url, tags, status, card_span, published_at, revision, updated_by)
+		 VALUES (COALESCE($1::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, 1, $12)
 		 RETURNING id::text, translation_key::text, slug, locale, title, excerpt, content, cover_url, tags, status, card_span,
 		           published_at, created_at, updated_at, COALESCE(revision, 1)`,
+		input.TranslationKey,
 		input.Slug,
 		input.Locale,
 		input.Title,
@@ -789,17 +791,19 @@ func (s *Store) CreatePost(ctx context.Context, input CreatePostInput) (Post, er
 }
 
 type UpdatePostInput struct {
-	Title       *string
-	Slug        *string
-	Excerpt     *string
-	Content     *string
-	CoverURL    *string
-	Tags        *[]string
-	Locale      *string
-	Status      *string
-	CardSpan    *string
-	CardSpanSet bool
-	UpdatedBy   *string
+	Title          *string
+	Slug           *string
+	Excerpt        *string
+	Content        *string
+	CoverURL       *string
+	Tags           *[]string
+	Locale         *string
+	Status         *string
+	CardSpan       *string
+	CardSpanSet    bool
+	PublishedAt    *time.Time
+	PublishedAtSet bool
+	UpdatedBy      *string
 }
 
 func (s *Store) UpdatePost(ctx context.Context, id string, input UpdatePostInput) (Post, error) {
@@ -835,6 +839,9 @@ func (s *Store) UpdatePost(ctx context.Context, id string, input UpdatePostInput
 	if input.CardSpanSet {
 		existing.CardSpan = input.CardSpan
 	}
+	if input.PublishedAtSet {
+		existing.PublishedAt = input.PublishedAt
+	}
 
 	tagsRaw, err := json.Marshal(existing.Tags)
 	if err != nil {
@@ -844,7 +851,7 @@ func (s *Store) UpdatePost(ctx context.Context, id string, input UpdatePostInput
 	var publishedAt any
 	if existing.Status == "published" {
 		if existing.PublishedAt != nil {
-			publishedAt = *existing.PublishedAt
+			publishedAt = existing.PublishedAt.UTC()
 		} else {
 			publishedAt = time.Now().UTC()
 		}
@@ -1266,14 +1273,15 @@ func (s *Store) GetMomentByID(ctx context.Context, id string) (Moment, error) {
 }
 
 type CreateMomentInput struct {
-	Content     string
-	Locale      string
-	Visibility  string
-	Location    *MomentLocation
-	Media       []MomentMediaItem
-	Status      string
-	CardSpan    *string
-	PublishedAt *time.Time
+	TranslationKey *string
+	Content        string
+	Locale         string
+	Visibility     string
+	Location       *MomentLocation
+	Media          []MomentMediaItem
+	Status         string
+	CardSpan       *string
+	PublishedAt    *time.Time
 }
 
 func (s *Store) CreateMoment(ctx context.Context, input CreateMomentInput) (Moment, error) {
@@ -1301,9 +1309,10 @@ func (s *Store) CreateMoment(ctx context.Context, input CreateMomentInput) (Mome
 
 	row := s.db.QueryRowContext(
 		ctx,
-		`INSERT INTO moments (content, media, locale, visibility, location, status, card_span, published_at, updated_at)
-		 VALUES ($1, $2::jsonb, $3, $4, $5::jsonb, $6, $7, $8, NOW())
+		`INSERT INTO moments (translation_key, content, media, locale, visibility, location, status, card_span, published_at, updated_at)
+		 VALUES (COALESCE($1::uuid, gen_random_uuid()), $2, $3::jsonb, $4, $5, $6::jsonb, $7, $8, $9, NOW())
 		 RETURNING id::text, translation_key::text, content, media, locale, visibility, location, status, card_span, published_at, created_at, updated_at`,
+		input.TranslationKey,
 		input.Content,
 		string(mediaRaw),
 		input.Locale,
@@ -1317,14 +1326,16 @@ func (s *Store) CreateMoment(ctx context.Context, input CreateMomentInput) (Mome
 }
 
 type UpdateMomentInput struct {
-	Content     *string
-	Locale      *string
-	Visibility  *string
-	Location    *MomentLocation
-	Media       *[]MomentMediaItem
-	Status      *string
-	CardSpan    *string
-	CardSpanSet bool
+	Content        *string
+	Locale         *string
+	Visibility     *string
+	Location       *MomentLocation
+	Media          *[]MomentMediaItem
+	Status         *string
+	CardSpan       *string
+	CardSpanSet    bool
+	PublishedAt    *time.Time
+	PublishedAtSet bool
 }
 
 func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentInput) (Moment, error) {
@@ -1353,6 +1364,9 @@ func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentI
 	if input.CardSpanSet {
 		existing.CardSpan = input.CardSpan
 	}
+	if input.PublishedAtSet {
+		existing.PublishedAt = input.PublishedAt
+	}
 
 	if strings.TrimSpace(existing.Content) == "" && len(existing.Media) == 0 {
 		return Moment{}, ErrMomentContentOrMediaRequired
@@ -1370,7 +1384,7 @@ func (s *Store) UpdateMoment(ctx context.Context, id string, input UpdateMomentI
 	var publishedAt any
 	if existing.Status == "published" {
 		if existing.PublishedAt != nil {
-			publishedAt = *existing.PublishedAt
+			publishedAt = existing.PublishedAt.UTC()
 		} else {
 			publishedAt = time.Now().UTC()
 		}

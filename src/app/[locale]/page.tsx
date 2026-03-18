@@ -7,6 +7,7 @@ import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
 import { toLocalizedPath } from "@/lib/locale-routing";
 
 import { type AppLocale } from "@/lib/locale";
+import { SITE_AVATAR_SRC } from "@/lib/branding";
 
 type Locale = AppLocale;
 
@@ -31,8 +32,8 @@ export default async function HomePage({ params }: HomePageProps) {
           statusUnknown: "未知",
           fallbackLocation: "东京",
           profileAlt: "个人头像",
-          heroMonth: "十月",
-          heroAccent: "回声",
+          heroMonth: "间隙",
+          heroAccent: "",
           heroDescription: "[001] 通过分层的棱镜，记录日常生活里稍纵即逝的片段。",
         }
       : {
@@ -42,8 +43,8 @@ export default async function HomePage({ params }: HomePageProps) {
           statusUnknown: "UNKNOWN",
           fallbackLocation: "TOKYO",
           profileAlt: "Profile portrait",
-          heroMonth: "October",
-          heroAccent: "Reflections",
+          heroMonth: "Interlude",
+          heroAccent: "",
           heroDescription:
             "[001] Capturing the ephemeral fragments of daily life through a layered prism.",
         };
@@ -73,10 +74,15 @@ export default async function HomePage({ params }: HomePageProps) {
             <section className="relative min-w-0 flex-1 px-2">
               <div className="absolute -left-4 top-0 hidden h-full w-1 rounded-full bg-black/5 md:block" />
               <h2 className="text-ink mb-6 text-6xl font-medium tracking-[-0.03em] md:text-8xl">
-                {t.heroMonth}{" "}
-                <span className="text-ink-light font-serif italic">
-                  {t.heroAccent}
-                </span>
+                {t.heroMonth}
+                {t.heroAccent ? (
+                  <>
+                    {" "}
+                    <span className="text-ink-light font-serif italic">
+                      {t.heroAccent}
+                    </span>
+                  </>
+                ) : null}
               </h2>
               <p className="text-ink-light max-w-2xl pl-1 font-mono text-lg font-normal leading-relaxed md:text-xl">
                 {t.heroDescription}
@@ -95,7 +101,7 @@ export default async function HomePage({ params }: HomePageProps) {
                 {/* Avatar - links to about page */}
                 <Link href={toLocalizedPath(locale, "/about")}>
                   <Image
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1"
+                    src={SITE_AVATAR_SRC}
                     alt={t.profileAlt}
                     width={48}
                     height={48}

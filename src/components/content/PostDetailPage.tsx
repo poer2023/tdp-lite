@@ -5,9 +5,7 @@ import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDeta
 import type { Post } from "@/lib/content/types";
 import type { AppLocale } from "@/lib/locale";
 import { formatDate } from "@/lib/utils";
-
-const DEFAULT_AVATAR =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuBy47viAR_LjhRiYmNAvIcG2Sls2o3grioez7j8CegtDxl-vr2YIA6NnC0g9i36Zj2EPGb3DhzFZQI9DN9jY-kQ-gx1cbrC3OQAvN5s-MC-vkWWti4cA6TwsHXT32V_DZqi8fVqx40OS-BMgP0jvEl4_AAjbkI81JzhVEV8O_GEXKaTfGE1k46yqh_-Z8SAut64Kiied5kkt_8yOLpFf_uUEtfh-YL2Am5CO3lsNWxbIt39Mg1DmLaQ0vnJDei6dbS28mrXzQQndzO1";
+import { SITE_AVATAR_SRC } from "@/lib/branding";
 
 interface PostDetailPageProps {
   locale: AppLocale;
@@ -43,7 +41,7 @@ export function PostDetailPage({
           category={category}
           backHref={`/${locale}`}
           showDock={false}
-          avatarSrc={DEFAULT_AVATAR}
+          avatarSrc={SITE_AVATAR_SRC}
           backTitle={isZh ? "文章" : undefined}
           backSubtitle={isZh ? "返回首页" : undefined}
           publishedLabel={isZh ? "发布时间" : undefined}
