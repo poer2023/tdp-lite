@@ -441,6 +441,43 @@ textarea:focus {
   color: var(--text);
 }
 
+.manager-card-thumbnail {
+  position: relative;
+  width: 156px;
+  height: 104px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(17, 17, 17, 0.2)),
+    color-mix(in srgb, var(--panel) 72%, white);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.manager-card-thumbnail-media {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--panel) 65%, black 6%);
+}
+
+.manager-card-thumbnail-badge {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(18, 22, 28, 0.72);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(8px);
+}
+
 .manager-card-actions {
   justify-content: flex-end;
 }
@@ -559,6 +596,11 @@ textarea:focus {
   .manager-card-actions {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .manager-card-thumbnail {
+    width: 132px;
+    height: 92px;
   }
 
   .manager-card-actions {

@@ -124,6 +124,44 @@ function parseManagementItems(
   return parsed.data;
 }
 
+type ThumbnailProps = {
+  src?: string;
+  type?: "image" | "video";
+  alt: string;
+  badge?: string;
+};
+
+function CardThumbnail({ src, type = "image", alt, badge }: ThumbnailProps) {
+  if (!src) {
+    return null;
+  }
+
+  return (
+    <div className="manager-card-thumbnail">
+      {type === "video" ? (
+        <video
+          className="manager-card-thumbnail-media"
+          src={src}
+          muted
+          playsInline
+          preload="metadata"
+        />
+      ) : (
+        <img
+          className="manager-card-thumbnail-media"
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+        />
+      )}
+      {badge ? (
+        <span className="manager-card-thumbnail-badge">{badge}</span>
+      ) : null}
+    </div>
+  );
+}
+
 export function ContentManager() {
   const [kind, setKind] = useState<ContentKind>("moment");
   const [status, setStatus] = useState<ManageContentStatus>("all");
@@ -242,6 +280,7 @@ export function ContentManager() {
       typeof item.slug === "string" && item.slug.trim()
         ? item.slug.trim()
         : "未生成";
+    const coverSrc = item.coverUrl;
 
     return (
       <article key={item.id} className="manager-card">
@@ -259,6 +298,11 @@ export function ContentManager() {
 
         <h2 className="manager-card-title">{title}</h2>
         <p className="manager-card-summary">{summarizePost(item)}</p>
+        <CardThumbnail
+          src={coverSrc}
+          alt={`${title} 的封面缩略图`}
+          badge={coverSrc ? "封面" : undefined}
+        />
 
         <div className="manager-card-meta">
           <span>Slug · {slug}</span>
@@ -300,6 +344,18 @@ export function ContentManager() {
       typeof item.id === "string" && item.id.length >= 8
         ? item.id.slice(0, 8)
         : "unknown";
+    const primaryMedia = Array.isArray(item.media) ? item.media[0] : undefined;
+    const thumbnailSrc =
+      primaryMedia?.thumbnailUrl ||
+      (primaryMedia?.type === "image" ? primaryMedia.url : undefined) ||
+      primaryMedia?.url;
+    const thumbnailType = primaryMedia?.type ?? "image";
+    const thumbnailBadge =
+      mediaCount > 1
+        ? `${mediaCount} 项媒体`
+        : primaryMedia
+          ? "媒体预览"
+          : undefined;
 
     return (
       <article key={item.id} className="manager-card">
@@ -319,6 +375,12 @@ export function ContentManager() {
 
         <h2 className="manager-card-title">{title}</h2>
         <p className="manager-card-summary">{summarizeMoment(item)}</p>
+        <CardThumbnail
+          src={thumbnailSrc}
+          type={thumbnailType}
+          alt={`${title} 的媒体缩略图`}
+          badge={thumbnailBadge}
+        />
 
         <div className="manager-card-meta">
           <span>媒体 {mediaCount} 项</span>
