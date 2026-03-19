@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { AppChrome } from "@/components/AppChrome";
+import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
 import "./globals.css";
 
 const documentBootstrapScript = `
@@ -42,7 +44,10 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: documentBootstrapScript }} />
       </head>
       <body className="min-h-screen antialiased">
-        {children}
+        <PreviewDockProvider>
+          {children}
+          <AppChrome />
+        </PreviewDockProvider>
       </body>
     </html>
   );

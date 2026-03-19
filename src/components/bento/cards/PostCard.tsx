@@ -1,12 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import { cn, formatRelativeTimeUppercase } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Post } from "@/lib/content/types";
 import type { MediaKind } from "@/lib/media";
 import { isVideoUrl } from "@/lib/media";
 import { ArrowUpRight } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
 import { toLocalizedPath } from "@/lib/locale-routing";
+import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
 
 interface PostCardProps {
   post: Post;
@@ -16,6 +17,7 @@ interface PostCardProps {
   isHero?: boolean;
   className?: string;
   preview?: boolean;
+  priorityMedia?: boolean;
 }
 
 export function PostCard({
@@ -25,6 +27,7 @@ export function PostCard({
   isHero,
   className,
   preview = false,
+  priorityMedia = false,
 }: PostCardProps) {
   const isZh = post.locale === "zh";
   const highlighted = isHighlighted ?? isHero ?? false;
@@ -53,6 +56,7 @@ export function PostCard({
           {hasVideoCover ? (
             <AutoplayCoverVideo
               src={coverSrc}
+              eager={priorityMedia}
               className={cn(
                 "transition-transform duration-500",
                 !preview && "group-hover:scale-105"
@@ -65,6 +69,7 @@ export function PostCard({
               fill
               unoptimized={Boolean(skipOptimization)}
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+              priority={priorityMedia}
               className={cn(
                 "object-cover transition-transform duration-500",
                 !preview && "group-hover:scale-105"
@@ -88,16 +93,14 @@ export function PostCard({
                   {isZh ? "精选" : "Featured"}
                 </span>
               )}
-              <span className="font-mono text-xs uppercase tracking-wider text-white/80">
-                {formatRelativeTimeUppercase(
-                  post.publishedAt || post.createdAt,
-                  post.locale
-                )}
-              </span>
+              <RelativeTimeLabel
+                date={post.publishedAt || post.createdAt}
+                locale={post.locale}
+                uppercase
+                className="font-mono text-xs uppercase tracking-wider text-white/80"
+              />
             </div>
-            <h3
-              className="font-display text-xl font-bold leading-tight text-white"
-            >
+            <h3 className="font-display text-xl font-bold leading-tight text-white">
               {post.title}
             </h3>
             {post.excerpt && (
@@ -151,9 +154,12 @@ export function PostCard({
         )}
       </div>
 
-      <div className="text-xs text-muted-foreground">
-        {formatRelativeTimeUppercase(post.publishedAt || post.createdAt, post.locale)}
-      </div>
+      <RelativeTimeLabel
+        date={post.publishedAt || post.createdAt}
+        locale={post.locale}
+        uppercase
+        className="text-xs text-muted-foreground"
+      />
     </div>
   );
 
@@ -162,7 +168,10 @@ export function PostCard({
   }
 
   return (
-    <Link href={toLocalizedPath(post.locale, `/posts/${post.slug}`)} className={wrapperClass}>
+    <Link
+      href={toLocalizedPath(post.locale, `/posts/${post.slug}`)}
+      className={wrapperClass}
+    >
       {content}
     </Link>
   );

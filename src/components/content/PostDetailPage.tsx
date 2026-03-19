@@ -1,6 +1,5 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { BottomNav } from "@/components/BottomNav";
 import { ArticlePaperDetail } from "@/components/stitch-details/ArticlePaperDetail";
 import type { Post } from "@/lib/content/types";
 import type { AppLocale } from "@/lib/locale";
@@ -13,11 +12,7 @@ interface PostDetailPageProps {
   hideLocaleToggle?: boolean;
 }
 
-export function PostDetailPage({
-  locale,
-  post,
-  hideLocaleToggle = false,
-}: PostDetailPageProps) {
+export function PostDetailPage({ locale, post }: PostDetailPageProps) {
   const isZh = locale === "zh";
   const wordCount = post.content.split(/\s+/).length;
   const readingTime = isZh
@@ -26,10 +21,15 @@ export function PostDetailPage({
   const publishedDate = post.publishedAt
     ? formatDate(post.publishedAt, locale)
     : formatDate(post.createdAt, locale);
-  const category = post.tags && post.tags.length > 0 ? post.tags[0] : isZh ? "随笔" : "Journal";
+  const category =
+    post.tags && post.tags.length > 0
+      ? post.tags[0]
+      : isZh
+        ? "随笔"
+        : "Journal";
 
   return (
-    <div className="min-h-screen bg-page-surface">
+    <div className="bg-page-surface min-h-screen">
       <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
       <div className="relative z-10 p-6 pb-32 md:p-10 md:pb-36">
         <ArticlePaperDetail
@@ -58,7 +58,6 @@ export function PostDetailPage({
           }
         />
       </div>
-      <BottomNav locale={locale} activeTab="home" hideLocaleToggle={hideLocaleToggle} />
     </div>
   );
 }

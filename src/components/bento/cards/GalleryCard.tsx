@@ -8,9 +8,15 @@ interface GalleryCardProps {
   item: GalleryItem;
   className?: string;
   preview?: boolean;
+  priorityMedia?: boolean;
 }
 
-export function GalleryCard({ item, className, preview = false }: GalleryCardProps) {
+export function GalleryCard({
+  item,
+  className,
+  preview = false,
+  priorityMedia = false,
+}: GalleryCardProps) {
   const imageSrc = item.thumbUrl || item.fileUrl;
   const skipOptimization =
     imageSrc.startsWith("blob:") || imageSrc.startsWith("data:");
@@ -30,6 +36,7 @@ export function GalleryCard({ item, className, preview = false }: GalleryCardPro
         fill
         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
         unoptimized={skipOptimization}
+        priority={priorityMedia}
         className={cn(
           "object-cover transition-transform duration-500",
           !preview && "group-hover:scale-105"
@@ -44,11 +51,7 @@ export function GalleryCard({ item, className, preview = false }: GalleryCardPro
         )}
       >
         <div className="flex justify-end">
-          {item.title && (
-            <LgChipDark>
-              {item.title}
-            </LgChipDark>
-          )}
+          {item.title && <LgChipDark>{item.title}</LgChipDark>}
         </div>
 
         <div className="space-y-2">

@@ -90,7 +90,13 @@ function LocaleToggleGlyph({ toLocale }: { toLocale: "en" | "zh" }) {
 const tabs: TabConfig[] = [
   { id: "home", icon: Home, label: "Home", path: "" },
   // Gallery route and implementation are intentionally retained, but hidden from main nav for now.
-  { id: "gallery", icon: Grid3X3, label: "Gallery", path: "/gallery", showInMainNav: false },
+  {
+    id: "gallery",
+    icon: Grid3X3,
+    label: "Gallery",
+    path: "/gallery",
+    showInMainNav: false,
+  },
   { id: "search", icon: Search, label: "Search", path: "/search" },
 ];
 
@@ -126,14 +132,19 @@ function BottomNavInner({
   const homeCollapsedMeasureRef = useRef<HTMLDivElement>(null);
   const homeExpandedMeasureRef = useRef<HTMLDivElement>(null);
   const previewMeasureRef = useRef<HTMLDivElement>(null);
-  const [homeCollapsedWidth, setHomeCollapsedWidth] = useState<number | null>(null);
-  const [homeExpandedWidth, setHomeExpandedWidth] = useState<number | null>(null);
+  const [homeCollapsedWidth, setHomeCollapsedWidth] = useState<number | null>(
+    null
+  );
+  const [homeExpandedWidth, setHomeExpandedWidth] = useState<number | null>(
+    null
+  );
   const [previewWidth, setPreviewWidth] = useState<number | null>(null);
   const [animatedWidth, setAnimatedWidth] = useState<number | null>(null);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [themeMode, setThemeMode] = useState<"light" | "dark">("light");
   type LayerVisualState = "shown" | "entering" | "exiting" | "hidden";
-  const [homeLayerState, setHomeLayerState] = useState<LayerVisualState>("shown");
+  const [homeLayerState, setHomeLayerState] =
+    useState<LayerVisualState>("shown");
   const [previewLayerState, setPreviewLayerState] =
     useState<LayerVisualState>("hidden");
   const homeLayerStateRef = useRef<LayerVisualState>("shown");
@@ -152,7 +163,9 @@ function BottomNavInner({
   }, [previewLayerState]);
 
   const clearTransitionTimers = useCallback(() => {
-    transitionTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    transitionTimersRef.current.forEach((timerId) =>
+      window.clearTimeout(timerId)
+    );
     transitionTimersRef.current = [];
   }, []);
 
@@ -166,7 +179,8 @@ function BottomNavInner({
     const target = homeCollapsedMeasureRef.current;
     if (!target) return;
 
-    const update = () => setHomeCollapsedWidth(target.getBoundingClientRect().width);
+    const update = () =>
+      setHomeCollapsedWidth(target.getBoundingClientRect().width);
     update();
 
     const observer = new ResizeObserver(update);
@@ -178,7 +192,8 @@ function BottomNavInner({
     const target = homeExpandedMeasureRef.current;
     if (!target) return;
 
-    const update = () => setHomeExpandedWidth(target.getBoundingClientRect().width);
+    const update = () =>
+      setHomeExpandedWidth(target.getBoundingClientRect().width);
     update();
 
     const observer = new ResizeObserver(update);
@@ -223,7 +238,9 @@ function BottomNavInner({
     }
 
     const root = document.documentElement;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
     const hasDarkClass = root.classList.contains("dark");
     const initialTheme: "light" | "dark" =
       hasDarkClass || prefersDark ? "dark" : "light";
@@ -261,11 +278,11 @@ function BottomNavInner({
   useEffect(() => {
     if (animatedWidth !== null) return;
     const currentHomeWidth = isToolsOpen
-      ? homeExpandedWidth ?? homeCollapsedWidth
-      : homeCollapsedWidth ?? homeExpandedWidth;
+      ? (homeExpandedWidth ?? homeCollapsedWidth)
+      : (homeCollapsedWidth ?? homeExpandedWidth);
     const initialWidth = isPreviewMode
-      ? previewWidth ?? currentHomeWidth
-      : currentHomeWidth ?? previewWidth;
+      ? (previewWidth ?? currentHomeWidth)
+      : (currentHomeWidth ?? previewWidth);
     if (initialWidth) {
       setAnimatedWidth(initialWidth);
     }
@@ -280,11 +297,11 @@ function BottomNavInner({
 
   useEffect(() => {
     const currentHomeWidth = isToolsOpen
-      ? homeExpandedWidth ?? homeCollapsedWidth
-      : homeCollapsedWidth ?? homeExpandedWidth;
+      ? (homeExpandedWidth ?? homeCollapsedWidth)
+      : (homeCollapsedWidth ?? homeExpandedWidth);
     const desiredWidth = isPreviewMode
-      ? previewWidth ?? currentHomeWidth
-      : currentHomeWidth ?? previewWidth;
+      ? (previewWidth ?? currentHomeWidth)
+      : (currentHomeWidth ?? previewWidth);
     if (!desiredWidth) {
       return;
     }
@@ -383,7 +400,8 @@ function BottomNavInner({
     normalizedLocale === "zh" ? "Switch to English" : "切换到中文";
   const currentPath = pathname || `/${locale}`;
   const localePrefixPattern = /^\/(en|zh)(?=\/|$)/;
-  const pathWithoutLocalePrefix = currentPath.replace(localePrefixPattern, "") || "/";
+  const pathWithoutLocalePrefix =
+    currentPath.replace(localePrefixPattern, "") || "/";
   const targetLocalePath =
     nextLocale === "zh"
       ? `/zh${pathWithoutLocalePrefix === "/" ? "" : pathWithoutLocalePrefix}`
@@ -409,24 +427,24 @@ function BottomNavInner({
       : "pointer-events-none max-w-0 opacity-0 translate-x-1"
   );
   const layerBaseClass =
-    "absolute inset-0 flex items-center justify-center gap-1 transition-[opacity,transform,filter] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]";
+    "absolute inset-0 flex items-center justify-center gap-1 transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)]";
   const previewLayerClass = cn(layerBaseClass, {
-    "pointer-events-auto opacity-100 scale-100 blur-0":
-      previewLayerState === "shown",
-    "pointer-events-none opacity-100 scale-100 blur-0":
+    "pointer-events-auto opacity-100 scale-100": previewLayerState === "shown",
+    "pointer-events-none opacity-100 scale-100":
       previewLayerState === "entering",
-    "pointer-events-none opacity-0 scale-[0.92] blur-[2px]":
+    "pointer-events-none opacity-0 scale-[0.96]":
       previewLayerState === "hidden" || previewLayerState === "exiting",
   });
   const navLayerClass = cn(layerBaseClass, {
-    "pointer-events-auto opacity-100 scale-100 blur-0": homeLayerState === "shown",
-    "pointer-events-none opacity-100 scale-100 blur-0":
-      homeLayerState === "entering",
-    "pointer-events-none opacity-0 scale-[0.92] blur-[2px]":
+    "pointer-events-auto opacity-100 scale-100": homeLayerState === "shown",
+    "pointer-events-none opacity-100 scale-100": homeLayerState === "entering",
+    "pointer-events-none opacity-0 scale-[0.96]":
       homeLayerState === "hidden" || homeLayerState === "exiting",
   });
   const rootZClass =
-    isPreviewMode || previewLayerState !== "hidden" || homeLayerState === "exiting"
+    isPreviewMode ||
+    previewLayerState !== "hidden" ||
+    homeLayerState === "exiting"
       ? "z-[85]"
       : "z-50";
   const toggleToolsPanel = () => setIsToolsOpen((previous) => !previous);
@@ -437,25 +455,30 @@ function BottomNavInner({
 
   return (
     <>
-      <div className="pointer-events-none fixed -left-[9999px] -top-[9999px] opacity-0" aria-hidden>
+      <div
+        className="pointer-events-none fixed -left-[9999px] -top-[9999px] opacity-0"
+        aria-hidden
+      >
         <div
           ref={homeCollapsedMeasureRef}
           className="inline-flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.38)] bg-[rgba(255,255,255,0.78)] px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-[rgba(0,0,0,0.05)]"
         >
           <div className="inline-flex items-center gap-1">
-            {localizedTabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-              <IconNavItem
-                key={`measure-${tab.id}`}
-                href={`/${locale}${tab.path}`}
-                icon={<Icon className="h-5 w-5" />}
-                label={tab.label}
-                  active={isActive}
-                />
-              );
-            })}
+            {localizedTabs
+              .filter((tab) => tab.showInMainNav !== false)
+              .map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <IconNavItem
+                    key={`measure-${tab.id}`}
+                    href={`/${locale}${tab.path}`}
+                    icon={<Icon className="h-5 w-5" />}
+                    label={tab.label}
+                    active={isActive}
+                  />
+                );
+              })}
             <IconNavItem
               href={`/${locale}/about`}
               icon={<User className="h-5 w-5" />}
@@ -480,19 +503,21 @@ function BottomNavInner({
           className="mt-3 inline-flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.38)] bg-[rgba(255,255,255,0.78)] px-2 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-[rgba(0,0,0,0.05)]"
         >
           <div className="inline-flex items-center gap-1">
-            {localizedTabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <IconNavItem
-                  key={`measure-expanded-${tab.id}`}
-                  href={`/${locale}${tab.path}`}
-                  icon={<Icon className="h-5 w-5" />}
-                  label={tab.label}
-                  active={isActive}
-                />
-              );
-            })}
+            {localizedTabs
+              .filter((tab) => tab.showInMainNav !== false)
+              .map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <IconNavItem
+                    key={`measure-expanded-${tab.id}`}
+                    href={`/${locale}${tab.path}`}
+                    icon={<Icon className="h-5 w-5" />}
+                    label={tab.label}
+                    active={isActive}
+                  />
+                );
+              })}
             <IconNavItem
               href={`/${locale}/about`}
               icon={<User className="h-5 w-5" />}
@@ -565,25 +590,29 @@ function BottomNavInner({
         <IconNavShell
           className="bottom-nav-shell relative overflow-hidden"
           style={
-            animatedWidth ? { width: `${Math.round(animatedWidth)}px` } : undefined
+            animatedWidth
+              ? { width: `${Math.round(animatedWidth)}px` }
+              : undefined
           }
         >
           <div className="relative h-11 w-full">
             <div className={navLayerClass}>
               <div className="inline-flex items-center gap-1">
-                {localizedTabs.filter((tab) => tab.showInMainNav !== false).map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
-                  return (
-                    <IconNavItem
-                      key={tab.id}
-                      href={`/${locale}${tab.path}`}
-                      icon={<Icon className="h-5 w-5" />}
-                      label={tab.label}
-                      active={isActive}
-                    />
-                  );
-                })}
+                {localizedTabs
+                  .filter((tab) => tab.showInMainNav !== false)
+                  .map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <IconNavItem
+                        key={tab.id}
+                        href={`/${locale}${tab.path}`}
+                        icon={<Icon className="h-5 w-5" />}
+                        label={tab.label}
+                        active={isActive}
+                      />
+                    );
+                  })}
                 <IconNavItem
                   href={`/${locale}/about`}
                   icon={<User className="h-5 w-5" />}

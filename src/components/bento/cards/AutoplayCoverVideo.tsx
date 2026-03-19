@@ -69,7 +69,8 @@ export function AutoplayCoverVideo({
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
-    const saveDataMode = (navigator as NavigatorWithConnection).connection?.saveData === true;
+    const saveDataMode =
+      (navigator as NavigatorWithConnection).connection?.saveData === true;
     const canAutoplay = !(prefersReducedMotion || saveDataMode);
 
     if (!canAutoplay || !isInView) {

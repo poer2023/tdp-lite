@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
+import { cn } from "@/lib/utils";
 import type { Moment } from "@/lib/content/types";
 import { isVideoUrl } from "@/lib/media";
 import { ChevronLeft, ChevronRight, MapPin, Music2, Quote } from "lucide-react";
@@ -11,6 +16,7 @@ import { MomentImageOnly } from "./MomentImageOnly";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { LgChipDark } from "@/components/ui/LgChipDark";
 import { resolveMomentDisplayFromMoment } from "@/lib/content/momentDisplay";
+import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
 
 type MomentMedia = NonNullable<Moment["media"]>[number];
 
@@ -30,6 +36,7 @@ interface MomentCardProps {
   previewMediaIndex?: number;
   onPreviewMediaIndexChange?: (nextIndex: number) => void;
   showPreviewMediaControls?: boolean;
+  priorityMedia?: boolean;
 }
 
 export function MomentCard({
@@ -41,6 +48,7 @@ export function MomentCard({
   previewMediaIndex,
   onPreviewMediaIndexChange,
   showPreviewMediaControls = true,
+  priorityMedia = false,
 }: MomentCardProps) {
   const mediaList = moment.media ?? [];
   const hasMedia = mediaList.length > 0;
@@ -94,13 +102,18 @@ export function MomentCard({
     preview && hasMultipleMedia
       ? Math.min(rawPreviewMediaIndex, mediaList.length - 1)
       : 0;
-  const mainMedia = hasMedia ? mediaList[resolvedMediaIndex] ?? mediaList[0] : null;
+  const mainMedia = hasMedia
+    ? (mediaList[resolvedMediaIndex] ?? mediaList[0])
+    : null;
   const {
     isAudio: isAudioMedia,
     isVideo: hasVideoMedia,
     shouldSkipOptimization: skipOptimization,
   } = getMediaPresentation(mainMedia);
-  const momentDisplay = resolveMomentDisplayFromMoment(moment, mainMedia?.title);
+  const momentDisplay = resolveMomentDisplayFromMoment(
+    moment,
+    mainMedia?.title
+  );
   const momentText = momentDisplay.text;
   const shouldQuoteMomentText = !momentDisplay.usesFallback;
   const hasMediaDimensions =
@@ -116,12 +129,12 @@ export function MomentCard({
       ? 16 / 9
       : 4 / 3;
   const isPortraitMedia = previewMediaRatio < 1;
-  const previewMediaWidth =
-    isPortraitMedia
-      ? `min(74%, calc(56vh * ${previewMediaRatio}))`
-      : "100%";
+  const previewMediaWidth = isPortraitMedia
+    ? `min(74%, calc(56vh * ${previewMediaRatio}))`
+    : "100%";
   const isDetachedPreview = preview && hasMedia && !isAudioMedia;
-  const canSwitchPreviewMedia = preview && hasMultipleMedia && showPreviewMediaControls;
+  const canSwitchPreviewMedia =
+    preview && hasMultipleMedia && showPreviewMediaControls;
   const outgoingPreviewMedia =
     outgoingPreviewMediaIndex !== null
       ? (mediaList[outgoingPreviewMediaIndex] ?? null)
@@ -142,8 +155,8 @@ export function MomentCard({
     "group relative flex h-full w-full flex-col",
     isDetachedPreview ? "overflow-visible" : "paper-card overflow-hidden",
     !isDetachedPreview &&
-    isHighlighted &&
-    "ring-1 ring-black/15 shadow-highlight",
+      isHighlighted &&
+      "ring-1 ring-black/15 shadow-highlight",
     preview ? "cursor-default" : "cursor-pointer",
     className
   );
@@ -165,10 +178,13 @@ export function MomentCard({
     }
 
     const forwardDistance =
-      (resolvedMediaIndex - previousIndex + mediaList.length) % mediaList.length;
+      (resolvedMediaIndex - previousIndex + mediaList.length) %
+      mediaList.length;
     const backwardDistance =
-      (previousIndex - resolvedMediaIndex + mediaList.length) % mediaList.length;
-    const nextDirection = forwardDistance <= backwardDistance ? "forward" : "backward";
+      (previousIndex - resolvedMediaIndex + mediaList.length) %
+      mediaList.length;
+    const nextDirection =
+      forwardDistance <= backwardDistance ? "forward" : "backward";
 
     if (mediaTransitionTimerRef.current !== null) {
       window.clearTimeout(mediaTransitionTimerRef.current);
@@ -194,7 +210,7 @@ export function MomentCard({
     };
   }, []);
 
-  const renderMediaLayer = (media: MomentMedia) => {
+  const renderMediaLayer = (media: MomentMedia, eager = false) => {
     const {
       isAudio: layerIsAudioMedia,
       isVideo: layerHasVideoMedia,
@@ -225,7 +241,7 @@ export function MomentCard({
         <AutoplayCoverVideo
           src={media.url}
           poster={media.thumbnailUrl}
-          eager
+          eager={eager}
         />
       );
     }
@@ -236,6 +252,7 @@ export function MomentCard({
         alt="Moment"
         sizes="(min-width: 1024px) 66vw, 90vw"
         unoptimized={layerSkipOptimization}
+        priority={eager}
         preview
       />
     );
@@ -279,14 +296,17 @@ export function MomentCard({
                 )}
                 aria-hidden
               >
-                {renderMediaLayer(outgoingPreviewMedia)}
+                {renderMediaLayer(outgoingPreviewMedia, false)}
               </div>
             ) : null}
             <div
               key={`incoming-${moment.id}-${resolvedMediaIndex}`}
-              className={cn("moment-preview-media-layer", incomingLayerAnimationClass)}
+              className={cn(
+                "moment-preview-media-layer",
+                incomingLayerAnimationClass
+              )}
             >
-              {renderMediaLayer(mainMedia!)}
+              {renderMediaLayer(mainMedia!, false)}
             </div>
             <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
 
@@ -330,17 +350,24 @@ export function MomentCard({
           </div>
 
           <p className="line-clamp-3 whitespace-pre-wrap font-display text-[1rem] font-medium leading-[1.42] tracking-[-0.004em] text-[#111]">
-            {shouldQuoteMomentText ? <>&ldquo;{momentText}&rdquo;</> : momentText}
+            {shouldQuoteMomentText ? (
+              <>&ldquo;{momentText}&rdquo;</>
+            ) : (
+              momentText
+            )}
           </p>
 
           <div className="mt-2.5 font-mono text-[10px] uppercase tracking-wider text-[#666]">
-            {formatRelativeTime(moment.createdAt, moment.locale)}
+            <RelativeTimeLabel date={moment.createdAt} locale={moment.locale} />
           </div>
         </div>
       </>
     ) : (
       <>
-        <div className="absolute inset-0 z-0" data-lg-media-source="moment-card-media">
+        <div
+          className="absolute inset-0 z-0"
+          data-lg-media-source="moment-card-media"
+        >
           {isAudioMedia ? (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#111] via-[#1f2937] to-[#111827]">
               <div className="flex flex-col items-center gap-3 text-white/90">
@@ -352,7 +379,9 @@ export function MomentCard({
                   {momentText}
                 </p>
                 {mainMedia?.artist ? (
-                  <p className="font-mono text-xs text-white/70">{mainMedia.artist}</p>
+                  <p className="font-mono text-xs text-white/70">
+                    {mainMedia.artist}
+                  </p>
                 ) : null}
               </div>
             </div>
@@ -360,6 +389,7 @@ export function MomentCard({
             <AutoplayCoverVideo
               src={mainMedia!.url}
               poster={mainMedia?.thumbnailUrl}
+              eager={priorityMedia}
               className={cn(
                 "transition-transform duration-500",
                 !preview && "group-hover:scale-105"
@@ -371,6 +401,7 @@ export function MomentCard({
               alt="Moment"
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
               unoptimized={Boolean(skipOptimization)}
+              priority={priorityMedia}
               preview={preview}
             />
           )}
@@ -418,11 +449,15 @@ export function MomentCard({
               </div>
             )}
             {isAudioMedia && mainMedia?.artist ? (
-              <div className="font-mono text-xs text-white/70">{mainMedia.artist}</div>
+              <div className="font-mono text-xs text-white/70">
+                {mainMedia.artist}
+              </div>
             ) : null}
-            <div className="font-mono text-xs text-white/60">
-              {formatRelativeTime(moment.createdAt, moment.locale)}
-            </div>
+            <RelativeTimeLabel
+              date={moment.createdAt}
+              locale={moment.locale}
+              className="font-mono text-xs text-white/60"
+            />
           </div>
         </div>
       </>
@@ -446,15 +481,17 @@ export function MomentCard({
         )}
       </div>
 
-      <div className="flex-1 flex items-center">
+      <div className="flex flex-1 items-center">
         <p className="font-display text-lg font-medium leading-relaxed text-foreground">
           {shouldQuoteMomentText ? <>&ldquo;{momentText}&rdquo;</> : momentText}
         </p>
       </div>
 
-      <div className="font-mono text-xs text-muted-foreground">
-        {formatRelativeTime(moment.createdAt, moment.locale)}
-      </div>
+      <RelativeTimeLabel
+        date={moment.createdAt}
+        locale={moment.locale}
+        className="font-mono text-xs text-muted-foreground"
+      />
     </div>
   );
 
@@ -475,7 +512,10 @@ export function MomentCard({
   }
 
   return (
-    <Link href={toLocalizedPath(moment.locale, `/moments/${moment.id}`)} className={wrapperClass}>
+    <Link
+      href={toLocalizedPath(moment.locale, `/moments/${moment.id}`)}
+      className={wrapperClass}
+    >
       {content}
     </Link>
   );

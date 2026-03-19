@@ -1,9 +1,10 @@
 "use client";
 
 import { Quote, Clock, MapPin } from "lucide-react";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Moment } from "@/lib/content/types";
 import { resolveMomentDisplay } from "@/lib/content/momentDisplay";
+import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
 
 interface TextMomentDetailCardProps {
   moment: Moment;
@@ -21,11 +22,11 @@ export function TextMomentDetailCard({
   const t =
     locale === "zh"
       ? {
-        fragment: "片段",
-      }
+          fragment: "片段",
+        }
       : {
-        fragment: "Fragment",
-      };
+          fragment: "Fragment",
+        };
   const locationName = moment.location?.name ?? null;
   const momentDisplay = resolveMomentDisplay({
     content: moment.content,
@@ -34,7 +35,7 @@ export function TextMomentDetailCard({
   });
 
   return (
-    <div className={cn("relative w-full max-w-4xl mx-auto", className)}>
+    <div className={cn("relative mx-auto w-full max-w-4xl", className)}>
       {/* Paper stack effect - background layers */}
       <div
         className={cn(
@@ -49,23 +50,23 @@ export function TextMomentDetailCard({
           "absolute inset-0 rounded-3xl",
           "bg-[#e8e8e6]",
           "-translate-x-1 translate-y-1 rotate-1",
-          "shadow-sm opacity-50"
+          "opacity-50 shadow-sm"
         )}
       />
 
       {/* Main card */}
       <article
         className={cn(
-          "relative rounded-3xl overflow-hidden",
+          "relative overflow-hidden rounded-3xl",
           "bg-[#fdfdfd]",
           "shadow-paper-stack",
           "border border-black/5",
-          "min-h-[60vh] flex flex-col items-center justify-center"
+          "flex min-h-[60vh] flex-col items-center justify-center"
         )}
       >
         {/* Paper texture gradient overlay */}
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
               "radial-gradient(at 0% 0%, rgba(255,255,255,0.5) 0, transparent 50%), radial-gradient(at 50% 0%, rgba(0,0,0,0.02) 0, transparent 50%)",
@@ -74,7 +75,7 @@ export function TextMomentDetailCard({
 
         {/* Paper fold shadow */}
         <div
-          className="absolute inset-0 pointer-events-none z-10"
+          className="pointer-events-none absolute inset-0 z-10"
           style={{
             boxShadow:
               "inset 0 20px 40px -20px rgba(0,0,0,0.03), inset 20px 0 40px -20px rgba(0,0,0,0.02)",
@@ -82,33 +83,33 @@ export function TextMomentDetailCard({
         />
 
         {/* Corner highlight */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-black/[0.03] to-transparent pointer-events-none" />
+        <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 bg-gradient-to-bl from-black/[0.03] to-transparent" />
 
         {/* Content area */}
-        <div className="relative z-20 px-8 md:px-24 py-20 text-center flex flex-col items-center flex-1 justify-center">
+        <div className="relative z-20 flex flex-1 flex-col items-center justify-center px-8 py-20 text-center md:px-24">
           {/* Quote icon */}
-          <Quote className="text-black/10 w-16 h-16 mb-12" />
+          <Quote className="mb-12 h-16 w-16 text-black/10" />
 
           {/* Main text content */}
           <h2
             className={cn(
               "font-serif text-4xl md:text-5xl lg:text-6xl",
-              "leading-[1.15] italic tracking-tight",
-              "text-[#1a1a1a] mb-8"
+              "italic leading-[1.15] tracking-tight",
+              "mb-8 text-[#1a1a1a]"
             )}
           >
             {momentDisplay.text}
           </h2>
 
           {/* Divider */}
-          <div className="w-16 h-px bg-black/10" />
+          <div className="h-px w-16 bg-black/10" />
         </div>
 
         {/* Footer with metadata */}
-        <footer className="relative z-20 w-full px-12 pb-12 mt-auto">
+        <footer className="relative z-20 mt-auto w-full px-12 pb-12">
           <div
             className={cn(
-              "flex flex-col md:flex-row items-center justify-between gap-4",
+              "flex flex-col items-center justify-between gap-4 md:flex-row",
               "font-mono text-[11px] uppercase tracking-[0.2em]",
               "text-[#666666]/60"
             )}
@@ -116,12 +117,12 @@ export function TextMomentDetailCard({
             {/* Left side - time and location */}
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5" />
-                <span>{formatRelativeTime(moment.createdAt, locale)}</span>
+                <Clock className="h-3.5 w-3.5" />
+                <RelativeTimeLabel date={moment.createdAt} locale={locale} />
               </div>
               {locationName && (
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5" />
+                  <MapPin className="h-3.5 w-3.5" />
                   <span>{locationName}</span>
                 </div>
               )}

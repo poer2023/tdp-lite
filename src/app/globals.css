@@ -1,5 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -18,10 +18,12 @@
   -webkit-font-smoothing: antialiased;
   -webkit-font-feature-settings: "liga";
   font-feature-settings: "liga";
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
 }
-
-
 
 /* Custom font families */
 .font-display {
@@ -35,16 +37,36 @@
 }
 
 /* Custom colors as utilities */
-.text-ink { color: var(--ink); }
-.text-ink-light { color: var(--ink-light); }
-.bg-ink { background-color: var(--ink); }
-.bg-paper-white { background-color: var(--paper-white); }
-.bg-paper-off-white { background-color: var(--paper-off-white); }
-.bg-paper-grey { background-color: var(--paper-grey); }
-.from-paper-white { --tw-gradient-from: var(--paper-white); }
-.from-paper-off-white { --tw-gradient-from: var(--paper-off-white); }
-.to-paper-grey { --tw-gradient-to: var(--paper-grey); }
-.from-paper-grey { --tw-gradient-from: var(--paper-grey); }
+.text-ink {
+  color: var(--ink);
+}
+.text-ink-light {
+  color: var(--ink-light);
+}
+.bg-ink {
+  background-color: var(--ink);
+}
+.bg-paper-white {
+  background-color: var(--paper-white);
+}
+.bg-paper-off-white {
+  background-color: var(--paper-off-white);
+}
+.bg-paper-grey {
+  background-color: var(--paper-grey);
+}
+.from-paper-white {
+  --tw-gradient-from: var(--paper-white);
+}
+.from-paper-off-white {
+  --tw-gradient-from: var(--paper-off-white);
+}
+.to-paper-grey {
+  --tw-gradient-to: var(--paper-grey);
+}
+.from-paper-grey {
+  --tw-gradient-from: var(--paper-grey);
+}
 
 /* Pearlescent background */
 .pearlescent {
@@ -72,15 +94,13 @@
 
 /* Pill icon */
 .pill-icon {
-  @apply bg-ink text-white rounded-full flex items-center justify-center transition-transform duration-300;
+  @apply bg-ink flex items-center justify-center rounded-full text-white transition-transform duration-300;
 }
 
 /* Noise background */
 .bg-noise {
-  background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22 opacity=%220.05%22/%3E%3C/svg%3E');
+  background-image: url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22 opacity=%220.05%22/%3E%3C/svg%3E");
 }
-
-
 
 :root {
   --primary: #2b2b2b;
@@ -210,8 +230,14 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Space Grotesk", system-ui, -apple-system, sans-serif;
-  transition: background-color 260ms ease, color 260ms ease;
+  font-family:
+    "Space Grotesk",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  transition:
+    background-color 260ms ease,
+    color 260ms ease;
 }
 
 /* Textured background - solid color */
@@ -228,15 +254,33 @@ body {
 }
 
 /* Dark mode compatibility overrides for legacy light utility classes */
-.dark .bg-white { background-color: #2f3945 !important; }
-.dark .bg-white\/95 { background-color: rgba(51, 61, 74, 0.95) !important; }
-.dark .bg-white\/92 { background-color: rgba(50, 60, 73, 0.92) !important; }
-.dark .bg-white\/90 { background-color: rgba(49, 59, 72, 0.9) !important; }
-.dark .bg-white\/85 { background-color: rgba(48, 58, 71, 0.85) !important; }
-.dark .bg-white\/80 { background-color: rgba(48, 58, 71, 0.8) !important; }
-.dark .bg-white\/75 { background-color: rgba(48, 58, 71, 0.75) !important; }
-.dark .bg-white\/70 { background-color: rgba(48, 58, 71, 0.7) !important; }
-.dark .bg-white\/60 { background-color: rgba(48, 58, 71, 0.6) !important; }
+.dark .bg-white {
+  background-color: #2f3945 !important;
+}
+.dark .bg-white\/95 {
+  background-color: rgba(51, 61, 74, 0.95) !important;
+}
+.dark .bg-white\/92 {
+  background-color: rgba(50, 60, 73, 0.92) !important;
+}
+.dark .bg-white\/90 {
+  background-color: rgba(49, 59, 72, 0.9) !important;
+}
+.dark .bg-white\/85 {
+  background-color: rgba(48, 58, 71, 0.85) !important;
+}
+.dark .bg-white\/80 {
+  background-color: rgba(48, 58, 71, 0.8) !important;
+}
+.dark .bg-white\/75 {
+  background-color: rgba(48, 58, 71, 0.75) !important;
+}
+.dark .bg-white\/70 {
+  background-color: rgba(48, 58, 71, 0.7) !important;
+}
+.dark .bg-white\/60 {
+  background-color: rgba(48, 58, 71, 0.6) !important;
+}
 
 .dark [class*="bg-[#e8e8e6]"],
 .dark [class*="bg-[#e9e9e7]"] {
@@ -252,34 +296,80 @@ body {
   background-color: #323d49 !important;
 }
 
-.dark .text-\[\#111\] { color: #e9eff7 !important; }
-.dark .text-\[\#222\] { color: #dee6f1 !important; }
-.dark .text-\[\#333\] { color: #d1dbe9 !important; }
-.dark .text-\[\#444\] { color: #c4cfdd !important; }
+.dark .text-\[\#111\] {
+  color: #e9eff7 !important;
+}
+.dark .text-\[\#222\] {
+  color: #dee6f1 !important;
+}
+.dark .text-\[\#333\] {
+  color: #d1dbe9 !important;
+}
+.dark .text-\[\#444\] {
+  color: #c4cfdd !important;
+}
 .dark .text-\[\#555\],
 .dark .text-\[\#666\],
-.dark .text-\[\#777\] { color: #b2bece !important; }
+.dark .text-\[\#777\] {
+  color: #b2bece !important;
+}
 .dark .text-\[\#888\],
-.dark .text-\[\#999\] { color: #98a6b9 !important; }
+.dark .text-\[\#999\] {
+  color: #98a6b9 !important;
+}
 
-.dark .text-ink { color: #e8edf4 !important; }
-.dark .text-ink-light { color: #b7c3d2 !important; }
-.dark .bg-ink { background-color: #10161f !important; }
-.dark .bg-paper-white { background-color: #2b3340 !important; }
-.dark .bg-paper-off-white { background-color: #27303b !important; }
-.dark .bg-paper-grey { background-color: #313b48 !important; }
-.dark .from-paper-white { --tw-gradient-from: #2b3340 !important; }
-.dark .from-paper-off-white { --tw-gradient-from: #27303b !important; }
-.dark .to-paper-grey { --tw-gradient-to: #313b48 !important; }
-.dark .from-paper-grey { --tw-gradient-from: #313b48 !important; }
+.dark .text-ink {
+  color: #e8edf4 !important;
+}
+.dark .text-ink-light {
+  color: #b7c3d2 !important;
+}
+.dark .bg-ink {
+  background-color: #10161f !important;
+}
+.dark .bg-paper-white {
+  background-color: #2b3340 !important;
+}
+.dark .bg-paper-off-white {
+  background-color: #27303b !important;
+}
+.dark .bg-paper-grey {
+  background-color: #313b48 !important;
+}
+.dark .from-paper-white {
+  --tw-gradient-from: #2b3340 !important;
+}
+.dark .from-paper-off-white {
+  --tw-gradient-from: #27303b !important;
+}
+.dark .to-paper-grey {
+  --tw-gradient-to: #313b48 !important;
+}
+.dark .from-paper-grey {
+  --tw-gradient-from: #313b48 !important;
+}
 
-.dark .border-black\/5 { border-color: rgba(226, 234, 247, 0.14) !important; }
-.dark .border-black\/6 { border-color: rgba(226, 234, 247, 0.15) !important; }
-.dark .border-black\/8 { border-color: rgba(226, 234, 247, 0.16) !important; }
-.dark .border-black\/10 { border-color: rgba(226, 234, 247, 0.18) !important; }
-.dark .border-black\/15 { border-color: rgba(226, 234, 247, 0.2) !important; }
-.dark .border-black\/20 { border-color: rgba(226, 234, 247, 0.24) !important; }
-.dark .ring-black\/5 { --tw-ring-color: rgba(226, 234, 247, 0.14) !important; }
+.dark .border-black\/5 {
+  border-color: rgba(226, 234, 247, 0.14) !important;
+}
+.dark .border-black\/6 {
+  border-color: rgba(226, 234, 247, 0.15) !important;
+}
+.dark .border-black\/8 {
+  border-color: rgba(226, 234, 247, 0.16) !important;
+}
+.dark .border-black\/10 {
+  border-color: rgba(226, 234, 247, 0.18) !important;
+}
+.dark .border-black\/15 {
+  border-color: rgba(226, 234, 247, 0.2) !important;
+}
+.dark .border-black\/20 {
+  border-color: rgba(226, 234, 247, 0.24) !important;
+}
+.dark .ring-black\/5 {
+  --tw-ring-color: rgba(226, 234, 247, 0.14) !important;
+}
 
 /* Paper card style from Stitch */
 .paper-card {
@@ -317,12 +407,18 @@ body {
 
 .bento-card:hover {
   transform: translateY(-4px) scale(1.005);
-  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.08), 0 8px 16px -8px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 12px 24px -6px rgba(0, 0, 0, 0.08),
+    0 8px 16px -8px rgba(0, 0, 0, 0.1);
 }
 
 /* About page bento cards - matching Stitch design */
 .bento-card-about {
-  background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.8)
+  );
   border: 1px solid rgba(255, 255, 255, 0.42);
   box-shadow: 0 20px 40px -24px rgba(8, 16, 30, 0.24);
   border-radius: 2.5rem;
@@ -344,7 +440,9 @@ body {
 
 .bento-card-about:hover {
   transform: translateY(-6px);
-  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.12), 0 15px 25px -5px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 30px 60px -15px rgba(0, 0, 0, 0.12),
+    0 15px 25px -5px rgba(0, 0, 0, 0.06);
 }
 
 .dark .bento-card-about:hover {
@@ -353,8 +451,13 @@ body {
 
 /* Status indicator pulse */
 @keyframes pulse-dot {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .status-online {
@@ -588,7 +691,7 @@ html.lg-webgl-active .lg-webgl-canvas-root {
 
 .moment-preview-backdrop,
 .moment-preview-card {
-  will-change: opacity, transform, filter;
+  will-change: opacity, transform;
 }
 
 .moment-preview-backdrop--animating {
@@ -598,14 +701,13 @@ html.lg-webgl-active .lg-webgl-canvas-root {
 .moment-preview-card--animating {
   transition:
     transform 460ms cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 300ms ease-out,
-    filter 320ms ease-out;
+    opacity 300ms ease-out;
 }
 
 .moment-preview-media-layer {
   position: absolute;
   inset: 0;
-  will-change: opacity, transform, filter;
+  will-change: opacity, transform;
 }
 
 .moment-preview-media-layer--active {
@@ -619,45 +721,45 @@ html.lg-webgl-active .lg-webgl-canvas-root {
 
 .moment-preview-media-layer-enter-forward {
   z-index: 1;
-  animation: moment-preview-media-enter-forward 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: moment-preview-media-enter-forward 320ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .moment-preview-media-layer-enter-backward {
   z-index: 1;
-  animation: moment-preview-media-enter-backward 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: moment-preview-media-enter-backward 320ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .moment-preview-media-layer-exit-forward {
-  animation: moment-preview-media-exit-forward 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: moment-preview-media-exit-forward 320ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .moment-preview-media-layer-exit-backward {
-  animation: moment-preview-media-exit-backward 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: moment-preview-media-exit-backward 320ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes moment-preview-media-enter-forward {
   from {
     opacity: 0;
-    transform: translate3d(24px, 0, 0) scale(1.015);
-    filter: blur(0.8px);
+    transform: translate3d(20px, 0, 0) scale(1.01);
   }
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
   }
 }
 
 @keyframes moment-preview-media-enter-backward {
   from {
     opacity: 0;
-    transform: translate3d(-24px, 0, 0) scale(1.015);
-    filter: blur(0.8px);
+    transform: translate3d(-20px, 0, 0) scale(1.01);
   }
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
   }
 }
 
@@ -665,12 +767,10 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   from {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
   }
   to {
     opacity: 0;
     transform: translate3d(-20px, 0, 0) scale(0.99);
-    filter: blur(1px);
   }
 }
 
@@ -678,12 +778,10 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   from {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
   }
   to {
     opacity: 0;
     transform: translate3d(20px, 0, 0) scale(0.99);
-    filter: blur(1px);
   }
 }
 
@@ -792,8 +890,12 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   border-radius: inherit;
   box-sizing: border-box;
   padding: 10px;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   mask-composite: exclude;
   -webkit-mask-composite: xor;
   box-shadow: none !important;
@@ -838,15 +940,25 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   inset: 0;
   border-radius: inherit;
   background:
-    radial-gradient(circle at 24% 22%, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0) 62%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.04));
+    radial-gradient(
+      circle at 24% 22%,
+      rgba(255, 255, 255, 0.56),
+      rgba(255, 255, 255, 0) 62%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.24),
+      rgba(255, 255, 255, 0.04)
+    );
   opacity: 0;
   transition: opacity 180ms ease;
   pointer-events: none;
 }
 
 .liquid-nav-item svg {
-  transition: transform 180ms ease, opacity 180ms ease;
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease;
 }
 
 .liquid-nav-item:active {
@@ -880,7 +992,7 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   background: radial-gradient(
     circle at 40% 20%,
     rgba(255, 255, 255, 0.7),
-    rgba(255, 255, 255, 0.0) 60%
+    rgba(255, 255, 255, 0) 60%
   );
 }
 
@@ -911,7 +1023,9 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   background: var(--liquid-nav-tooltip-bg);
   border: 1px solid rgba(255, 255, 255, 0.32);
   box-shadow: 0 10px 26px -14px rgba(8, 12, 20, 0.6);
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -930,7 +1044,9 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   }
 }
 
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
   .liquid-nav-shell {
     background: rgba(247, 247, 245, 0.94);
     box-shadow: 0 14px 30px -18px rgba(10, 16, 28, 0.35);
@@ -943,7 +1059,9 @@ html.lg-webgl-active .lg-webgl-canvas-root {
 }
 
 @media (prefers-color-scheme: dark) {
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  @supports not (
+    (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+  ) {
     .liquid-nav-shell {
       background: rgba(20, 24, 30, 0.92);
       box-shadow: 0 16px 34px -20px rgba(0, 0, 0, 0.8);

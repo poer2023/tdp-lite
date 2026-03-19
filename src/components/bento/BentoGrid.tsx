@@ -33,7 +33,10 @@ interface BentoGridProps {
 export function BentoGrid({ items, className }: BentoGridProps) {
   const spanByItemKey = computeBentoSpans(items);
   const highlightedId = getHighlightedItemId(items);
-  const [previewingMomentId, setPreviewingMomentId] = useState<string | null>(null);
+  const PRIORITY_MEDIA_COUNT = 4;
+  const [previewingMomentId, setPreviewingMomentId] = useState<string | null>(
+    null
+  );
   const [previewOriginRect, setPreviewOriginRect] =
     useState<MomentCardOpenOriginRect | null>(null);
   const [previewMediaIndex, setPreviewMediaIndex] = useState(0);
@@ -61,12 +64,20 @@ export function BentoGrid({ items, className }: BentoGridProps) {
   }, []);
 
   const openMomentPreview = useCallback(
-    (momentId: string, locale: string, originRect: MomentCardOpenOriginRect) => {
+    (
+      momentId: string,
+      locale: string,
+      originRect: MomentCardOpenOriginRect
+    ) => {
       setPreviewMediaIndex(0);
       setPreviewOriginRect(originRect);
       setPreviewingMomentId(momentId);
       const detailPath = toLocalizedPath(locale, `/moments/${momentId}`);
-      window.history.pushState({ previewingMomentId: momentId }, "", detailPath);
+      window.history.pushState(
+        { previewingMomentId: momentId },
+        "",
+        detailPath
+      );
     },
     []
   );
@@ -150,6 +161,18 @@ export function BentoGrid({ items, className }: BentoGridProps) {
   ]);
 
   useEffect(() => {
+    if (!setPreviewDockState) {
+      return;
+    }
+
+    return () => {
+      setPreviewDockState((previous) =>
+        previous.isActive ? DEFAULT_PREVIEW_DOCK_STATE : previous
+      );
+    };
+  }, [setPreviewDockState]);
+
+  useEffect(() => {
     const onPopState = () => {
       if (!previewingMomentId) {
         return;
@@ -220,7 +243,6 @@ export function BentoGrid({ items, className }: BentoGridProps) {
       previewBackdrop.style.removeProperty("opacity");
       previewCard.style.removeProperty("transform");
       previewCard.style.removeProperty("opacity");
-      previewCard.style.removeProperty("filter");
       previewBackdrop.classList.remove("moment-preview-backdrop--animating");
       previewCard.classList.remove("moment-preview-card--animating");
       return;
@@ -245,16 +267,21 @@ export function BentoGrid({ items, className }: BentoGridProps) {
     const targetCenterY = targetRect.top + targetRect.height / 2;
     const translateX = originCenterX - targetCenterX;
     const translateY = originCenterY - targetCenterY;
-    const scaleX = Math.min(1, Math.max(0.22, originRect.width / targetRect.width));
-    const scaleY = Math.min(1, Math.max(0.22, originRect.height / targetRect.height));
+    const scaleX = Math.min(
+      1,
+      Math.max(0.22, originRect.width / targetRect.width)
+    );
+    const scaleY = Math.min(
+      1,
+      Math.max(0.22, originRect.height / targetRect.height)
+    );
 
     previewBackdrop.classList.remove("moment-preview-backdrop--animating");
     previewCard.classList.remove("moment-preview-card--animating");
 
     previewBackdrop.style.opacity = "0";
     previewCard.style.transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scaleX}, ${scaleY})`;
-    previewCard.style.opacity = "0.72";
-    previewCard.style.filter = "blur(0.8px) saturate(0.9)";
+    previewCard.style.opacity = "0.84";
 
     const frameId = window.requestAnimationFrame(() => {
       previewBackdrop.classList.add("moment-preview-backdrop--animating");
@@ -262,7 +289,6 @@ export function BentoGrid({ items, className }: BentoGridProps) {
       previewBackdrop.style.opacity = "1";
       previewCard.style.transform = "translate3d(0, 0, 0) scale(1, 1)";
       previewCard.style.opacity = "1";
-      previewCard.style.filter = "none";
     });
 
     return () => {
@@ -272,37 +298,44 @@ export function BentoGrid({ items, className }: BentoGridProps) {
       previewBackdrop.style.removeProperty("opacity");
       previewCard.style.removeProperty("transform");
       previewCard.style.removeProperty("opacity");
-      previewCard.style.removeProperty("filter");
     };
   }, [previewMoment, previewOriginRect]);
 
   return (
     <div
       className={cn(
-        "grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4 auto-rows-[220px] grid-flow-dense",
+        "grid grid-flow-dense auto-rows-[220px] grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4",
         className
       )}
     >
-      {items.map((item) => {
+      {items.map((item, index) => {
         const itemKey = getFeedItemLayoutKey(item);
         const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
         const isHighlighted = item.id === highlightedId;
+        const priorityMedia = index < PRIORITY_MEDIA_COUNT;
 
         return (
           <div key={itemKey} className={cn("bento-card", spanClass)}>
             {item.type === "post" && (
-              <PostCard post={item} isHighlighted={isHighlighted} />
+              <PostCard
+                post={item}
+                isHighlighted={isHighlighted}
+                priorityMedia={priorityMedia}
+              />
             )}
             {item.type === "moment" && (
               <MomentCard
                 moment={item}
                 isHighlighted={isHighlighted}
+                priorityMedia={priorityMedia}
                 onOpenPreview={(originRect) =>
                   openMomentPreview(item.id, item.locale, originRect)
                 }
               />
             )}
-            {item.type === "gallery" && <GalleryCard item={item} />}
+            {item.type === "gallery" && (
+              <GalleryCard item={item} priorityMedia={priorityMedia} />
+            )}
             {item.type === "action" && <ActionCard item={item} />}
           </div>
         );
@@ -314,11 +347,14 @@ export function BentoGrid({ items, className }: BentoGridProps) {
             ref={previewBackdropRef}
             type="button"
             aria-label="Close moment preview"
-            className="moment-preview-backdrop absolute inset-0 bg-black/30 backdrop-blur-md"
+            className="moment-preview-backdrop bg-black/42 absolute inset-0"
             onClick={closeMomentPreview}
           />
 
-          <div ref={previewCardRef} className="moment-preview-card relative z-10 w-full max-w-3xl">
+          <div
+            ref={previewCardRef}
+            className="moment-preview-card relative z-10 w-full max-w-3xl"
+          >
             <MomentCard
               moment={previewMoment}
               preview
@@ -328,7 +364,6 @@ export function BentoGrid({ items, className }: BentoGridProps) {
               showPreviewMediaControls={false}
             />
           </div>
-
         </div>
       )}
     </div>

@@ -6,6 +6,7 @@ interface MomentImageOnlyProps {
   alt: string;
   sizes: string;
   unoptimized?: boolean;
+  priority?: boolean;
   className?: string;
   preview?: boolean;
 }
@@ -15,6 +16,7 @@ export function MomentImageOnly({
   alt,
   sizes,
   unoptimized = false,
+  priority = false,
   className,
   preview = false,
 }: MomentImageOnlyProps) {
@@ -26,6 +28,7 @@ export function MomentImageOnly({
         fill
         sizes={sizes}
         unoptimized={unoptimized}
+        priority={priority}
         className={cn(
           "object-cover transition-transform duration-500",
           !preview && "group-hover:scale-105"

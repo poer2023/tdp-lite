@@ -9,7 +9,6 @@ import {
   Sparkles,
   Terminal,
 } from "lucide-react";
-import { BottomNav } from "@/components/BottomNav";
 import { getPublicProfileSnapshot } from "@/lib/content/read";
 import { type AppLocale } from "@/lib/locale";
 import { cn, formatRelativeTime } from "@/lib/utils";
@@ -175,7 +174,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
           while (normalized.length < 36) {
             normalized.unshift(0);
           }
-          return normalized.map((level) => heatmapPalette[level] ?? heatmapPalette[0]);
+          return normalized.map(
+            (level) => heatmapPalette[level] ?? heatmapPalette[0]
+          );
         })();
   const yearLabel =
     profileSnapshot?.syncedAt instanceof Date
@@ -186,24 +187,24 @@ export default async function AboutPage({ params }: AboutPageProps) {
     listen: t.ratioListen,
     explore: t.ratioExplore,
   };
-  const focusRatios =
-    profileSnapshot?.derived?.ratios
-      ?.filter((ratio) => ratio.value > 0)
-      .map((ratio) => ({
-        ...ratio,
-        label: ratioLabelMap[ratio.key] ?? ratio.label,
-      })) ?? [
-      { key: "code", label: t.ratioCode, value: 34 },
-      { key: "listen", label: t.ratioListen, value: 33 },
-      { key: "explore", label: t.ratioExplore, value: 33 },
-    ];
+  const focusRatios = profileSnapshot?.derived?.ratios
+    ?.filter((ratio) => ratio.value > 0)
+    .map((ratio) => ({
+      ...ratio,
+      label: ratioLabelMap[ratio.key] ?? ratio.label,
+    })) ?? [
+    { key: "code", label: t.ratioCode, value: 34 },
+    { key: "listen", label: t.ratioListen, value: 33 },
+    { key: "explore", label: t.ratioExplore, value: 33 },
+  ];
   const latestPush = profileSnapshot?.github?.recentPushes?.[0] ?? null;
   const recentPushes = profileSnapshot?.github?.recentPushes?.slice(0, 3) ?? [];
   const topArtists = profileSnapshot?.music?.topArtists?.slice(0, 3) ?? [];
   const latestTrack = profileSnapshot?.music?.recentTracks?.[0] ?? null;
   const musicName = latestTrack?.name || t.musicName;
   const musicArtist = latestTrack?.artist || t.musicArtist;
-  const latestRepoName = latestPush?.repo.split("/").pop() ?? t.latestPushFallback;
+  const latestRepoName =
+    latestPush?.repo.split("/").pop() ?? t.latestPushFallback;
   const latestPushMeta = latestPush
     ? `${latestPush.commitCount} ${t.totalCommits} · ${formatRelativeTime(latestPush.createdAt ?? new Date(), locale)}`
     : t.syncFallback;
@@ -245,11 +246,11 @@ export default async function AboutPage({ params }: AboutPageProps) {
           <header className="mb-16 flex flex-col items-end justify-between gap-8 lg:flex-row">
             <div className="invisible" aria-hidden="true">
               <div className="mb-4 flex items-center gap-4">
-                <span className="inline-flex size-8 items-center justify-center rounded-full bg-ink text-white">
+                <span className="bg-ink inline-flex size-8 items-center justify-center rounded-full text-white">
                   <Code2 className="h-4 w-4" />
                 </span>
-                <span className="h-px w-12 bg-ink/20" />
-                <span className="inline-flex size-8 items-center justify-center rounded-full border border-ink/10 bg-white text-ink">
+                <span className="bg-ink/20 h-px w-12" />
+                <span className="border-ink/10 text-ink inline-flex size-8 items-center justify-center rounded-full border bg-white">
                   <Palette className="h-4 w-4" />
                 </span>
               </div>
@@ -265,8 +266,8 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 <span
                   className={
                     isZh
-                      ? "pl-10 text-[0.82em] font-medium text-ink-light md:pl-16"
-                      : "pl-16 font-light italic text-ink-light"
+                      ? "text-ink-light pl-10 text-[0.82em] font-medium md:pl-16"
+                      : "text-ink-light pl-16 font-light italic"
                   }
                 >
                   {t.subtitle}
@@ -278,8 +279,8 @@ export default async function AboutPage({ params }: AboutPageProps) {
               <p
                 className={
                   isZh
-                    ? "mb-6 text-base font-normal leading-relaxed text-ink-light md:text-lg"
-                    : "mb-6 text-lg font-light leading-relaxed text-ink-light md:text-xl"
+                    ? "text-ink-light mb-6 text-base font-normal leading-relaxed md:text-lg"
+                    : "text-ink-light mb-6 text-lg font-light leading-relaxed md:text-xl"
                 }
               >
                 {t.intro}
@@ -288,8 +289,8 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 <span
                   className={
                     isZh
-                      ? "rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-display tracking-[0.12em] shadow-sm"
-                      : "rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-mono uppercase tracking-widest shadow-sm"
+                      ? "rounded-full border border-black/5 bg-white px-4 py-2 font-display text-xs tracking-[0.12em] shadow-sm"
+                      : "rounded-full border border-black/5 bg-white px-4 py-2 font-mono text-xs uppercase tracking-widest shadow-sm"
                   }
                 >
                   {t.chipA}
@@ -297,8 +298,8 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 <span
                   className={
                     isZh
-                      ? "rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-display tracking-[0.12em] shadow-sm"
-                      : "rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-mono uppercase tracking-widest shadow-sm"
+                      ? "rounded-full border border-black/5 bg-white px-4 py-2 font-display text-xs tracking-[0.12em] shadow-sm"
+                      : "rounded-full border border-black/5 bg-white px-4 py-2 font-mono text-xs uppercase tracking-widest shadow-sm"
                   }
                 >
                   {t.chipB}
@@ -309,24 +310,29 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
           <div className="grid auto-rows-min grid-cols-1 gap-6 md:grid-cols-12">
             <div className="col-span-1 flex flex-col gap-6 md:col-span-4">
-              <div className="invisible mb-2 flex items-center justify-between px-2" aria-hidden="true">
+              <div
+                className="invisible mb-2 flex items-center justify-between px-2"
+                aria-hidden="true"
+              >
                 <h2
                   className={
                     isZh
-                      ? "text-xs font-semibold tracking-[0.18em] text-ink-light"
-                      : "font-mono text-xs font-bold uppercase tracking-[0.2em] text-ink-light"
+                      ? "text-ink-light text-xs font-semibold tracking-[0.18em]"
+                      : "text-ink-light font-mono text-xs font-bold uppercase tracking-[0.2em]"
                   }
                 >
                   {t.sectionLab}
                 </h2>
-                <span className="mx-4 h-px flex-1 bg-ink/10" />
-                <Terminal className="h-[18px] w-[18px] text-ink/40" />
+                <span className="bg-ink/10 mx-4 h-px flex-1" />
+                <Terminal className="text-ink/40 h-[18px] w-[18px]" />
               </div>
 
               <div className={cn(styles.card, "min-h-[200px] bg-white")}>
                 <div className="mb-6 flex items-start justify-between">
-                  <h3 className="font-serif text-xl font-bold">{t.commitFrequency}</h3>
-                  <span className="rounded bg-paper-grey px-2 py-1 font-mono text-xs text-ink-light">
+                  <h3 className="font-serif text-xl font-bold">
+                    {t.commitFrequency}
+                  </h3>
+                  <span className="bg-paper-grey text-ink-light rounded px-2 py-1 font-mono text-xs">
                     {yearLabel}
                   </span>
                 </div>
@@ -335,7 +341,11 @@ export default async function AboutPage({ params }: AboutPageProps) {
                     {heatmapCells.map((cellColor, index) => (
                       <div
                         key={`${cellColor}-${index}`}
-                        className={cn(styles.heatmapCell, "aspect-square", cellColor)}
+                        className={cn(
+                          styles.heatmapCell,
+                          "aspect-square",
+                          cellColor
+                        )}
                       />
                     ))}
                   </div>
@@ -343,8 +353,8 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 <div
                   className={
                     isZh
-                      ? "mt-4 flex justify-between text-[10px] text-ink-light"
-                      : "mt-4 flex justify-between font-mono text-[10px] uppercase text-ink-light"
+                      ? "text-ink-light mt-4 flex justify-between text-[10px]"
+                      : "text-ink-light mt-4 flex justify-between font-mono text-[10px] uppercase"
                   }
                 >
                   <span>{t.less}</span>
@@ -353,7 +363,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
               </div>
 
               <div className={cn(styles.card, "bg-white")}>
-                <h3 className="mb-4 font-serif text-xl font-bold">{t.techStack}</h3>
+                <h3 className="mb-4 font-serif text-xl font-bold">
+                  {t.techStack}
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   {techPills.map((pill) => (
                     <div key={pill} className={styles.codePill}>
@@ -363,7 +375,12 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 </div>
               </div>
 
-              <div className={cn(styles.card, "group cursor-pointer bg-ink text-white")}>
+              <div
+                className={cn(
+                  styles.card,
+                  "bg-ink group cursor-pointer text-white"
+                )}
+              >
                 <div className="mb-8 flex items-start justify-between">
                   <div className="flex size-8 items-center justify-center rounded-full border border-white/20">
                     <ArrowUpRight className="h-4 w-4" />
@@ -381,7 +398,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 <div className="mt-auto">
                   <h4
                     className={
-                      isZh ? "mb-1 text-xs text-white/60" : "mb-1 font-mono text-xs text-white/60"
+                      isZh
+                        ? "mb-1 text-xs text-white/60"
+                        : "mb-1 font-mono text-xs text-white/60"
                     }
                   >
                     {t.latestPushLabel}
@@ -395,7 +414,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
                   >
                     {latestRepoName}
                   </h3>
-                  <p className={isZh ? "mt-2 text-xs text-white/65" : "mt-2 font-mono text-xs text-white/65"}>
+                  <p
+                    className={
+                      isZh
+                        ? "mt-2 text-xs text-white/65"
+                        : "mt-2 font-mono text-xs text-white/65"
+                    }
+                  >
                     {latestPushMeta}
                   </p>
                 </div>
@@ -405,24 +430,29 @@ export default async function AboutPage({ params }: AboutPageProps) {
             <div className="col-span-1 flex flex-col gap-6 md:col-span-4">
               <div className="mb-2 hidden h-7 items-center justify-center md:flex" />
 
-              <div className={cn(styles.card, "min-h-[500px] items-center justify-center bg-paper-off-white py-16 text-center md:row-span-3 md:min-h-0 md:py-0")}>
-                <Sparkles className="mb-8 h-10 w-10 text-ink-light" />
+              <div
+                className={cn(
+                  styles.card,
+                  "bg-paper-off-white min-h-[500px] items-center justify-center py-16 text-center md:row-span-3 md:min-h-0 md:py-0"
+                )}
+              >
+                <Sparkles className="text-ink-light mb-8 h-10 w-10" />
                 <div className="mx-auto max-w-xs space-y-8 md:max-w-sm">
                   <p
                     className={
                       isZh
-                        ? "font-display text-[2rem] font-semibold leading-[1.35] text-ink md:text-[2.15rem]"
-                        : "font-serif text-3xl font-bold leading-tight text-ink md:text-4xl"
+                        ? "text-ink font-display text-[2rem] font-semibold leading-[1.35] md:text-[2.15rem]"
+                        : "text-ink font-serif text-3xl font-bold leading-tight md:text-4xl"
                     }
                   >
                     {t.quote}
                   </p>
-                  <div className="mx-auto h-px w-12 bg-ink" />
+                  <div className="bg-ink mx-auto h-px w-12" />
                   <p
                     className={
                       isZh
-                        ? "text-sm leading-relaxed tracking-[0.02em] text-ink-light"
-                        : "font-mono text-sm leading-relaxed text-ink-light"
+                        ? "text-ink-light text-sm leading-relaxed tracking-[0.02em]"
+                        : "text-ink-light font-mono text-sm leading-relaxed"
                     }
                   >
                     {t.quoteBody}
@@ -442,14 +472,17 @@ export default async function AboutPage({ params }: AboutPageProps) {
             </div>
 
             <div className="col-span-1 flex flex-col gap-6 md:col-span-4">
-              <div className="invisible mb-2 flex items-center justify-between px-2" aria-hidden="true">
-                <Brush className="h-[18px] w-[18px] text-ink/40" />
-                <span className="mx-4 h-px flex-1 bg-ink/10" />
+              <div
+                className="invisible mb-2 flex items-center justify-between px-2"
+                aria-hidden="true"
+              >
+                <Brush className="text-ink/40 h-[18px] w-[18px]" />
+                <span className="bg-ink/10 mx-4 h-px flex-1" />
                 <h2
                   className={
                     isZh
-                      ? "text-xs font-semibold tracking-[0.18em] text-ink-light"
-                      : "font-mono text-xs font-bold uppercase tracking-[0.2em] text-ink-light"
+                      ? "text-ink-light text-xs font-semibold tracking-[0.18em]"
+                      : "text-ink-light font-mono text-xs font-bold uppercase tracking-[0.2em]"
                   }
                 >
                   {t.sectionAtelier}
@@ -459,7 +492,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
               <div className={cn(styles.card, "bg-white")}>
                 <div className="mb-6 flex items-center justify-between">
                   <h3 className="font-serif text-xl font-bold">{t.focusMix}</h3>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-ink-light">
+                  <span className="text-ink-light font-mono text-[10px] uppercase tracking-[0.22em]">
                     {githubUsername}
                   </span>
                 </div>
@@ -467,35 +500,56 @@ export default async function AboutPage({ params }: AboutPageProps) {
                   {focusRatios.map((ratio, index) => (
                     <div key={`${ratio.key}-${index}`} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className={isZh ? "text-sm font-medium text-ink" : "font-mono text-xs uppercase tracking-[0.18em] text-ink"}>
+                        <span
+                          className={
+                            isZh
+                              ? "text-ink text-sm font-medium"
+                              : "text-ink font-mono text-xs uppercase tracking-[0.18em]"
+                          }
+                        >
                           {ratio.label}
                         </span>
-                        <span className="font-mono text-xs text-ink-light">{ratio.value}%</span>
+                        <span className="text-ink-light font-mono text-xs">
+                          {ratio.value}%
+                        </span>
                       </div>
-                      <div className="h-3 overflow-hidden rounded-full bg-paper-grey">
+                      <div className="bg-paper-grey h-3 overflow-hidden rounded-full">
                         <div
-                          className="h-full rounded-full bg-ink transition-[width] duration-500"
-                          style={{ width: `${Math.max(8, Math.min(100, ratio.value))}%` }}
+                          className="bg-ink h-full rounded-full transition-[width] duration-500"
+                          style={{
+                            width: `${Math.max(8, Math.min(100, ratio.value))}%`,
+                          }}
                         />
                       </div>
                     </div>
                   ))}
                 </div>
-                <p className={isZh ? "mt-4 text-xs text-ink-light" : "mt-4 font-mono text-xs text-ink-light"}>
+                <p
+                  className={
+                    isZh
+                      ? "text-ink-light mt-4 text-xs"
+                      : "text-ink-light mt-4 font-mono text-xs"
+                  }
+                >
                   {t.focusMixHint}
                 </p>
               </div>
 
               <div className={cn(styles.card, "bg-[#111] text-white")}>
                 <div className="mb-6 flex items-start justify-between">
-                  <h3 className="font-serif text-xl font-bold">{t.githubPulse}</h3>
+                  <h3 className="font-serif text-xl font-bold">
+                    {t.githubPulse}
+                  </h3>
                   <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">
                     {githubUsername}
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   {githubStats.map((stat) => (
-                    <div key={stat.label} className="rounded-2xl bg-white/6 px-3 py-3">
+                    <div
+                      key={stat.label}
+                      className="bg-white/6 rounded-2xl px-3 py-3"
+                    >
                       <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
                         {stat.label}
                       </p>
@@ -506,26 +560,38 @@ export default async function AboutPage({ params }: AboutPageProps) {
                   ))}
                 </div>
                 <div className="mt-6">
-                  <p className={isZh ? "mb-3 text-xs text-white/45" : "mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/45"}>
+                  <p
+                    className={
+                      isZh
+                        ? "mb-3 text-xs text-white/45"
+                        : "mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/45"
+                    }
+                  >
                     {t.recentActivity}
                   </p>
                   <div className="space-y-3">
-                    {recentPushes.length > 0 ? recentPushes.map((push) => (
-                      <div
-                        key={`${push.repo}-${push.createdAt?.toISOString() ?? "unknown"}`}
-                        className="flex items-center justify-between gap-4 rounded-2xl bg-white/5 px-3 py-3"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate font-mono text-sm text-white">{push.repo}</p>
-                          <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-white/45">
-                            {push.createdAt ? formatRelativeTime(push.createdAt, locale) : t.syncFallback}
-                          </p>
+                    {recentPushes.length > 0 ? (
+                      recentPushes.map((push) => (
+                        <div
+                          key={`${push.repo}-${push.createdAt?.toISOString() ?? "unknown"}`}
+                          className="flex items-center justify-between gap-4 rounded-2xl bg-white/5 px-3 py-3"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate font-mono text-sm text-white">
+                              {push.repo}
+                            </p>
+                            <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-white/45">
+                              {push.createdAt
+                                ? formatRelativeTime(push.createdAt, locale)
+                                : t.syncFallback}
+                            </p>
+                          </div>
+                          <div className="border-white/12 shrink-0 rounded-full border px-2 py-1 font-mono text-[10px] text-white/70">
+                            {push.commitCount} {t.totalCommits}
+                          </div>
                         </div>
-                        <div className="shrink-0 rounded-full border border-white/12 px-2 py-1 font-mono text-[10px] text-white/70">
-                          {push.commitCount} {t.totalCommits}
-                        </div>
-                      </div>
-                    )) : (
+                      ))
+                    ) : (
                       <div className="rounded-2xl bg-white/5 px-3 py-4 text-sm text-white/65">
                         {t.noActivity}
                       </div>
@@ -534,43 +600,63 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 </div>
               </div>
 
-              <div className={cn(styles.card, "bg-gradient-to-br from-[#f8f8f8] to-[#eee]")}>
+              <div
+                className={cn(
+                  styles.card,
+                  "bg-gradient-to-br from-[#f8f8f8] to-[#eee]"
+                )}
+              >
                 <div className="flex items-start gap-4">
-                  <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-ink shadow-lg">
+                  <div className="bg-ink relative size-16 shrink-0 overflow-hidden rounded-lg shadow-lg">
                     <div className="absolute inset-0 flex items-center justify-center">
                       <AudioLines className="h-7 w-7 animate-pulse text-white" />
                     </div>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-4">
-                      <h4 className="truncate text-sm font-bold">{musicName}</h4>
-                      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-light">
+                      <h4 className="truncate text-sm font-bold">
+                        {musicName}
+                      </h4>
+                      <span className="text-ink-light font-mono text-[10px] uppercase tracking-[0.2em]">
                         {t.musicSummary}
                       </span>
                     </div>
-                    <p className="mt-1 font-mono text-xs text-ink-light">{musicArtist}</p>
+                    <p className="text-ink-light mt-1 font-mono text-xs">
+                      {musicArtist}
+                    </p>
                     <div className="mt-3 flex items-center gap-2">
                       <button
                         type="button"
-                        className="flex size-6 items-center justify-center rounded-full bg-ink text-white transition-transform hover:scale-110"
+                        className="bg-ink flex size-6 items-center justify-center rounded-full text-white transition-transform hover:scale-110"
                         aria-label="Play"
                       >
                         <Play className="h-[14px] w-[14px] fill-white text-white" />
                       </button>
                       <div className="h-1 flex-1 overflow-hidden rounded-full bg-black/10">
-                        <div className="h-full rounded-full bg-ink" style={{ width: musicProgressWidth }} />
+                        <div
+                          className="bg-ink h-full rounded-full"
+                          style={{ width: musicProgressWidth }}
+                        />
                       </div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {topArtists.length > 0 ? topArtists.map((artist) => (
+                      {topArtists.length > 0 ? (
+                        topArtists.map((artist) => (
+                          <span
+                            key={artist.name}
+                            className="border-black/8 text-ink-light rounded-full border bg-white/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em]"
+                          >
+                            {artist.name}
+                          </span>
+                        ))
+                      ) : (
                         <span
-                          key={artist.name}
-                          className="rounded-full border border-black/8 bg-white/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.15em] text-ink-light"
+                          className={
+                            isZh
+                              ? "text-ink-light text-xs"
+                              : "text-ink-light font-mono text-[10px] uppercase tracking-[0.15em]"
+                          }
                         >
-                          {artist.name}
-                        </span>
-                      )) : (
-                        <span className={isZh ? "text-xs text-ink-light" : "font-mono text-[10px] uppercase tracking-[0.15em] text-ink-light"}>
                           {t.topArtists}
                         </span>
                       )}
@@ -580,9 +666,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
               </div>
             </div>
           </div>
-
         </div>
-        <BottomNav locale={locale} activeTab="about" />
       </div>
     </>
   );

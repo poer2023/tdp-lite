@@ -1,4 +1,3 @@
-import { BottomNav } from "@/components/BottomNav";
 import { SearchPageClient } from "@/components/search/SearchPageClient";
 import { getPublicFeed } from "@/lib/content/read";
 import { isAppLocale, type AppLocale } from "@/lib/locale";
@@ -24,7 +23,6 @@ export default async function SearchPage({ params }: SearchPageProps) {
       )}
     >
       <SearchPageClient locale={validLocale} initialItems={initialItems} />
-      <BottomNav locale={validLocale} activeTab="search" />
     </div>
   );
 }
