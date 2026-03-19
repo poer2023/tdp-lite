@@ -36,6 +36,7 @@ export function GalleryCard({
         fill
         sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
         unoptimized={skipOptimization}
+        loading={priorityMedia ? undefined : "lazy"}
         priority={priorityMedia}
         className={cn(
           "object-cover transition-transform duration-500",

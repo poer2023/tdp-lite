@@ -401,6 +401,7 @@ export function MomentCard({
               alt="Moment"
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
               unoptimized={Boolean(skipOptimization)}
+              loading={priorityMedia ? undefined : "lazy"}
               priority={priorityMedia}
               preview={preview}
             />
@@ -514,6 +515,7 @@ export function MomentCard({
   return (
     <Link
       href={toLocalizedPath(moment.locale, `/moments/${moment.id}`)}
+      prefetch={false}
       className={wrapperClass}
     >
       {content}

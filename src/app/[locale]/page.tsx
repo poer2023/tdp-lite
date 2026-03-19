@@ -3,6 +3,7 @@ import { getPublicFeed, getPublicPresence } from "@/lib/content/read";
 import Link from "next/link";
 import Image from "next/image";
 import { toLocalizedPath } from "@/lib/locale-routing";
+import { HomeDeferredFeed } from "@/components/home/HomeDeferredFeed";
 
 import { type AppLocale } from "@/lib/locale";
 import { SITE_AVATAR_SRC } from "@/lib/branding";
@@ -13,12 +14,13 @@ interface HomePageProps {
   params: Promise<{ locale: Locale }>;
 }
 
-const HOME_FEED_LIMIT = 100;
+const HOME_INITIAL_FEED_LIMIT = 18;
+const HOME_TOTAL_FEED_LIMIT = 72;
 
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
-  const [items, presence] = await Promise.all([
-    getPublicFeed(locale, HOME_FEED_LIMIT),
+  const [initialItems, presence] = await Promise.all([
+    getPublicFeed(locale, HOME_INITIAL_FEED_LIMIT),
     getPublicPresence(),
   ]);
   const t =
@@ -113,7 +115,12 @@ export default async function HomePage({ params }: HomePageProps) {
 
         {/* Main content */}
         <main>
-          <BentoGrid items={items} />
+          <BentoGrid items={initialItems} />
+          <HomeDeferredFeed
+            locale={locale}
+            initialCount={HOME_INITIAL_FEED_LIMIT}
+            totalLimit={HOME_TOTAL_FEED_LIMIT}
+          />
         </main>
       </div>
     </div>

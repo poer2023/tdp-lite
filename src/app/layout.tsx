@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { AppChrome } from "@/components/AppChrome";
 import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
 import "./globals.css";
@@ -29,17 +28,13 @@ export const metadata: Metadata = {
   description: "A minimal blog platform",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const requestHeaders = await headers();
-  const localeHeader = requestHeaders.get("x-tdp-locale");
-  const documentLocale = localeHeader === "en" ? "en" : "zh";
-
   return (
-    <html lang={documentLocale} suppressHydrationWarning>
+    <html lang="zh" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: documentBootstrapScript }} />
       </head>

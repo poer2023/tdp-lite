@@ -233,6 +233,24 @@ export function serializeGalleryFeedItem(item: GalleryItem): SearchSerializedGal
   };
 }
 
+export function serializeFeedItem(
+  item: FeedItem
+): SearchSerializedFeedItem | null {
+  if (item.type === "post") {
+    return serializePostFeedItem(item);
+  }
+
+  if (item.type === "moment") {
+    return serializeMomentFeedItem(item);
+  }
+
+  if (item.type === "gallery") {
+    return serializeGalleryFeedItem(item);
+  }
+
+  return null;
+}
+
 export function reviveSearchFeedItem(item: SearchSerializedFeedItem): FeedItem {
   if (item.type === "post") {
     return {

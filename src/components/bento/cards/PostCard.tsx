@@ -69,6 +69,7 @@ export function PostCard({
               fill
               unoptimized={Boolean(skipOptimization)}
               sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+              loading={priorityMedia ? undefined : "lazy"}
               priority={priorityMedia}
               className={cn(
                 "object-cover transition-transform duration-500",
@@ -170,6 +171,7 @@ export function PostCard({
   return (
     <Link
       href={toLocalizedPath(post.locale, `/posts/${post.slug}`)}
+      prefetch={false}
       className={wrapperClass}
     >
       {content}

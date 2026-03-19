@@ -7,6 +7,7 @@ interface MomentImageOnlyProps {
   sizes: string;
   unoptimized?: boolean;
   priority?: boolean;
+  loading?: "eager" | "lazy";
   className?: string;
   preview?: boolean;
 }
@@ -17,6 +18,7 @@ export function MomentImageOnly({
   sizes,
   unoptimized = false,
   priority = false,
+  loading,
   className,
   preview = false,
 }: MomentImageOnlyProps) {
@@ -28,6 +30,7 @@ export function MomentImageOnly({
         fill
         sizes={sizes}
         unoptimized={unoptimized}
+        loading={loading}
         priority={priority}
         className={cn(
           "object-cover transition-transform duration-500",

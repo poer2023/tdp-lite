@@ -17,6 +17,8 @@ function resolveApiProxyTarget(): string {
 
 const nextConfig: NextConfig = {
   images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 365,
     // Some local DNS/proxy tools resolve public image CDNs to 198.18.x.x.
     // Allowing local IP avoids false blocking in that setup.
     dangerouslyAllowLocalIP: true,

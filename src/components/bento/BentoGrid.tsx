@@ -8,6 +8,7 @@ import { GalleryCard } from "./cards/GalleryCard";
 import { ActionCard } from "./cards/ActionCard";
 import {
   useCallback,
+  type CSSProperties,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -28,12 +29,20 @@ import {
 interface BentoGridProps {
   items: FeedItem[];
   className?: string;
+  highlightFeatured?: boolean;
+  priorityMediaCount?: number;
+  deferCardRenderingAfter?: number;
 }
 
-export function BentoGrid({ items, className }: BentoGridProps) {
+export function BentoGrid({
+  items,
+  className,
+  highlightFeatured = true,
+  priorityMediaCount = 2,
+  deferCardRenderingAfter = 8,
+}: BentoGridProps) {
   const spanByItemKey = computeBentoSpans(items);
-  const highlightedId = getHighlightedItemId(items);
-  const PRIORITY_MEDIA_COUNT = 4;
+  const highlightedId = highlightFeatured ? getHighlightedItemId(items) : null;
   const [previewingMomentId, setPreviewingMomentId] = useState<string | null>(
     null
   );
@@ -312,10 +321,22 @@ export function BentoGrid({ items, className }: BentoGridProps) {
         const itemKey = getFeedItemLayoutKey(item);
         const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
         const isHighlighted = item.id === highlightedId;
-        const priorityMedia = index < PRIORITY_MEDIA_COUNT;
+        const priorityMedia = index < priorityMediaCount;
+        const shouldDeferCardRendering = index >= deferCardRenderingAfter;
+        const deferredCardStyle: CSSProperties | undefined =
+          shouldDeferCardRendering
+            ? {
+                contentVisibility: "auto",
+                containIntrinsicSize: "280px 320px",
+              }
+            : undefined;
 
         return (
-          <div key={itemKey} className={cn("bento-card", spanClass)}>
+          <div
+            key={itemKey}
+            className={cn("bento-card", spanClass)}
+            style={deferredCardStyle}
+          >
             {item.type === "post" && (
               <PostCard
                 post={item}
