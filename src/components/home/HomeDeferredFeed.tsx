@@ -9,7 +9,6 @@ import {
 } from "@/lib/search/feedItemSnapshot";
 
 type Locale = "en" | "zh";
-type DeferredFeedStatus = "idle" | "loading" | "ready" | "error";
 
 interface HomeDeferredFeedProps {
   locale: Locale;
@@ -21,7 +20,14 @@ interface FeedResponse {
   items: SearchSerializedFeedItem[];
 }
 
-const PREFETCH_DELAY_MS = 1200;
+const PREFETCH_DELAY_MS = 2400;
+type WindowWithIdleCallback = Window & {
+  requestIdleCallback?: (
+    callback: IdleRequestCallback,
+    options?: IdleRequestOptions
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
 
 export function HomeDeferredFeed({
   locale,
@@ -29,8 +35,6 @@ export function HomeDeferredFeed({
   totalLimit,
 }: HomeDeferredFeedProps) {
   const [items, setItems] = useState<FeedItem[]>([]);
-  const [status, setStatus] = useState<DeferredFeedStatus>("idle");
-  const sentinelRef = useRef<HTMLDivElement>(null);
   const hasStartedRef = useRef(false);
 
   useEffect(() => {
@@ -40,7 +44,6 @@ export function HomeDeferredFeed({
       }
 
       hasStartedRef.current = true;
-      setStatus("loading");
 
       const searchParams = new URLSearchParams({
         locale,
@@ -59,37 +62,36 @@ export function HomeDeferredFeed({
           const payload = (await response.json()) as FeedResponse;
           const nextItems = payload.items.map(reviveSearchFeedItem);
           setItems(nextItems);
-          setStatus("ready");
         })
-        .catch(() => {
-          setStatus("error");
-        });
+        .catch(() => {});
     };
 
-    const idleTimer = window.setTimeout(startLoading, PREFETCH_DELAY_MS);
+    const idleWindow = window as WindowWithIdleCallback;
+    let idleTimer: number | null = null;
+    let idleCallbackId: number | null = null;
 
-    const sentinel = sentinelRef.current;
-    if (!sentinel) {
-      return () => window.clearTimeout(idleTimer);
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          startLoading();
-        }
-      },
-      {
-        rootMargin: "960px 0px",
-        threshold: 0.01,
+    idleTimer = window.setTimeout(() => {
+      if (typeof idleWindow.requestIdleCallback === "function") {
+        idleCallbackId = idleWindow.requestIdleCallback(startLoading, {
+          timeout: 1200,
+        });
+        return;
       }
-    );
 
-    observer.observe(sentinel);
+      startLoading();
+    }, PREFETCH_DELAY_MS);
 
     return () => {
-      window.clearTimeout(idleTimer);
-      observer.disconnect();
+      if (idleTimer !== null) {
+        window.clearTimeout(idleTimer);
+      }
+
+      if (
+        idleCallbackId !== null &&
+        typeof idleWindow.cancelIdleCallback === "function"
+      ) {
+        idleWindow.cancelIdleCallback(idleCallbackId);
+      }
     };
   }, [initialCount, locale, totalLimit]);
 
@@ -101,14 +103,8 @@ export function HomeDeferredFeed({
           className="mt-4"
           highlightFeatured={false}
           priorityMediaCount={0}
+          deferVisibleMediaUntilIndex={0}
           deferCardRenderingAfter={6}
-        />
-      ) : null}
-      {status !== "ready" ? (
-        <div
-          ref={sentinelRef}
-          aria-hidden="true"
-          className="mt-4 h-px w-full"
         />
       ) : null}
     </>

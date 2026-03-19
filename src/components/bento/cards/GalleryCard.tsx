@@ -3,12 +3,18 @@ import { cn } from "@/lib/utils";
 import type { GalleryItem } from "@/lib/content/types";
 import { Camera, Aperture } from "lucide-react";
 import { LgChipDark } from "@/components/ui/LgChipDark";
+import {
+  DeferredCardMediaPlaceholder,
+  DeferredCardMediaSlot,
+} from "./DeferredCardMediaSlot";
 
 interface GalleryCardProps {
   item: GalleryItem;
   className?: string;
   preview?: boolean;
   priorityMedia?: boolean;
+  deferMedia?: boolean;
+  deferMediaDelayMs?: number;
 }
 
 export function GalleryCard({
@@ -16,6 +22,8 @@ export function GalleryCard({
   className,
   preview = false,
   priorityMedia = false,
+  deferMedia = false,
+  deferMediaDelayMs,
 }: GalleryCardProps) {
   const imageSrc = item.thumbUrl || item.fileUrl;
   const skipOptimization =
@@ -30,19 +38,25 @@ export function GalleryCard({
       )}
       data-lg-media-source="gallery-card-media"
     >
-      <Image
-        src={imageSrc}
-        alt={item.title || "Gallery Photo"}
-        fill
-        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-        unoptimized={skipOptimization}
-        loading={priorityMedia ? undefined : "lazy"}
-        priority={priorityMedia}
-        className={cn(
-          "object-cover transition-transform duration-500",
-          !preview && "group-hover:scale-105"
-        )}
-      />
+      <DeferredCardMediaSlot
+        deferred={deferMedia}
+        delayMs={deferMediaDelayMs}
+        placeholder={<DeferredCardMediaPlaceholder variant="light" />}
+      >
+        <Image
+          src={imageSrc}
+          alt={item.title || "Gallery Photo"}
+          fill
+          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          unoptimized={skipOptimization}
+          loading={priorityMedia ? undefined : "lazy"}
+          priority={priorityMedia}
+          className={cn(
+            "object-cover transition-transform duration-500",
+            !preview && "group-hover:scale-105"
+          )}
+        />
+      </DeferredCardMediaSlot>
 
       {/* Hover overlay with EXIF info */}
       <div

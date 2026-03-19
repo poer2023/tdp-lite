@@ -12,6 +12,10 @@ import type { Moment } from "@/lib/content/types";
 import { isVideoUrl } from "@/lib/media";
 import { ChevronLeft, ChevronRight, MapPin, Music2, Quote } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
+import {
+  DeferredCardMediaPlaceholder,
+  DeferredCardMediaSlot,
+} from "./DeferredCardMediaSlot";
 import { MomentImageOnly } from "./MomentImageOnly";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { LgChipDark } from "@/components/ui/LgChipDark";
@@ -37,6 +41,8 @@ interface MomentCardProps {
   onPreviewMediaIndexChange?: (nextIndex: number) => void;
   showPreviewMediaControls?: boolean;
   priorityMedia?: boolean;
+  deferMedia?: boolean;
+  deferMediaDelayMs?: number;
 }
 
 export function MomentCard({
@@ -49,6 +55,8 @@ export function MomentCard({
   onPreviewMediaIndexChange,
   showPreviewMediaControls = true,
   priorityMedia = false,
+  deferMedia = false,
+  deferMediaDelayMs,
 }: MomentCardProps) {
   const mediaList = moment.media ?? [];
   const hasMedia = mediaList.length > 0;
@@ -142,6 +150,8 @@ export function MomentCard({
   const shouldAnimatePreviewMedia = Boolean(
     isDetachedPreview && hasMultipleMedia && outgoingPreviewMedia
   );
+  const shouldDeferMediaMount =
+    deferMedia && !preview && hasMedia && !isAudioMedia;
   const incomingLayerAnimationClass = shouldAnimatePreviewMedia
     ? mediaTransitionDirection === "backward"
       ? "moment-preview-media-layer-enter-backward"
@@ -386,27 +396,35 @@ export function MomentCard({
                 ) : null}
               </div>
             </div>
-          ) : hasVideoMedia ? (
-            <AutoplayCoverVideo
-              src={mainMedia!.url}
-              poster={mainMedia?.thumbnailUrl}
-              eager={priorityMedia}
-              posterSizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-              className={cn(
-                "transition-transform duration-500",
-                !preview && "group-hover:scale-105"
-              )}
-            />
           ) : (
-            <MomentImageOnly
-              src={mainMedia!.url}
-              alt="Moment"
-              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-              unoptimized={Boolean(skipOptimization)}
-              loading={priorityMedia ? undefined : "lazy"}
-              priority={priorityMedia}
-              preview={preview}
-            />
+            <DeferredCardMediaSlot
+              deferred={shouldDeferMediaMount}
+              delayMs={deferMediaDelayMs}
+              placeholder={<DeferredCardMediaPlaceholder variant="dark" />}
+            >
+              {hasVideoMedia ? (
+                <AutoplayCoverVideo
+                  src={mainMedia!.url}
+                  poster={mainMedia?.thumbnailUrl}
+                  eager={priorityMedia}
+                  posterSizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  className={cn(
+                    "transition-transform duration-500",
+                    !preview && "group-hover:scale-105"
+                  )}
+                />
+              ) : (
+                <MomentImageOnly
+                  src={mainMedia!.url}
+                  alt="Moment"
+                  sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  unoptimized={Boolean(skipOptimization)}
+                  loading={priorityMedia ? undefined : "lazy"}
+                  priority={priorityMedia}
+                  preview={preview}
+                />
+              )}
+            </DeferredCardMediaSlot>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         </div>

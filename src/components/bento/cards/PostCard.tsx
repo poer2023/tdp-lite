@@ -6,6 +6,10 @@ import type { MediaKind } from "@/lib/media";
 import { isVideoUrl } from "@/lib/media";
 import { ArrowUpRight } from "lucide-react";
 import { AutoplayCoverVideo } from "./AutoplayCoverVideo";
+import {
+  DeferredCardMediaPlaceholder,
+  DeferredCardMediaSlot,
+} from "./DeferredCardMediaSlot";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
 
@@ -18,6 +22,8 @@ interface PostCardProps {
   className?: string;
   preview?: boolean;
   priorityMedia?: boolean;
+  deferMedia?: boolean;
+  deferMediaDelayMs?: number;
 }
 
 export function PostCard({
@@ -28,6 +34,8 @@ export function PostCard({
   className,
   preview = false,
   priorityMedia = false,
+  deferMedia = false,
+  deferMediaDelayMs,
 }: PostCardProps) {
   const isZh = post.locale === "zh";
   const highlighted = isHighlighted ?? isHero ?? false;
@@ -53,30 +61,36 @@ export function PostCard({
           className="absolute inset-0 z-0 h-full w-full overflow-hidden rounded-2xl"
           data-lg-media-source="post-card-media"
         >
-          {hasVideoCover ? (
-            <AutoplayCoverVideo
-              src={coverSrc}
-              eager={priorityMedia}
-              className={cn(
-                "transition-transform duration-500",
-                !preview && "group-hover:scale-105"
-              )}
-            />
-          ) : (
-            <Image
-              src={coverSrc}
-              alt={post.title}
-              fill
-              unoptimized={Boolean(skipOptimization)}
-              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-              loading={priorityMedia ? undefined : "lazy"}
-              priority={priorityMedia}
-              className={cn(
-                "object-cover transition-transform duration-500",
-                !preview && "group-hover:scale-105"
-              )}
-            />
-          )}
+          <DeferredCardMediaSlot
+            deferred={deferMedia}
+            delayMs={deferMediaDelayMs}
+            placeholder={<DeferredCardMediaPlaceholder variant="dark" />}
+          >
+            {hasVideoCover ? (
+              <AutoplayCoverVideo
+                src={coverSrc}
+                eager={priorityMedia}
+                className={cn(
+                  "transition-transform duration-500",
+                  !preview && "group-hover:scale-105"
+                )}
+              />
+            ) : (
+              <Image
+                src={coverSrc}
+                alt={post.title}
+                fill
+                unoptimized={Boolean(skipOptimization)}
+                sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                loading={priorityMedia ? undefined : "lazy"}
+                priority={priorityMedia}
+                className={cn(
+                  "object-cover transition-transform duration-500",
+                  !preview && "group-hover:scale-105"
+                )}
+              />
+            )}
+          </DeferredCardMediaSlot>
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
         </div>
 

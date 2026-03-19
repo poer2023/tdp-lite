@@ -14,7 +14,7 @@ interface HomePageProps {
   params: Promise<{ locale: Locale }>;
 }
 
-const HOME_INITIAL_FEED_LIMIT = 18;
+const HOME_INITIAL_FEED_LIMIT = 8;
 const HOME_TOTAL_FEED_LIMIT = 72;
 
 export default async function HomePage({ params }: HomePageProps) {
@@ -115,7 +115,7 @@ export default async function HomePage({ params }: HomePageProps) {
 
         {/* Main content */}
         <main>
-          <BentoGrid items={initialItems} />
+          <BentoGrid items={initialItems} deferVisibleMediaUntilIndex={8} />
           <HomeDeferredFeed
             locale={locale}
             initialCount={HOME_INITIAL_FEED_LIMIT}

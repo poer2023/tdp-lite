@@ -31,7 +31,26 @@ interface BentoGridProps {
   className?: string;
   highlightFeatured?: boolean;
   priorityMediaCount?: number;
+  deferVisibleMediaUntilIndex?: number;
+  deferredMediaStartDelayMs?: number;
+  deferredMediaStepMs?: number;
   deferCardRenderingAfter?: number;
+}
+
+function itemHasCardMedia(item: FeedItem): boolean {
+  if (item.type === "gallery") {
+    return Boolean(item.thumbUrl || item.fileUrl);
+  }
+
+  if (item.type === "post") {
+    return Boolean(item.coverUrl);
+  }
+
+  if (item.type === "moment") {
+    return Boolean(item.media && item.media.length > 0);
+  }
+
+  return false;
 }
 
 export function BentoGrid({
@@ -39,10 +58,30 @@ export function BentoGrid({
   className,
   highlightFeatured = true,
   priorityMediaCount = 3,
+  deferVisibleMediaUntilIndex = 8,
+  deferredMediaStartDelayMs = 1400,
+  deferredMediaStepMs = 260,
   deferCardRenderingAfter = 8,
 }: BentoGridProps) {
   const spanByItemKey = computeBentoSpans(items);
   const highlightedId = highlightFeatured ? getHighlightedItemId(items) : null;
+  const mediaOrderByItemKey = useMemo(() => {
+    const next: Record<string, number | null> = {};
+    let mediaIndex = 0;
+
+    items.forEach((item) => {
+      const key = getFeedItemLayoutKey(item);
+      if (!itemHasCardMedia(item)) {
+        next[key] = null;
+        return;
+      }
+
+      next[key] = mediaIndex;
+      mediaIndex += 1;
+    });
+
+    return next;
+  }, [items]);
   const [previewingMomentId, setPreviewingMomentId] = useState<string | null>(
     null
   );
@@ -321,7 +360,18 @@ export function BentoGrid({
         const itemKey = getFeedItemLayoutKey(item);
         const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
         const isHighlighted = item.id === highlightedId;
-        const priorityMedia = index < priorityMediaCount;
+        const mediaOrder = mediaOrderByItemKey[itemKey];
+        const priorityMedia =
+          mediaOrder !== null && mediaOrder < priorityMediaCount;
+        const shouldDeferVisibleMedia =
+          mediaOrder !== null &&
+          !priorityMedia &&
+          index < deferVisibleMediaUntilIndex;
+        const deferredMediaDelayMs =
+          shouldDeferVisibleMedia && mediaOrder !== null
+            ? deferredMediaStartDelayMs +
+              Math.max(0, mediaOrder - priorityMediaCount) * deferredMediaStepMs
+            : undefined;
         const shouldDeferCardRendering = index >= deferCardRenderingAfter;
         const deferredCardStyle: CSSProperties | undefined =
           shouldDeferCardRendering
@@ -342,6 +392,8 @@ export function BentoGrid({
                 post={item}
                 isHighlighted={isHighlighted}
                 priorityMedia={priorityMedia}
+                deferMedia={shouldDeferVisibleMedia}
+                deferMediaDelayMs={deferredMediaDelayMs}
               />
             )}
             {item.type === "moment" && (
@@ -349,13 +401,20 @@ export function BentoGrid({
                 moment={item}
                 isHighlighted={isHighlighted}
                 priorityMedia={priorityMedia}
+                deferMedia={shouldDeferVisibleMedia}
+                deferMediaDelayMs={deferredMediaDelayMs}
                 onOpenPreview={(originRect) =>
                   openMomentPreview(item.id, item.locale, originRect)
                 }
               />
             )}
             {item.type === "gallery" && (
-              <GalleryCard item={item} priorityMedia={priorityMedia} />
+              <GalleryCard
+                item={item}
+                priorityMedia={priorityMedia}
+                deferMedia={shouldDeferVisibleMedia}
+                deferMediaDelayMs={deferredMediaDelayMs}
+              />
             )}
             {item.type === "action" && <ActionCard item={item} />}
           </div>
