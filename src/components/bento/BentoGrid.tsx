@@ -32,6 +32,7 @@ interface BentoGridProps {
   highlightFeatured?: boolean;
   priorityMediaCount?: number;
   deferVisibleMediaUntilIndex?: number;
+  deferNonPriorityMedia?: boolean;
   deferredMediaStartDelayMs?: number;
   deferredMediaStepMs?: number;
   deferCardRenderingAfter?: number;
@@ -59,6 +60,7 @@ export function BentoGrid({
   highlightFeatured = true,
   priorityMediaCount = 3,
   deferVisibleMediaUntilIndex = 8,
+  deferNonPriorityMedia = false,
   deferredMediaStartDelayMs = 1400,
   deferredMediaStepMs = 260,
   deferCardRenderingAfter = 8,
@@ -366,7 +368,7 @@ export function BentoGrid({
         const shouldDeferVisibleMedia =
           mediaOrder !== null &&
           !priorityMedia &&
-          index < deferVisibleMediaUntilIndex;
+          (deferNonPriorityMedia || index < deferVisibleMediaUntilIndex);
         const deferredMediaDelayMs =
           shouldDeferVisibleMedia && mediaOrder !== null
             ? deferredMediaStartDelayMs +

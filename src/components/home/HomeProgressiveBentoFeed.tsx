@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { startTransition, useEffect, useRef, useState } from "react";
 import { BentoGrid } from "@/components/bento/BentoGrid";
+import { getFeedItemLayoutKey } from "@/components/bento/layoutEngine";
 import type { FeedItem } from "@/components/bento/types";
 import {
   reviveSearchFeedItem,
@@ -10,7 +11,8 @@ import {
 
 type Locale = "en" | "zh";
 
-interface HomeDeferredFeedProps {
+interface HomeProgressiveBentoFeedProps {
+  initialItems: FeedItem[];
   locale: Locale;
   initialCount: number;
   totalLimit: number;
@@ -20,7 +22,9 @@ interface FeedResponse {
   items: SearchSerializedFeedItem[];
 }
 
-const PREFETCH_DELAY_MS = 2400;
+const LAYOUT_PREFETCH_DELAY_MS = 320;
+const LAYOUT_IDLE_TIMEOUT_MS = 900;
+
 type WindowWithIdleCallback = Window & {
   requestIdleCallback?: (
     callback: IdleRequestCallback,
@@ -29,17 +33,37 @@ type WindowWithIdleCallback = Window & {
   cancelIdleCallback?: (handle: number) => void;
 };
 
-export function HomeDeferredFeed({
+function mergeFeedItems(current: FeedItem[], next: FeedItem[]): FeedItem[] {
+  const merged = new Map<string, FeedItem>();
+
+  current.forEach((item) => {
+    merged.set(getFeedItemLayoutKey(item), item);
+  });
+
+  next.forEach((item) => {
+    merged.set(getFeedItemLayoutKey(item), item);
+  });
+
+  return Array.from(merged.values());
+}
+
+export function HomeProgressiveBentoFeed({
+  initialItems,
   locale,
   initialCount,
   totalLimit,
-}: HomeDeferredFeedProps) {
-  const [items, setItems] = useState<FeedItem[]>([]);
+}: HomeProgressiveBentoFeedProps) {
+  const [items, setItems] = useState<FeedItem[]>(() => initialItems);
   const hasStartedRef = useRef(false);
 
   useEffect(() => {
+    const idleWindow = window as WindowWithIdleCallback;
+    let timeoutId: number | null = null;
+    let idleCallbackId: number | null = null;
+    let isActive = true;
+
     const startLoading = () => {
-      if (hasStartedRef.current) {
+      if (!isActive || hasStartedRef.current || initialCount >= totalLimit) {
         return;
       }
 
@@ -61,29 +85,34 @@ export function HomeDeferredFeed({
 
           const payload = (await response.json()) as FeedResponse;
           const nextItems = payload.items.map(reviveSearchFeedItem);
-          setItems(nextItems);
+
+          if (!isActive) {
+            return;
+          }
+
+          startTransition(() => {
+            setItems((current) => mergeFeedItems(current, nextItems));
+          });
         })
         .catch(() => {});
     };
 
-    const idleWindow = window as WindowWithIdleCallback;
-    let idleTimer: number | null = null;
-    let idleCallbackId: number | null = null;
-
-    idleTimer = window.setTimeout(() => {
+    timeoutId = window.setTimeout(() => {
       if (typeof idleWindow.requestIdleCallback === "function") {
         idleCallbackId = idleWindow.requestIdleCallback(startLoading, {
-          timeout: 1200,
+          timeout: LAYOUT_IDLE_TIMEOUT_MS,
         });
         return;
       }
 
       startLoading();
-    }, PREFETCH_DELAY_MS);
+    }, LAYOUT_PREFETCH_DELAY_MS);
 
     return () => {
-      if (idleTimer !== null) {
-        window.clearTimeout(idleTimer);
+      isActive = false;
+
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
       }
 
       if (
@@ -96,17 +125,11 @@ export function HomeDeferredFeed({
   }, [initialCount, locale, totalLimit]);
 
   return (
-    <>
-      {items.length > 0 ? (
-        <BentoGrid
-          items={items}
-          className="mt-4"
-          highlightFeatured={false}
-          priorityMediaCount={0}
-          deferVisibleMediaUntilIndex={0}
-          deferCardRenderingAfter={6}
-        />
-      ) : null}
-    </>
+    <BentoGrid
+      items={items}
+      deferVisibleMediaUntilIndex={items.length}
+      deferNonPriorityMedia
+      deferCardRenderingAfter={8}
+    />
   );
 }

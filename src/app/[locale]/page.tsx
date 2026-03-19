@@ -1,9 +1,8 @@
-import { BentoGrid } from "@/components/bento/BentoGrid";
 import { getPublicFeed, getPublicPresence } from "@/lib/content/read";
 import Link from "next/link";
 import Image from "next/image";
 import { toLocalizedPath } from "@/lib/locale-routing";
-import { HomeDeferredFeed } from "@/components/home/HomeDeferredFeed";
+import { HomeProgressiveBentoFeed } from "@/components/home/HomeProgressiveBentoFeed";
 
 import { type AppLocale } from "@/lib/locale";
 import { SITE_AVATAR_SRC } from "@/lib/branding";
@@ -58,6 +57,7 @@ export default async function HomePage({ params }: HomePageProps) {
         ? t.statusOfflinePrefix
         : t.statusUnknown;
   const statusValue = `${onlinePrefix} • ${locationLabel}`;
+  const initialFeedKey = `${locale}:${initialItems.map((item) => item.id).join(":")}`;
 
   return (
     <div
@@ -115,8 +115,9 @@ export default async function HomePage({ params }: HomePageProps) {
 
         {/* Main content */}
         <main>
-          <BentoGrid items={initialItems} deferVisibleMediaUntilIndex={8} />
-          <HomeDeferredFeed
+          <HomeProgressiveBentoFeed
+            key={initialFeedKey}
+            initialItems={initialItems}
             locale={locale}
             initialCount={HOME_INITIAL_FEED_LIMIT}
             totalLimit={HOME_TOTAL_FEED_LIMIT}
