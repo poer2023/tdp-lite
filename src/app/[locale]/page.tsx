@@ -99,7 +99,7 @@ export default async function HomePage({ params }: HomePageProps) {
                 <p className="text-xs font-medium">{statusValue}</p>
               </div>
               {/* Avatar - links to about page */}
-              <Link href={toLocalizedPath(locale, "/about")}>
+              <Link href={toLocalizedPath(locale, "/about")} prefetch={false}>
                 <Image
                   src={SITE_AVATAR_SRC}
                   alt={t.profileAlt}

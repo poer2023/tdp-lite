@@ -93,6 +93,7 @@ export function IconNavShell({
 interface IconNavItemProps {
   icon: React.ReactNode;
   href?: string;
+  prefetch?: boolean;
   label?: string;
   active?: boolean;
   emphasized?: boolean;
@@ -104,6 +105,7 @@ interface IconNavItemProps {
 export function IconNavItem({
   icon,
   href,
+  prefetch,
   label,
   active = false,
   emphasized = false,
@@ -142,7 +144,7 @@ export function IconNavItem({
 
   if (href) {
     return (
-      <Link href={href} className={baseClass}>
+      <Link href={href} prefetch={prefetch} className={baseClass}>
         {content}
       </Link>
     );

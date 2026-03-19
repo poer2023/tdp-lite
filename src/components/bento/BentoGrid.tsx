@@ -38,7 +38,7 @@ export function BentoGrid({
   items,
   className,
   highlightFeatured = true,
-  priorityMediaCount = 2,
+  priorityMediaCount = 3,
   deferCardRenderingAfter = 8,
 }: BentoGridProps) {
   const spanByItemKey = computeBentoSpans(items);

@@ -473,6 +473,7 @@ function BottomNavInner({
                   <IconNavItem
                     key={`measure-${tab.id}`}
                     href={`/${locale}${tab.path}`}
+                    prefetch={false}
                     icon={<Icon className="h-5 w-5" />}
                     label={tab.label}
                     active={isActive}
@@ -481,6 +482,7 @@ function BottomNavInner({
               })}
             <IconNavItem
               href={`/${locale}/about`}
+              prefetch={false}
               icon={<User className="h-5 w-5" />}
               label={aboutLabel}
               active={activeTab === "about"}
@@ -512,6 +514,7 @@ function BottomNavInner({
                   <IconNavItem
                     key={`measure-expanded-${tab.id}`}
                     href={`/${locale}${tab.path}`}
+                    prefetch={false}
                     icon={<Icon className="h-5 w-5" />}
                     label={tab.label}
                     active={isActive}
@@ -520,6 +523,7 @@ function BottomNavInner({
               })}
             <IconNavItem
               href={`/${locale}/about`}
+              prefetch={false}
               icon={<User className="h-5 w-5" />}
               label={aboutLabel}
               active={activeTab === "about"}
@@ -607,6 +611,7 @@ function BottomNavInner({
                       <IconNavItem
                         key={tab.id}
                         href={`/${locale}${tab.path}`}
+                        prefetch={false}
                         icon={<Icon className="h-5 w-5" />}
                         label={tab.label}
                         active={isActive}
@@ -615,6 +620,7 @@ function BottomNavInner({
                   })}
                 <IconNavItem
                   href={`/${locale}/about`}
+                  prefetch={false}
                   icon={<User className="h-5 w-5" />}
                   label={aboutLabel}
                   active={activeTab === "about"}

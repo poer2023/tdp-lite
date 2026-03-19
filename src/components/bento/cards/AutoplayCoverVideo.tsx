@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -9,11 +10,20 @@ type NavigatorWithConnection = Navigator & {
   };
 };
 
+type WindowWithIdleCallback = Window & {
+  requestIdleCallback?: (
+    callback: IdleRequestCallback,
+    options?: IdleRequestOptions
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
 interface AutoplayCoverVideoProps {
   src: string;
   className?: string;
   poster?: string;
   eager?: boolean;
+  posterSizes?: string;
 }
 
 export function AutoplayCoverVideo({
@@ -21,22 +31,64 @@ export function AutoplayCoverVideo({
   className,
   poster,
   eager = false,
+  posterSizes = "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw",
 }: AutoplayCoverVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isReady, setIsReady] = useState(false);
   const [isInView, setIsInView] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
+  const hasPosterImage = Boolean(
+    poster && !(poster.startsWith("blob:") || poster.startsWith("data:"))
+  );
+
+  useEffect(() => {
+    setIsReady(false);
+    setIsInView(false);
+    setShouldLoad(false);
+  }, [src]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    let observer: IntersectionObserver | null = null;
+    let timeoutId: number | null = null;
+    let idleCallbackId: number | null = null;
+
+    const scheduleLoad = () => {
+      setShouldLoad(true);
+    };
+
     if (eager) {
       setIsInView(true);
-      setShouldLoad(true);
-      return;
+      if (hasPosterImage) {
+        const idleWindow = window as WindowWithIdleCallback;
+        if (typeof idleWindow.requestIdleCallback === "function") {
+          idleCallbackId = idleWindow.requestIdleCallback(scheduleLoad, {
+            timeout: 1200,
+          });
+        } else {
+          timeoutId = window.setTimeout(scheduleLoad, 350);
+        }
+      } else {
+        scheduleLoad();
+      }
+      return () => {
+        if (
+          idleCallbackId !== null &&
+          typeof (window as WindowWithIdleCallback).cancelIdleCallback ===
+            "function"
+        ) {
+          (window as WindowWithIdleCallback).cancelIdleCallback?.(idleCallbackId);
+        }
+        if (timeoutId !== null) {
+          window.clearTimeout(timeoutId);
+        }
+        video.pause();
+      };
     }
 
-    const observer = new IntersectionObserver(
+    observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
@@ -57,10 +109,10 @@ export function AutoplayCoverVideo({
     observer.observe(video);
 
     return () => {
-      observer.disconnect();
+      observer?.disconnect();
       video.pause();
     };
-  }, [eager, src]);
+  }, [eager, hasPosterImage, src]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -84,25 +136,40 @@ export function AutoplayCoverVideo({
   }, [isInView, shouldLoad, src]);
 
   return (
-    <video
-      ref={videoRef}
-      src={shouldLoad ? src : undefined}
-      crossOrigin="anonymous"
-      poster={poster}
-      muted
-      loop
-      playsInline
-      preload={eager ? "metadata" : "none"}
-      disablePictureInPicture
-      aria-hidden="true"
-      className={cn(
-        "h-full w-full object-cover transition-opacity duration-500",
-        isReady || !shouldLoad ? "opacity-100" : "opacity-0",
-        className
-      )}
-      onLoadStart={() => setIsReady(false)}
-      onLoadedMetadata={() => setIsReady(true)}
-      onLoadedData={() => setIsReady(true)}
-    />
+    <div className={cn("relative h-full w-full overflow-hidden", className)}>
+      {hasPosterImage ? (
+        <Image
+          src={poster!}
+          alt=""
+          aria-hidden="true"
+          fill
+          sizes={posterSizes}
+          priority={eager}
+          className={cn(
+            "object-cover transition-opacity duration-500",
+            shouldLoad && isReady ? "opacity-0" : "opacity-100"
+          )}
+        />
+      ) : null}
+      <video
+        ref={videoRef}
+        src={shouldLoad ? src : undefined}
+        crossOrigin="anonymous"
+        poster={poster}
+        muted
+        loop
+        playsInline
+        preload="none"
+        disablePictureInPicture
+        aria-hidden="true"
+        className={cn(
+          "absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
+          isReady ? "opacity-100" : hasPosterImage ? "opacity-0" : "opacity-100"
+        )}
+        onLoadStart={() => setIsReady(false)}
+        onLoadedMetadata={() => setIsReady(true)}
+        onLoadedData={() => setIsReady(true)}
+      />
+    </div>
   );
 }

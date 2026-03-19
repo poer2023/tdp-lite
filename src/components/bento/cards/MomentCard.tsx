@@ -242,6 +242,7 @@ export function MomentCard({
           src={media.url}
           poster={media.thumbnailUrl}
           eager={eager}
+          posterSizes="(min-width: 1024px) 66vw, 90vw"
         />
       );
     }
@@ -390,6 +391,7 @@ export function MomentCard({
               src={mainMedia!.url}
               poster={mainMedia?.thumbnailUrl}
               eager={priorityMedia}
+              posterSizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
               className={cn(
                 "transition-transform duration-500",
                 !preview && "group-hover:scale-105"
