@@ -1,0 +1,5 @@
+/* Intentionally empty.
+ *
+ * A narrow compatibility target for stale route-prefetch stylesheet requests
+ * that may still be cached by clients or the edge.
+ */

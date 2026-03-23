@@ -47,24 +47,36 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     const proxyTarget = resolveApiProxyTarget();
-    if (!proxyTarget) {
-      return [];
-    }
-
-    return [
+    const beforeFiles = [
+      // Some clients still prefetch an older hashed route stylesheet. Serve a
+      // harmless fallback instead of a cached 404.
       {
-        source: "/v1/:path*",
-        destination: `${proxyTarget}/v1/:path*`,
-      },
-      {
-        source: "/healthz",
-        destination: `${proxyTarget}/healthz`,
-      },
-      {
-        source: "/readyz",
-        destination: `${proxyTarget}/readyz`,
+        source: "/_next/static/chunks/73c6ec51f23b741b.css",
+        destination: "/legacy-prefetch-fallback.css",
       },
     ];
+
+    const afterFiles = proxyTarget
+      ? [
+          {
+            source: "/v1/:path*",
+            destination: `${proxyTarget}/v1/:path*`,
+          },
+          {
+            source: "/healthz",
+            destination: `${proxyTarget}/healthz`,
+          },
+          {
+            source: "/readyz",
+            destination: `${proxyTarget}/readyz`,
+          },
+        ]
+      : [];
+
+    return {
+      beforeFiles,
+      afterFiles,
+    };
   },
 };
 
