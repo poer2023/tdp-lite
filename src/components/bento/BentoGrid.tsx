@@ -90,7 +90,10 @@ function DeferredBentoCardSlot({
         observer.disconnect();
       },
       {
-        rootMargin: "1800px 0px",
+        rootMargin: `${Math.max(
+          320,
+          Math.min(720, Math.round(window.innerHeight * 0.35))
+        )}px 0px`,
         threshold: 0.01,
       }
     );
