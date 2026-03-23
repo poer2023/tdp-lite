@@ -43,6 +43,7 @@ interface MomentCardProps {
   priorityMedia?: boolean;
   deferMedia?: boolean;
   deferMediaDelayMs?: number;
+  homeImagePhaseId?: string;
 }
 
 export function MomentCard({
@@ -57,6 +58,7 @@ export function MomentCard({
   priorityMedia = false,
   deferMedia = false,
   deferMediaDelayMs,
+  homeImagePhaseId,
 }: MomentCardProps) {
   const mediaList = moment.media ?? [];
   const hasMedia = mediaList.length > 0;
@@ -252,6 +254,7 @@ export function MomentCard({
           src={media.url}
           poster={media.thumbnailUrl}
           eager={eager}
+          homeImagePhaseId={homeImagePhaseId}
           posterSizes="(min-width: 1024px) 66vw, 90vw"
         />
       );
@@ -265,6 +268,7 @@ export function MomentCard({
         unoptimized={layerSkipOptimization}
         priority={eager}
         preview
+        homeImagePhaseId={homeImagePhaseId}
       />
     );
   };
@@ -401,12 +405,15 @@ export function MomentCard({
               deferred={shouldDeferMediaMount}
               delayMs={deferMediaDelayMs}
               placeholder={<DeferredCardMediaPlaceholder variant="dark" />}
+              homeImagePhaseId={homeImagePhaseId}
             >
               {hasVideoMedia ? (
                 <AutoplayCoverVideo
                   src={mainMedia!.url}
                   poster={mainMedia?.thumbnailUrl}
                   eager={priorityMedia}
+                  waitForHomeImagesReady={Boolean(homeImagePhaseId)}
+                  homeImagePhaseId={homeImagePhaseId}
                   posterSizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                   className={cn(
                     "transition-transform duration-500",
@@ -422,6 +429,7 @@ export function MomentCard({
                   loading={priorityMedia ? undefined : "lazy"}
                   priority={priorityMedia}
                   preview={preview}
+                  homeImagePhaseId={homeImagePhaseId}
                 />
               )}
             </DeferredCardMediaSlot>

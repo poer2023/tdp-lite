@@ -7,6 +7,7 @@ import {
   DeferredCardMediaPlaceholder,
   DeferredCardMediaSlot,
 } from "./DeferredCardMediaSlot";
+import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 
 interface GalleryCardProps {
   item: GalleryItem;
@@ -15,6 +16,7 @@ interface GalleryCardProps {
   priorityMedia?: boolean;
   deferMedia?: boolean;
   deferMediaDelayMs?: number;
+  homeImagePhaseId?: string;
 }
 
 export function GalleryCard({
@@ -24,6 +26,7 @@ export function GalleryCard({
   priorityMedia = false,
   deferMedia = false,
   deferMediaDelayMs,
+  homeImagePhaseId,
 }: GalleryCardProps) {
   const imageSrc = item.thumbUrl || item.fileUrl;
   const skipOptimization =
@@ -42,6 +45,7 @@ export function GalleryCard({
         deferred={deferMedia}
         delayMs={deferMediaDelayMs}
         placeholder={<DeferredCardMediaPlaceholder variant="light" />}
+        homeImagePhaseId={homeImagePhaseId}
       >
         <Image
           src={imageSrc}
@@ -51,6 +55,8 @@ export function GalleryCard({
           unoptimized={skipOptimization}
           loading={priorityMedia ? undefined : "lazy"}
           priority={priorityMedia}
+          onLoad={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
+          onError={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
           className={cn(
             "object-cover transition-transform duration-500",
             !preview && "group-hover:scale-105"

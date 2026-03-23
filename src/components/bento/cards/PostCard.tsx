@@ -10,6 +10,7 @@ import {
   DeferredCardMediaPlaceholder,
   DeferredCardMediaSlot,
 } from "./DeferredCardMediaSlot";
+import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
 
@@ -24,6 +25,7 @@ interface PostCardProps {
   priorityMedia?: boolean;
   deferMedia?: boolean;
   deferMediaDelayMs?: number;
+  homeImagePhaseId?: string;
 }
 
 export function PostCard({
@@ -36,6 +38,7 @@ export function PostCard({
   priorityMedia = false,
   deferMedia = false,
   deferMediaDelayMs,
+  homeImagePhaseId,
 }: PostCardProps) {
   const isZh = post.locale === "zh";
   const highlighted = isHighlighted ?? isHero ?? false;
@@ -65,11 +68,14 @@ export function PostCard({
             deferred={deferMedia}
             delayMs={deferMediaDelayMs}
             placeholder={<DeferredCardMediaPlaceholder variant="dark" />}
+            homeImagePhaseId={homeImagePhaseId}
           >
             {hasVideoCover ? (
               <AutoplayCoverVideo
                 src={coverSrc}
                 eager={priorityMedia}
+                waitForHomeImagesReady={Boolean(homeImagePhaseId)}
+                homeImagePhaseId={homeImagePhaseId}
                 className={cn(
                   "transition-transform duration-500",
                   !preview && "group-hover:scale-105"
@@ -84,6 +90,8 @@ export function PostCard({
                 sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                 loading={priorityMedia ? undefined : "lazy"}
                 priority={priorityMedia}
+                onLoad={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
+                onError={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
                 className={cn(
                   "object-cover transition-transform duration-500",
                   !preview && "group-hover:scale-105"

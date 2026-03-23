@@ -2,6 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  registerHomeImagePhaseItem,
+  unregisterHomeImagePhaseItem,
+} from "@/components/home/homeMediaPhases";
 
 type WindowWithIdleCallback = Window & {
   requestIdleCallback?: (
@@ -18,6 +22,7 @@ interface DeferredCardMediaSlotProps {
   rootMargin?: string;
   className?: string;
   placeholder?: ReactNode;
+  homeImagePhaseId?: string;
 }
 
 export function DeferredCardMediaSlot({
@@ -27,10 +32,23 @@ export function DeferredCardMediaSlot({
   rootMargin = "220px 0px",
   className,
   placeholder,
+  homeImagePhaseId,
 }: DeferredCardMediaSlotProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [isNearViewport, setIsNearViewport] = useState(() => !deferred);
   const [shouldRender, setShouldRender] = useState(() => !deferred);
+
+  useEffect(() => {
+    if (!homeImagePhaseId) {
+      return;
+    }
+
+    registerHomeImagePhaseItem(homeImagePhaseId);
+
+    return () => {
+      unregisterHomeImagePhaseItem(homeImagePhaseId);
+    };
+  }, [homeImagePhaseId]);
 
   useEffect(() => {
     if (!deferred || shouldRender) {

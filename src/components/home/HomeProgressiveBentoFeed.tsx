@@ -8,6 +8,10 @@ import {
   reviveSearchFeedItem,
   type SearchSerializedFeedItem,
 } from "@/lib/search/feedItemSnapshot";
+import {
+  resetHomeImagesReady,
+  sealHomeImagesReadyCollection,
+} from "./homeMediaPhases";
 
 type Locale = "en" | "zh";
 
@@ -54,7 +58,38 @@ export function HomeProgressiveBentoFeed({
   totalLimit,
 }: HomeProgressiveBentoFeedProps) {
   const [items, setItems] = useState<FeedItem[]>(() => initialItems);
+  const [hasDeferredFeedFailed, setHasDeferredFeedFailed] =
+    useState(() => initialCount >= totalLimit);
   const hasStartedRef = useRef(false);
+
+  useEffect(() => {
+    resetHomeImagesReady();
+  }, []);
+
+  useEffect(() => {
+    const hasSettledInitialMediaWindow =
+      initialCount >= totalLimit ||
+      items.length > initialCount ||
+      hasDeferredFeedFailed;
+
+    if (!hasSettledInitialMediaWindow) {
+      return;
+    }
+
+    let frameA = 0;
+    let frameB = 0;
+
+    frameA = window.requestAnimationFrame(() => {
+      frameB = window.requestAnimationFrame(() => {
+        sealHomeImagesReadyCollection();
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameA);
+      window.cancelAnimationFrame(frameB);
+    };
+  }, [hasDeferredFeedFailed, initialCount, items.length, totalLimit]);
 
   useEffect(() => {
     const idleWindow = window as WindowWithIdleCallback;
@@ -94,7 +129,13 @@ export function HomeProgressiveBentoFeed({
             setItems((current) => mergeFeedItems(current, nextItems));
           });
         })
-        .catch(() => {});
+        .catch(() => {
+          if (!isActive) {
+            return;
+          }
+
+          setHasDeferredFeedFailed(true);
+        });
     };
 
     timeoutId = window.setTimeout(() => {

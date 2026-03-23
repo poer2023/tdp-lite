@@ -31,6 +31,7 @@ interface BentoGridProps {
   className?: string;
   highlightFeatured?: boolean;
   priorityMediaCount?: number;
+  homeImagePhaseMediaCount?: number;
   deferVisibleMediaUntilIndex?: number;
   deferNonPriorityMedia?: boolean;
   deferredMediaStartDelayMs?: number;
@@ -59,6 +60,7 @@ export function BentoGrid({
   className,
   highlightFeatured = true,
   priorityMediaCount = 3,
+  homeImagePhaseMediaCount = 10,
   deferVisibleMediaUntilIndex = 8,
   deferNonPriorityMedia = false,
   deferredMediaStartDelayMs = 1400,
@@ -374,6 +376,10 @@ export function BentoGrid({
             ? deferredMediaStartDelayMs +
               Math.max(0, mediaOrder - priorityMediaCount) * deferredMediaStepMs
             : undefined;
+        const homeImagePhaseId =
+          mediaOrder !== null && mediaOrder < homeImagePhaseMediaCount
+            ? `home:${itemKey}`
+            : undefined;
         const shouldDeferCardRendering = index >= deferCardRenderingAfter;
         const deferredCardStyle: CSSProperties | undefined =
           shouldDeferCardRendering
@@ -396,6 +402,7 @@ export function BentoGrid({
                 priorityMedia={priorityMedia}
                 deferMedia={shouldDeferVisibleMedia}
                 deferMediaDelayMs={deferredMediaDelayMs}
+                homeImagePhaseId={homeImagePhaseId}
               />
             )}
             {item.type === "moment" && (
@@ -405,6 +412,7 @@ export function BentoGrid({
                 priorityMedia={priorityMedia}
                 deferMedia={shouldDeferVisibleMedia}
                 deferMediaDelayMs={deferredMediaDelayMs}
+                homeImagePhaseId={homeImagePhaseId}
                 onOpenPreview={(originRect) =>
                   openMomentPreview(item.id, item.locale, originRect)
                 }
@@ -416,6 +424,7 @@ export function BentoGrid({
                 priorityMedia={priorityMedia}
                 deferMedia={shouldDeferVisibleMedia}
                 deferMediaDelayMs={deferredMediaDelayMs}
+                homeImagePhaseId={homeImagePhaseId}
               />
             )}
             {item.type === "action" && <ActionCard item={item} />}
