@@ -70,6 +70,7 @@ export function GlobalLocaleSwitch() {
     <div className="fixed right-5 top-5 z-[70]">
       <Link
         href={targetHref}
+        prefetch={false}
         className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/85 px-3 py-1.5 font-mono text-[11px] uppercase tracking-widest text-[#333] shadow-sm backdrop-blur transition-colors hover:bg-white hover:text-[#111]"
         aria-label={ariaLabel}
       >

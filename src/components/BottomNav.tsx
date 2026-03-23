@@ -541,6 +541,7 @@ function BottomNavInner({
             {hideLocaleToggle ? null : (
               <Link
                 href={localeTargetHref}
+                prefetch={false}
                 aria-label={localeButtonAriaLabel}
                 className={localeButtonClass}
               >
@@ -640,6 +641,7 @@ function BottomNavInner({
                   {hideLocaleToggle ? null : (
                     <Link
                       href={localeTargetHref}
+                      prefetch={false}
                       aria-label={localeButtonAriaLabel}
                       className={localeButtonClass}
                     >
