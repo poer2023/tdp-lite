@@ -14,6 +14,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import {
@@ -37,6 +38,79 @@ interface BentoGridProps {
   deferredMediaStartDelayMs?: number;
   deferredMediaStepMs?: number;
   deferCardRenderingAfter?: number;
+}
+
+interface DeferredBentoCardSlotProps {
+  deferred: boolean;
+  spanClass: string;
+  children: ReactNode;
+}
+
+function getDeferredCardIntrinsicSize(spanClass: string): string {
+  const rowSpanMatch = spanClass.match(/row-span-(\d+)/);
+  const rowSpan = Number(rowSpanMatch?.[1] ?? 1);
+  const baseRowHeight = 220;
+  const rowGap = 16;
+  const intrinsicHeight =
+    rowSpan * baseRowHeight + Math.max(0, rowSpan - 1) * rowGap;
+
+  return `${intrinsicHeight}px 100%`;
+}
+
+function DeferredBentoCardSlot({
+  deferred,
+  spanClass,
+  children,
+}: DeferredBentoCardSlotProps) {
+  const hostRef = useRef<HTMLDivElement>(null);
+  const [shouldMount, setShouldMount] = useState(() => !deferred);
+
+  useEffect(() => {
+    if (!deferred || shouldMount) {
+      return;
+    }
+
+    const node = hostRef.current;
+    if (!node) {
+      return;
+    }
+
+    if (typeof IntersectionObserver !== "function") {
+      setShouldMount(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          return;
+        }
+
+        setShouldMount(true);
+        observer.disconnect();
+      },
+      {
+        rootMargin: "1800px 0px",
+        threshold: 0.01,
+      }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [deferred, shouldMount]);
+
+  const deferredCardStyle: CSSProperties | undefined = deferred
+    ? {
+        contentVisibility: "auto",
+        containIntrinsicSize: getDeferredCardIntrinsicSize(spanClass),
+      }
+    : undefined;
+
+  return (
+    <div ref={hostRef} className={cn("h-full w-full", spanClass)} style={deferredCardStyle}>
+      {shouldMount ? children : null}
+    </div>
+  );
 }
 
 function itemHasCardMedia(item: FeedItem): boolean {
@@ -381,20 +455,8 @@ export function BentoGrid({
             ? `home:${itemKey}`
             : undefined;
         const shouldDeferCardRendering = index >= deferCardRenderingAfter;
-        const deferredCardStyle: CSSProperties | undefined =
-          shouldDeferCardRendering
-            ? {
-                contentVisibility: "auto",
-                containIntrinsicSize: "280px 320px",
-              }
-            : undefined;
-
-        return (
-          <div
-            key={itemKey}
-            className={cn("bento-card", spanClass)}
-            style={deferredCardStyle}
-          >
+        const card = (
+          <>
             {item.type === "post" && (
               <PostCard
                 post={item}
@@ -428,7 +490,17 @@ export function BentoGrid({
               />
             )}
             {item.type === "action" && <ActionCard item={item} />}
-          </div>
+          </>
+        );
+
+        return (
+          <DeferredBentoCardSlot
+            key={itemKey}
+            deferred={shouldDeferCardRendering}
+            spanClass={cn("bento-card", spanClass)}
+          >
+            {card}
+          </DeferredBentoCardSlot>
         );
       })}
 
