@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
@@ -16,7 +17,10 @@ import {
   DeferredCardMediaPlaceholder,
   DeferredCardMediaSlot,
 } from "./DeferredCardMediaSlot";
-import { MomentImageOnly } from "./MomentImageOnly";
+import {
+  buildOptimizedPreviewImageUrl,
+  MomentImageOnly,
+} from "./MomentImageOnly";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { LgChipDark } from "@/components/ui/LgChipDark";
 import { resolveMomentDisplayFromMoment } from "@/lib/content/momentDisplay";
@@ -72,6 +76,10 @@ export function MomentCard({
   >("forward");
   const mediaTransitionTimerRef = useRef<number | null>(null);
   const previousResolvedMediaIndexRef = useRef(0);
+  const previewMediaFrameRef = useRef<HTMLDivElement | null>(null);
+  const [previewMeasuredWidth, setPreviewMeasuredWidth] = useState<number | null>(
+    null
+  );
 
   const getMediaPresentation = (media: MomentMedia | null) => {
     const isAudio = Boolean(media?.type === "audio");
@@ -142,6 +150,11 @@ export function MomentCard({
   const previewMediaWidth = isPortraitMedia
     ? `min(74%, calc(56vh * ${previewMediaRatio}))`
     : "100%";
+  const previewImageSizes = previewMeasuredWidth
+    ? `${Math.max(1, Math.round(previewMeasuredWidth))}px`
+    : isPortraitMedia
+      ? "(min-width: 1024px) 420px, 74vw"
+      : "(min-width: 1280px) 768px, (min-width: 1024px) 74vw, 90vw";
   const isDetachedPreview = preview && hasMedia && !isAudioMedia;
   const canSwitchPreviewMedia =
     preview && hasMultipleMedia && showPreviewMediaControls;
@@ -222,6 +235,86 @@ export function MomentCard({
     };
   }, []);
 
+  useLayoutEffect(() => {
+    if (!preview || !isDetachedPreview) {
+      setPreviewMeasuredWidth(null);
+      return;
+    }
+
+    const node = previewMediaFrameRef.current;
+    if (!node) {
+      return;
+    }
+
+    const updateWidth = () => {
+      const nextWidth = Math.round(node.getBoundingClientRect().width);
+      setPreviewMeasuredWidth((previous) =>
+        previous === nextWidth ? previous : nextWidth
+      );
+    };
+
+    updateWidth();
+
+    if (typeof ResizeObserver !== "function") {
+      return;
+    }
+
+    const observer = new ResizeObserver(() => updateWidth());
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [isDetachedPreview, preview, previewMediaRatio, resolvedMediaIndex]);
+
+  useEffect(() => {
+    if (!preview || !hasMultipleMedia || typeof window === "undefined") {
+      return;
+    }
+
+    const measuredWidth = previewMeasuredWidth ?? 420;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const requestedWidth = Math.max(320, Math.round(measuredWidth * dpr));
+    const preloadIndices = [
+      (resolvedMediaIndex + 1) % mediaList.length,
+      (resolvedMediaIndex + 2) % mediaList.length,
+    ];
+    const seen = new Set<string>();
+
+    preloadIndices.forEach((mediaIndex) => {
+      const media = mediaList[mediaIndex];
+      if (!media) {
+        return;
+      }
+
+      const { isAudio, isVideo, shouldSkipOptimization } =
+        getMediaPresentation(media);
+      if (isAudio || isVideo || shouldSkipOptimization) {
+        return;
+      }
+
+      const preloadUrl = buildOptimizedPreviewImageUrl(
+        media.url,
+        requestedWidth,
+        typeof media.width === "number" ? media.width : undefined
+      );
+
+      if (seen.has(preloadUrl)) {
+        return;
+      }
+
+      seen.add(preloadUrl);
+      const image = new window.Image();
+      image.decoding = "async";
+      image.fetchPriority = "low";
+      image.src = preloadUrl;
+    });
+  }, [
+    getMediaPresentation,
+    hasMultipleMedia,
+    mediaList,
+    preview,
+    previewMeasuredWidth,
+    resolvedMediaIndex,
+  ]);
+
   const renderMediaLayer = (media: MomentMedia, eager = false) => {
     const {
       isAudio: layerIsAudioMedia,
@@ -264,11 +357,13 @@ export function MomentCard({
       <MomentImageOnly
         src={media.url}
         alt="Moment"
-        sizes="(min-width: 1024px) 66vw, 90vw"
+        sizes={previewImageSizes}
         unoptimized={layerSkipOptimization}
         priority={eager}
+        loading={eager ? "eager" : undefined}
         preview
         homeImagePhaseId={homeImagePhaseId}
+        sourceWidth={typeof media.width === "number" ? media.width : undefined}
       />
     );
   };
@@ -291,6 +386,7 @@ export function MomentCard({
     isDetachedPreview ? (
       <>
         <div
+          ref={previewMediaFrameRef}
           className="relative mx-auto overflow-hidden rounded-[28px] border border-white/70 shadow-preview-frame"
           style={{
             aspectRatio: String(previewMediaRatio),
@@ -321,7 +417,7 @@ export function MomentCard({
                 incomingLayerAnimationClass
               )}
             >
-              {renderMediaLayer(mainMedia!, false)}
+              {renderMediaLayer(mainMedia!, true)}
             </div>
             <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
 

@@ -1,8 +1,36 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { DeferredCardMediaPlaceholder } from "./DeferredCardMediaSlot";
+
+const NEXT_IMAGE_WIDTH_BUCKETS = [
+  16, 32, 48, 64, 96, 128, 256, 384, 640, 750, 828, 1080, 1200, 1920, 2048,
+  3840,
+] as const;
+
+function getOptimizedPreviewWidth(requestedWidth: number, sourceWidth?: number) {
+  const safeRequestedWidth = Math.max(1, Math.round(requestedWidth));
+  const clampedWidth = sourceWidth
+    ? Math.min(safeRequestedWidth, Math.max(sourceWidth, 640))
+    : safeRequestedWidth;
+
+  const bucket =
+    NEXT_IMAGE_WIDTH_BUCKETS.find((width) => width >= clampedWidth) ??
+    NEXT_IMAGE_WIDTH_BUCKETS[NEXT_IMAGE_WIDTH_BUCKETS.length - 1];
+
+  return bucket;
+}
+
+export function buildOptimizedPreviewImageUrl(
+  src: string,
+  requestedWidth: number,
+  sourceWidth?: number,
+  quality = 75
+) {
+  const width = getOptimizedPreviewWidth(requestedWidth, sourceWidth);
+  return `/_next/image?url=${encodeURIComponent(src)}&w=${width}&q=${quality}`;
+}
 
 interface MomentImageOnlyProps {
   src: string;
@@ -14,6 +42,7 @@ interface MomentImageOnlyProps {
   className?: string;
   preview?: boolean;
   homeImagePhaseId?: string;
+  sourceWidth?: number;
 }
 
 export function MomentImageOnly({
@@ -26,9 +55,25 @@ export function MomentImageOnly({
   className,
   preview = false,
   homeImagePhaseId,
+  sourceWidth,
 }: MomentImageOnlyProps) {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const previewLoader = useMemo(() => {
+    if (!preview) {
+      return undefined;
+    }
+
+    return ({
+      src: imageSrc,
+      width,
+      quality,
+    }: {
+      src: string;
+      width: number;
+      quality?: number;
+    }) => buildOptimizedPreviewImageUrl(imageSrc, width, sourceWidth, quality);
+  }, [preview, sourceWidth]);
 
   useEffect(() => {
     setIsLoaded(false);
@@ -66,6 +111,7 @@ export function MomentImageOnly({
         unoptimized={unoptimized}
         loading={loading}
         priority={priority}
+        loader={previewLoader}
         onLoad={() => {
           setIsLoaded(true);
           resolveHomeImagePhaseItem(homeImagePhaseId);
