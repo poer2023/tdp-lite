@@ -43,6 +43,7 @@ interface MomentImageOnlyProps {
   preview?: boolean;
   homeImagePhaseId?: string;
   sourceWidth?: number;
+  previewSeedSrc?: string;
 }
 
 export function MomentImageOnly({
@@ -56,6 +57,7 @@ export function MomentImageOnly({
   preview = false,
   homeImagePhaseId,
   sourceWidth,
+  previewSeedSrc,
 }: MomentImageOnlyProps) {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -93,12 +95,24 @@ export function MomentImageOnly({
 
   return (
     <div className={cn("relative h-full w-full overflow-hidden", className)}>
+      {preview && previewSeedSrc ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={previewSeedSrc}
+          alt=""
+          aria-hidden="true"
+          className={cn(
+            "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
+            isLoaded ? "opacity-0" : "opacity-100"
+          )}
+        />
+      ) : null}
       {preview ? (
         <DeferredCardMediaPlaceholder
           variant="dark"
           className={cn(
             "transition-opacity duration-300",
-            isLoaded ? "opacity-0" : "opacity-100"
+            isLoaded || Boolean(previewSeedSrc) ? "opacity-0" : "opacity-100"
           )}
         />
       ) : null}

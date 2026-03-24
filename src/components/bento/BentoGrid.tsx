@@ -3,7 +3,11 @@
 import { cn } from "@/lib/utils";
 import { FeedItem } from "./types";
 import { PostCard } from "./cards/PostCard";
-import { MomentCard, type MomentCardOpenOriginRect } from "./cards/MomentCard";
+import {
+  MomentCard,
+  type MomentCardOpenOriginRect,
+  type MomentCardOpenPreviewPayload,
+} from "./cards/MomentCard";
 import { GalleryCard } from "./cards/GalleryCard";
 import { ActionCard } from "./cards/ActionCard";
 import {
@@ -168,6 +172,7 @@ export function BentoGrid({
   );
   const [previewOriginRect, setPreviewOriginRect] =
     useState<MomentCardOpenOriginRect | null>(null);
+  const [previewSeedSrc, setPreviewSeedSrc] = useState<string | null>(null);
   const [previewMediaIndex, setPreviewMediaIndex] = useState(0);
   const previewBackdropRef = useRef<HTMLButtonElement>(null);
   const previewCardRef = useRef<HTMLDivElement>(null);
@@ -190,16 +195,18 @@ export function BentoGrid({
     setPreviewingMomentId(null);
     setPreviewMediaIndex(0);
     setPreviewOriginRect(null);
+    setPreviewSeedSrc(null);
   }, []);
 
   const openMomentPreview = useCallback(
     (
       momentId: string,
       locale: string,
-      originRect: MomentCardOpenOriginRect
+      { originRect, previewSeedSrc }: MomentCardOpenPreviewPayload
     ) => {
       setPreviewMediaIndex(0);
       setPreviewOriginRect(originRect);
+      setPreviewSeedSrc(previewSeedSrc ?? null);
       setPreviewingMomentId(momentId);
       const detailPath = toLocalizedPath(locale, `/moments/${momentId}`);
       window.history.pushState(
@@ -478,8 +485,8 @@ export function BentoGrid({
                 deferMedia={shouldDeferVisibleMedia}
                 deferMediaDelayMs={deferredMediaDelayMs}
                 homeImagePhaseId={homeImagePhaseId}
-                onOpenPreview={(originRect) =>
-                  openMomentPreview(item.id, item.locale, originRect)
+                onOpenPreview={(payload) =>
+                  openMomentPreview(item.id, item.locale, payload)
                 }
               />
             )}
@@ -528,6 +535,7 @@ export function BentoGrid({
               previewMediaIndex={previewMediaIndex}
               onPreviewMediaIndexChange={setPreviewMediaIndex}
               showPreviewMediaControls={false}
+              previewSeedSrc={previewSeedSrc ?? undefined}
             />
           </div>
         </div>

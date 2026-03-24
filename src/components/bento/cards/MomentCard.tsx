@@ -35,12 +35,17 @@ export interface MomentCardOpenOriginRect {
   height: number;
 }
 
+export interface MomentCardOpenPreviewPayload {
+  originRect: MomentCardOpenOriginRect;
+  previewSeedSrc?: string;
+}
+
 interface MomentCardProps {
   moment: Moment;
   isHighlighted?: boolean;
   className?: string;
   preview?: boolean;
-  onOpenPreview?: (originRect: MomentCardOpenOriginRect) => void;
+  onOpenPreview?: (payload: MomentCardOpenPreviewPayload) => void;
   previewMediaIndex?: number;
   onPreviewMediaIndexChange?: (nextIndex: number) => void;
   showPreviewMediaControls?: boolean;
@@ -48,6 +53,7 @@ interface MomentCardProps {
   deferMedia?: boolean;
   deferMediaDelayMs?: number;
   homeImagePhaseId?: string;
+  previewSeedSrc?: string;
 }
 
 export function MomentCard({
@@ -63,6 +69,7 @@ export function MomentCard({
   deferMedia = false,
   deferMediaDelayMs,
   homeImagePhaseId,
+  previewSeedSrc,
 }: MomentCardProps) {
   const mediaList = moment.media ?? [];
   const hasMedia = mediaList.length > 0;
@@ -158,6 +165,8 @@ export function MomentCard({
   const isDetachedPreview = preview && hasMedia && !isAudioMedia;
   const canSwitchPreviewMedia =
     preview && hasMultipleMedia && showPreviewMediaControls;
+  const activePreviewSeedSrc =
+    preview && resolvedMediaIndex === 0 ? previewSeedSrc : undefined;
   const outgoingPreviewMedia =
     outgoingPreviewMediaIndex !== null
       ? (mediaList[outgoingPreviewMediaIndex] ?? null)
@@ -364,6 +373,7 @@ export function MomentCard({
         preview
         homeImagePhaseId={homeImagePhaseId}
         sourceWidth={typeof media.width === "number" ? media.width : undefined}
+        previewSeedSrc={eager ? activePreviewSeedSrc : undefined}
       />
     );
   };
@@ -374,11 +384,24 @@ export function MomentCard({
     }
 
     const rect = event.currentTarget.getBoundingClientRect();
+    const currentPreviewImage = event.currentTarget.querySelector(
+      "[data-lg-media-source] img"
+    );
+    const previewSeedSrc =
+      currentPreviewImage instanceof HTMLImageElement
+        ? currentPreviewImage.currentSrc ||
+          currentPreviewImage.getAttribute("src") ||
+          undefined
+        : undefined;
+
     onOpenPreview({
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-      height: rect.height,
+      originRect: {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+      },
+      previewSeedSrc,
     });
   };
 
