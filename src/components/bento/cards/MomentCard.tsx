@@ -17,10 +17,13 @@ import {
   DeferredCardMediaPlaceholder,
   DeferredCardMediaSlot,
 } from "./DeferredCardMediaSlot";
+import { MomentImageOnly } from "./MomentImageOnly";
 import {
+  BENTO_CARD_MEDIA_SIZES,
+  BENTO_PREVIEW_VIDEO_POSTER_SIZES,
   buildOptimizedPreviewImageUrl,
-  MomentImageOnly,
-} from "./MomentImageOnly";
+  getDetachedPreviewImageSizes,
+} from "./mediaSizing";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { LgChipDark } from "@/components/ui/LgChipDark";
 import { resolveMomentDisplayFromMoment } from "@/lib/content/momentDisplay";
@@ -84,9 +87,9 @@ export function MomentCard({
   const mediaTransitionTimerRef = useRef<number | null>(null);
   const previousResolvedMediaIndexRef = useRef(0);
   const previewMediaFrameRef = useRef<HTMLDivElement | null>(null);
-  const [previewMeasuredWidth, setPreviewMeasuredWidth] = useState<number | null>(
-    null
-  );
+  const [previewMeasuredWidth, setPreviewMeasuredWidth] = useState<
+    number | null
+  >(null);
 
   const getMediaPresentation = (media: MomentMedia | null) => {
     const isAudio = Boolean(media?.type === "audio");
@@ -157,11 +160,10 @@ export function MomentCard({
   const previewMediaWidth = isPortraitMedia
     ? `min(74%, calc(56vh * ${previewMediaRatio}))`
     : "100%";
-  const previewImageSizes = previewMeasuredWidth
-    ? `${Math.max(1, Math.round(previewMeasuredWidth))}px`
-    : isPortraitMedia
-      ? "(min-width: 1024px) 420px, 74vw"
-      : "(min-width: 1280px) 768px, (min-width: 1024px) 74vw, 90vw";
+  const previewImageSizes = getDetachedPreviewImageSizes(
+    previewMeasuredWidth,
+    isPortraitMedia
+  );
   const isDetachedPreview = preview && hasMedia && !isAudioMedia;
   const canSwitchPreviewMedia =
     preview && hasMultipleMedia && showPreviewMediaControls;
@@ -357,7 +359,7 @@ export function MomentCard({
           poster={media.thumbnailUrl}
           eager={eager}
           homeImagePhaseId={homeImagePhaseId}
-          posterSizes="(min-width: 1024px) 66vw, 90vw"
+          posterSizes={BENTO_PREVIEW_VIDEO_POSTER_SIZES}
         />
       );
     }
@@ -533,7 +535,7 @@ export function MomentCard({
                   eager={priorityMedia}
                   waitForHomeImagesReady={Boolean(homeImagePhaseId)}
                   homeImagePhaseId={homeImagePhaseId}
-                  posterSizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  posterSizes={BENTO_CARD_MEDIA_SIZES}
                   className={cn(
                     "transition-transform duration-500",
                     !preview && "group-hover:scale-105"
@@ -543,12 +545,17 @@ export function MomentCard({
                 <MomentImageOnly
                   src={mainMedia!.url}
                   alt="Moment"
-                  sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                  sizes={BENTO_CARD_MEDIA_SIZES}
                   unoptimized={Boolean(skipOptimization)}
                   loading={priorityMedia ? undefined : "lazy"}
                   priority={priorityMedia}
                   preview={preview}
                   homeImagePhaseId={homeImagePhaseId}
+                  sourceWidth={
+                    typeof mainMedia?.width === "number"
+                      ? mainMedia.width
+                      : undefined
+                  }
                 />
               )}
             </DeferredCardMediaSlot>

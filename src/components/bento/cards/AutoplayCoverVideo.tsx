@@ -8,6 +8,7 @@ import {
   HOME_IMAGES_READY_EVENT,
   resolveHomeImagePhaseItem,
 } from "@/components/home/homeMediaPhases";
+import { BENTO_CARD_MEDIA_SIZES } from "./mediaSizing";
 
 type NavigatorWithConnection = Navigator & {
   connection?: {
@@ -30,7 +31,7 @@ export function AutoplayCoverVideo({
   className,
   poster,
   eager = false,
-  posterSizes = "(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw",
+  posterSizes = BENTO_CARD_MEDIA_SIZES,
   waitForHomeImagesReady = false,
   homeImagePhaseId,
 }: AutoplayCoverVideoProps) {

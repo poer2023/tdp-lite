@@ -7,6 +7,7 @@ import {
   DeferredCardMediaPlaceholder,
   DeferredCardMediaSlot,
 } from "./DeferredCardMediaSlot";
+import { BENTO_CARD_MEDIA_SIZES, buildOptimizedImageUrl } from "./mediaSizing";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 
 interface GalleryCardProps {
@@ -51,10 +52,21 @@ export function GalleryCard({
           src={imageSrc}
           alt={item.title || "Gallery Photo"}
           fill
-          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          sizes={BENTO_CARD_MEDIA_SIZES}
           unoptimized={skipOptimization}
           loading={priorityMedia ? undefined : "lazy"}
           priority={priorityMedia}
+          loader={
+            skipOptimization
+              ? undefined
+              : ({ src, width, quality }) =>
+                  buildOptimizedImageUrl(
+                    src,
+                    width,
+                    item.width ?? undefined,
+                    quality
+                  )
+          }
           onLoad={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
           onError={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
           className={cn(

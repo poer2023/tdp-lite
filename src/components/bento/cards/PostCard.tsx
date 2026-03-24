@@ -10,6 +10,7 @@ import {
   DeferredCardMediaPlaceholder,
   DeferredCardMediaSlot,
 } from "./DeferredCardMediaSlot";
+import { BENTO_CARD_MEDIA_SIZES } from "./mediaSizing";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
@@ -87,7 +88,7 @@ export function PostCard({
                 alt={post.title}
                 fill
                 unoptimized={Boolean(skipOptimization)}
-                sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                sizes={BENTO_CARD_MEDIA_SIZES}
                 loading={priorityMedia ? undefined : "lazy"}
                 priority={priorityMedia}
                 onLoad={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
