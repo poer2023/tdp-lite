@@ -127,7 +127,8 @@ export function DeferredCardMediaSlot({
 
   return (
     <div ref={hostRef} className={cn("absolute inset-0", className)}>
-      {shouldRender ? children : placeholder}
+      {placeholder}
+      {shouldRender ? children : null}
     </div>
   );
 }
@@ -144,32 +145,13 @@ export function DeferredCardMediaPlaceholder({
   return (
     <div
       className={cn(
-        "absolute inset-0 overflow-hidden",
-        variant === "dark" ? "bg-[#6a6257]" : "bg-[#ece6dd]",
+        "card-media-placeholder absolute inset-0 overflow-hidden",
+        variant === "dark"
+          ? "card-media-placeholder--dark"
+          : "card-media-placeholder--light",
         className
       )}
       aria-hidden="true"
-    >
-      <div
-        className={cn(
-          "absolute inset-0",
-          variant === "dark"
-            ? "bg-gradient-to-br from-white/14 via-transparent to-black/18"
-            : "bg-gradient-to-br from-white/75 via-transparent to-black/8"
-        )}
-      />
-      <div
-        className={cn(
-          "absolute -right-10 top-0 h-36 w-36 rounded-full blur-3xl",
-          variant === "dark" ? "bg-white/10" : "bg-white/70"
-        )}
-      />
-      <div
-        className={cn(
-          "absolute -left-8 bottom-0 h-28 w-28 rounded-full blur-2xl",
-          variant === "dark" ? "bg-black/12" : "bg-black/6"
-        )}
-      />
-    </div>
+    />
   );
 }

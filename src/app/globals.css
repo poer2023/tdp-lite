@@ -871,6 +871,60 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   }
 }
 
+.card-media-placeholder {
+  border-radius: inherit;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.card-media-placeholder--dark {
+  background-color: #6f665d;
+  background-image:
+    radial-gradient(
+      circle at 18% 18%,
+      rgba(252, 247, 238, 0.18),
+      rgba(252, 247, 238, 0) 42%
+    ),
+    radial-gradient(
+      circle at 78% 24%,
+      rgba(255, 214, 179, 0.12),
+      rgba(255, 214, 179, 0) 38%
+    ),
+    linear-gradient(
+      152deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(255, 255, 255, 0.02) 33%,
+      rgba(0, 0, 0, 0.08) 100%
+    ),
+    linear-gradient(165deg, #7d7267 0%, #675f57 52%, #554f49 100%);
+}
+
+.card-media-placeholder--light {
+  background-color: #ede5da;
+  background-image:
+    radial-gradient(
+      circle at 16% 20%,
+      rgba(255, 255, 255, 0.82),
+      rgba(255, 255, 255, 0) 46%
+    ),
+    radial-gradient(
+      circle at 82% 22%,
+      rgba(216, 188, 156, 0.28),
+      rgba(216, 188, 156, 0) 34%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.38) 0%,
+      rgba(255, 255, 255, 0.08) 34%,
+      rgba(120, 92, 66, 0.08) 100%
+    ),
+    linear-gradient(165deg, #f4eee5 0%, #e8dfd2 52%, #ddd1c0 100%);
+}
+
 /* Liquid glass navigation */
 .liquid-nav-shell {
   position: relative;
