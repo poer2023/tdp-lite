@@ -689,9 +689,25 @@ html.lg-webgl-active .lg-webgl-canvas-root {
   background: rgba(0, 0, 0, 0.45);
 }
 
+.moment-preview-layer {
+  isolation: isolate;
+}
+
 .moment-preview-backdrop,
 .moment-preview-card {
   will-change: opacity, transform;
+}
+
+.moment-preview-backdrop.moment-preview-backdrop {
+  background: rgba(244, 240, 234, 0.4);
+  box-shadow: inset 0 0 0 9999px rgba(18, 18, 18, 0.18);
+  backdrop-filter: blur(22px) saturate(1.08);
+  -webkit-backdrop-filter: blur(22px) saturate(1.08);
+}
+
+.dark .moment-preview-backdrop.moment-preview-backdrop {
+  background: rgba(12, 15, 18, 0.38);
+  box-shadow: inset 0 0 0 9999px rgba(7, 8, 10, 0.26);
 }
 
 .moment-preview-backdrop--animating {

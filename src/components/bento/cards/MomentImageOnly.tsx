@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
+import { DeferredCardMediaPlaceholder } from "./DeferredCardMediaSlot";
 
 interface MomentImageOnlyProps {
   src: string;
@@ -27,6 +28,11 @@ export function MomentImageOnly({
   homeImagePhaseId,
 }: MomentImageOnlyProps) {
   const imageRef = useRef<HTMLImageElement | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsLoaded(false);
+  }, [src]);
 
   useEffect(() => {
     if (!homeImagePhaseId) {
@@ -35,12 +41,22 @@ export function MomentImageOnly({
 
     const node = imageRef.current;
     if (node?.complete && node.naturalWidth > 0) {
+      setIsLoaded(true);
       resolveHomeImagePhaseItem(homeImagePhaseId);
     }
   }, [homeImagePhaseId, src]);
 
   return (
     <div className={cn("relative h-full w-full overflow-hidden", className)}>
+      {preview ? (
+        <DeferredCardMediaPlaceholder
+          variant="dark"
+          className={cn(
+            "transition-opacity duration-300",
+            isLoaded ? "opacity-0" : "opacity-100"
+          )}
+        />
+      ) : null}
       <Image
         ref={imageRef}
         src={src}
@@ -50,10 +66,18 @@ export function MomentImageOnly({
         unoptimized={unoptimized}
         loading={loading}
         priority={priority}
-        onLoad={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
+        onLoad={() => {
+          setIsLoaded(true);
+          resolveHomeImagePhaseItem(homeImagePhaseId);
+        }}
         onError={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
         className={cn(
-          "object-cover transition-transform duration-500",
+          "object-cover transition-[opacity,transform] duration-500",
+          preview
+            ? isLoaded
+              ? "opacity-100"
+              : "opacity-0"
+            : "opacity-100",
           !preview && "group-hover:scale-105"
         )}
       />

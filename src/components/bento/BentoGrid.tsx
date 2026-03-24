@@ -513,7 +513,7 @@ export function BentoGrid({
             ref={previewBackdropRef}
             type="button"
             aria-label="Close moment preview"
-            className="moment-preview-backdrop bg-black/42 absolute inset-0"
+            className="moment-preview-backdrop absolute inset-0"
             onClick={closeMomentPreview}
           />
 
