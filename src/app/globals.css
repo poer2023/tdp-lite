@@ -699,15 +699,41 @@ html.lg-webgl-active .lg-webgl-canvas-root {
 }
 
 .moment-preview-backdrop.moment-preview-backdrop {
-  background: rgba(244, 240, 234, 0.4);
-  box-shadow: inset 0 0 0 9999px rgba(18, 18, 18, 0.18);
-  backdrop-filter: blur(22px) saturate(1.08);
-  -webkit-backdrop-filter: blur(22px) saturate(1.08);
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(255, 255, 255, 0.26),
+      rgba(255, 255, 255, 0.08) 34%,
+      rgba(255, 255, 255, 0) 68%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(245, 241, 236, 0.44) 0%,
+      rgba(242, 238, 232, 0.38) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    inset 0 0 0 9999px rgba(14, 14, 16, 0.24);
+  backdrop-filter: blur(32px) saturate(1.18);
+  -webkit-backdrop-filter: blur(32px) saturate(1.18);
 }
 
 .dark .moment-preview-backdrop.moment-preview-backdrop {
-  background: rgba(12, 15, 18, 0.38);
-  box-shadow: inset 0 0 0 9999px rgba(7, 8, 10, 0.26);
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.03) 34%,
+      rgba(255, 255, 255, 0) 68%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(17, 21, 26, 0.52) 0%,
+      rgba(11, 14, 18, 0.46) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 0 9999px rgba(6, 8, 10, 0.34);
 }
 
 .moment-preview-backdrop--animating {
