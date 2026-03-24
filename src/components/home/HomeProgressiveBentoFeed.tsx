@@ -26,17 +26,6 @@ interface FeedResponse {
   items: SearchSerializedFeedItem[];
 }
 
-const LAYOUT_PREFETCH_DELAY_MS = 320;
-const LAYOUT_IDLE_TIMEOUT_MS = 900;
-
-type WindowWithIdleCallback = Window & {
-  requestIdleCallback?: (
-    callback: IdleRequestCallback,
-    options?: IdleRequestOptions
-  ) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
-
 function mergeFeedItems(current: FeedItem[], next: FeedItem[]): FeedItem[] {
   const merged = new Map<string, FeedItem>();
 
@@ -58,23 +47,10 @@ export function HomeProgressiveBentoFeed({
   totalLimit,
 }: HomeProgressiveBentoFeedProps) {
   const [items, setItems] = useState<FeedItem[]>(() => initialItems);
-  const [hasDeferredFeedFailed, setHasDeferredFeedFailed] =
-    useState(() => initialCount >= totalLimit);
   const hasStartedRef = useRef(false);
 
   useEffect(() => {
     resetHomeImagesReady();
-  }, []);
-
-  useEffect(() => {
-    const hasSettledInitialMediaWindow =
-      initialCount >= totalLimit ||
-      items.length > initialCount ||
-      hasDeferredFeedFailed;
-
-    if (!hasSettledInitialMediaWindow) {
-      return;
-    }
 
     let frameA = 0;
     let frameB = 0;
@@ -89,13 +65,11 @@ export function HomeProgressiveBentoFeed({
       window.cancelAnimationFrame(frameA);
       window.cancelAnimationFrame(frameB);
     };
-  }, [hasDeferredFeedFailed, initialCount, items.length, totalLimit]);
+  }, []);
 
   useEffect(() => {
-    const idleWindow = window as WindowWithIdleCallback;
-    let timeoutId: number | null = null;
-    let idleCallbackId: number | null = null;
     let isActive = true;
+    const abortController = new AbortController();
 
     const startLoading = () => {
       if (!isActive || hasStartedRef.current || initialCount >= totalLimit) {
@@ -112,6 +86,7 @@ export function HomeProgressiveBentoFeed({
 
       void fetch(`/api/feed?${searchParams.toString()}`, {
         cache: "force-cache",
+        signal: abortController.signal,
       })
         .then(async (response) => {
           if (!response.ok) {
@@ -129,48 +104,36 @@ export function HomeProgressiveBentoFeed({
             setItems((current) => mergeFeedItems(current, nextItems));
           });
         })
-        .catch(() => {
+        .catch((error: unknown) => {
           if (!isActive) {
             return;
           }
 
-          setHasDeferredFeedFailed(true);
+          if (
+            error instanceof DOMException &&
+            error.name === "AbortError"
+          ) {
+            return;
+          }
+
         });
     };
 
-    timeoutId = window.setTimeout(() => {
-      if (typeof idleWindow.requestIdleCallback === "function") {
-        idleCallbackId = idleWindow.requestIdleCallback(startLoading, {
-          timeout: LAYOUT_IDLE_TIMEOUT_MS,
-        });
-        return;
-      }
-
-      startLoading();
-    }, LAYOUT_PREFETCH_DELAY_MS);
+    startLoading();
 
     return () => {
       isActive = false;
-
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-
-      if (
-        idleCallbackId !== null &&
-        typeof idleWindow.cancelIdleCallback === "function"
-      ) {
-        idleWindow.cancelIdleCallback(idleCallbackId);
-      }
+      abortController.abort();
     };
   }, [initialCount, locale, totalLimit]);
 
   return (
     <BentoGrid
       items={items}
-      deferVisibleMediaUntilIndex={items.length}
-      deferNonPriorityMedia
-      deferCardRenderingAfter={8}
+      priorityMediaCount={4}
+      homeImagePhaseMediaCount={4}
+      deferVisibleMediaUntilIndex={0}
+      deferCardRenderingAfter={12}
     />
   );
 }

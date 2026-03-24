@@ -7,14 +7,6 @@ import {
   unregisterHomeImagePhaseItem,
 } from "@/components/home/homeMediaPhases";
 
-type WindowWithIdleCallback = Window & {
-  requestIdleCallback?: (
-    callback: IdleRequestCallback,
-    options?: IdleRequestOptions
-  ) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
-
 interface DeferredCardMediaSlotProps {
   children: ReactNode;
   deferred?: boolean;
@@ -28,7 +20,7 @@ interface DeferredCardMediaSlotProps {
 export function DeferredCardMediaSlot({
   children,
   deferred = false,
-  delayMs = 1600,
+  delayMs = 0,
   rootMargin = "220px 0px",
   className,
   placeholder,
@@ -90,39 +82,16 @@ export function DeferredCardMediaSlot({
       return;
     }
 
-    const idleWindow = window as WindowWithIdleCallback;
-    let timeoutId: number | null = null;
-    let idleCallbackId: number | null = null;
-
-    const reveal = () => {
+    if (delayMs <= 0) {
       setShouldRender(true);
-    };
+      return;
+    }
 
-    const scheduleReveal = () => {
-      if (typeof idleWindow.requestIdleCallback === "function") {
-        idleCallbackId = idleWindow.requestIdleCallback(reveal, {
-          timeout: Math.max(1200, delayMs),
-        });
-        return;
-      }
+    const timeoutId = window.setTimeout(() => {
+      setShouldRender(true);
+    }, delayMs);
 
-      reveal();
-    };
-
-    timeoutId = window.setTimeout(scheduleReveal, delayMs);
-
-    return () => {
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-
-      if (
-        idleCallbackId !== null &&
-        typeof idleWindow.cancelIdleCallback === "function"
-      ) {
-        idleWindow.cancelIdleCallback(idleCallbackId);
-      }
-    };
+    return () => window.clearTimeout(timeoutId);
   }, [deferred, delayMs, isNearViewport, shouldRender]);
 
   return (

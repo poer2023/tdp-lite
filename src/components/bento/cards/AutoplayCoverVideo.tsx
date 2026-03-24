@@ -15,14 +15,6 @@ type NavigatorWithConnection = Navigator & {
   };
 };
 
-type WindowWithIdleCallback = Window & {
-  requestIdleCallback?: (
-    callback: IdleRequestCallback,
-    options?: IdleRequestOptions
-  ) => number;
-  cancelIdleCallback?: (handle: number) => void;
-};
-
 interface AutoplayCoverVideoProps {
   src: string;
   className?: string;
@@ -78,54 +70,21 @@ export function AutoplayCoverVideo({
     if (!video) return;
 
     let observer: IntersectionObserver | null = null;
-    let timeoutId: number | null = null;
-    let idleCallbackId: number | null = null;
-    let removeLoadListener: (() => void) | null = null;
     let removeImagesReadyListener: (() => void) | null = null;
-    let hasScheduled = false;
 
     const scheduleLoad = () => {
       setShouldLoad(true);
     };
 
-    const scheduleEagerLoad = () => {
-      if (hasScheduled) {
-        return;
-      }
-
-      hasScheduled = true;
-      const idleWindow = window as WindowWithIdleCallback;
-      if (typeof idleWindow.requestIdleCallback === "function") {
-        idleCallbackId = idleWindow.requestIdleCallback(scheduleLoad, {
-          timeout: 1200,
-        });
-        return;
-      }
-
-      timeoutId = window.setTimeout(scheduleLoad, 120);
-    };
-
     if (eager) {
       setIsInView(true);
-      let pageReady = document.readyState === "complete";
       let imagesReady = !waitForHomeImagesReady || areHomeImagesReady();
 
       const maybeSchedule = () => {
-        if (pageReady && imagesReady) {
-          scheduleEagerLoad();
+        if (imagesReady) {
+          scheduleLoad();
         }
       };
-
-      if (!pageReady) {
-        const onLoad = () => {
-          pageReady = true;
-          maybeSchedule();
-        };
-        window.addEventListener("load", onLoad, { once: true });
-        removeLoadListener = () => {
-          window.removeEventListener("load", onLoad);
-        };
-      }
 
       if (waitForHomeImagesReady && !imagesReady) {
         const onImagesReady = () => {
@@ -141,18 +100,7 @@ export function AutoplayCoverVideo({
       maybeSchedule();
 
       return () => {
-        removeLoadListener?.();
         removeImagesReadyListener?.();
-        if (
-          idleCallbackId !== null &&
-          typeof (window as WindowWithIdleCallback).cancelIdleCallback ===
-            "function"
-        ) {
-          (window as WindowWithIdleCallback).cancelIdleCallback?.(idleCallbackId);
-        }
-        if (timeoutId !== null) {
-          window.clearTimeout(timeoutId);
-        }
         video.pause();
       };
     }
