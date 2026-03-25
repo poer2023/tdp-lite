@@ -26,6 +26,7 @@ interface PostCardProps {
   priorityMedia?: boolean;
   deferMedia?: boolean;
   deferMediaDelayMs?: number;
+  suspendDeferredMedia?: boolean;
   homeImagePhaseId?: string;
 }
 
@@ -39,6 +40,7 @@ export function PostCard({
   priorityMedia = false,
   deferMedia = false,
   deferMediaDelayMs,
+  suspendDeferredMedia = false,
   homeImagePhaseId,
 }: PostCardProps) {
   const isZh = post.locale === "zh";
@@ -68,6 +70,7 @@ export function PostCard({
           <DeferredCardMediaSlot
             deferred={deferMedia}
             delayMs={deferMediaDelayMs}
+            suspended={suspendDeferredMedia}
             placeholder={<DeferredCardMediaPlaceholder variant="dark" />}
             homeImagePhaseId={homeImagePhaseId}
           >
@@ -75,6 +78,7 @@ export function PostCard({
               <AutoplayCoverVideo
                 src={coverSrc}
                 eager={priorityMedia}
+                suspended={suspendDeferredMedia}
                 waitForHomeImagesReady={Boolean(homeImagePhaseId)}
                 homeImagePhaseId={homeImagePhaseId}
                 className={cn(

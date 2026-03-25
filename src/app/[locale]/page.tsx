@@ -1,6 +1,7 @@
 import { getPublicFeed, getPublicPresence } from "@/lib/content/read";
 import Link from "next/link";
 import Image from "next/image";
+import { headers } from "next/headers";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { HomeProgressiveBentoFeed } from "@/components/home/HomeProgressiveBentoFeed";
 
@@ -14,12 +15,25 @@ interface HomePageProps {
 }
 
 const HOME_INITIAL_FEED_LIMIT = 8;
+const HOME_COMPACT_INITIAL_FEED_LIMIT = 4;
 const HOME_TOTAL_FEED_LIMIT = 72;
+
+function resolveHomeInitialFeedLimit(userAgentValue: string) {
+  return /Android.+Mobile|iPhone|iPod|Windows Phone|Opera Mini|Mobile/i.test(
+    userAgentValue
+  )
+    ? HOME_COMPACT_INITIAL_FEED_LIMIT
+    : HOME_INITIAL_FEED_LIMIT;
+}
 
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
+  const requestHeaders = await headers();
+  const homeInitialFeedLimit = resolveHomeInitialFeedLimit(
+    requestHeaders.get("user-agent") ?? ""
+  );
   const [initialItems, presence] = await Promise.all([
-    getPublicFeed(locale, HOME_INITIAL_FEED_LIMIT),
+    getPublicFeed(locale, homeInitialFeedLimit),
     getPublicPresence(),
   ]);
   const t =
@@ -119,7 +133,7 @@ export default async function HomePage({ params }: HomePageProps) {
             key={initialFeedKey}
             initialItems={initialItems}
             locale={locale}
-            initialCount={HOME_INITIAL_FEED_LIMIT}
+            initialCount={homeInitialFeedLimit}
             totalLimit={HOME_TOTAL_FEED_LIMIT}
           />
         </main>

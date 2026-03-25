@@ -28,11 +28,11 @@ export async function GET(request: NextRequest) {
   const offset = parsePositiveInt(
     request.nextUrl.searchParams.get("offset"),
     0,
-    limit
+    MAX_LIMIT
   );
 
-  const items = (await getPublicFeed(locale, limit))
-    .slice(offset)
+  const items = (await getPublicFeed(locale, Math.min(MAX_LIMIT, offset + limit)))
+    .slice(offset, offset + limit)
     .map(serializeFeedItem)
     .filter((item) => item !== null);
 

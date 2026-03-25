@@ -11,6 +11,7 @@ interface MomentImageOnlyProps {
   sizes: string;
   unoptimized?: boolean;
   priority?: boolean;
+  fetchPriority?: "high" | "low" | "auto";
   loading?: "eager" | "lazy";
   className?: string;
   preview?: boolean;
@@ -25,6 +26,7 @@ export function MomentImageOnly({
   sizes,
   unoptimized = false,
   priority = false,
+  fetchPriority,
   loading,
   className,
   preview = false,
@@ -81,6 +83,7 @@ export function MomentImageOnly({
           src={previewSeedSrc}
           alt=""
           aria-hidden="true"
+          fetchPriority={fetchPriority}
           className={cn(
             "absolute inset-0 h-full w-full object-cover transition-opacity duration-300",
             isLoaded ? "opacity-0" : "opacity-100"
@@ -105,6 +108,7 @@ export function MomentImageOnly({
         unoptimized={unoptimized}
         loading={loading}
         priority={priority}
+        fetchPriority={fetchPriority}
         loader={optimizedLoader}
         onLoad={() => {
           setIsLoaded(true);

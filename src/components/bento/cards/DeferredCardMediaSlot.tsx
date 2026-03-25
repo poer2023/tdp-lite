@@ -12,6 +12,7 @@ interface DeferredCardMediaSlotProps {
   deferred?: boolean;
   delayMs?: number;
   rootMargin?: string;
+  suspended?: boolean;
   className?: string;
   placeholder?: ReactNode;
   homeImagePhaseId?: string;
@@ -22,6 +23,7 @@ export function DeferredCardMediaSlot({
   deferred = false,
   delayMs = 0,
   rootMargin = "220px 0px",
+  suspended = false,
   className,
   placeholder,
   homeImagePhaseId,
@@ -43,7 +45,7 @@ export function DeferredCardMediaSlot({
   }, [homeImagePhaseId]);
 
   useEffect(() => {
-    if (!deferred || shouldRender) {
+    if (!deferred || shouldRender || suspended) {
       return;
     }
 
@@ -75,10 +77,10 @@ export function DeferredCardMediaSlot({
     observer.observe(node);
 
     return () => observer.disconnect();
-  }, [deferred, rootMargin, shouldRender]);
+  }, [deferred, rootMargin, shouldRender, suspended]);
 
   useEffect(() => {
-    if (!deferred || !isNearViewport || shouldRender) {
+    if (!deferred || !isNearViewport || shouldRender || suspended) {
       return;
     }
 
@@ -92,7 +94,7 @@ export function DeferredCardMediaSlot({
     }, delayMs);
 
     return () => window.clearTimeout(timeoutId);
-  }, [deferred, delayMs, isNearViewport, shouldRender]);
+  }, [deferred, delayMs, isNearViewport, shouldRender, suspended]);
 
   return (
     <div ref={hostRef} className={cn("absolute inset-0", className)}>

@@ -17,6 +17,7 @@ interface GalleryCardProps {
   priorityMedia?: boolean;
   deferMedia?: boolean;
   deferMediaDelayMs?: number;
+  suspendDeferredMedia?: boolean;
   homeImagePhaseId?: string;
 }
 
@@ -27,6 +28,7 @@ export function GalleryCard({
   priorityMedia = false,
   deferMedia = false,
   deferMediaDelayMs,
+  suspendDeferredMedia = false,
   homeImagePhaseId,
 }: GalleryCardProps) {
   const imageSrc = item.thumbUrl || item.fileUrl;
@@ -45,6 +47,7 @@ export function GalleryCard({
       <DeferredCardMediaSlot
         deferred={deferMedia}
         delayMs={deferMediaDelayMs}
+        suspended={suspendDeferredMedia}
         placeholder={<DeferredCardMediaPlaceholder variant="light" />}
         homeImagePhaseId={homeImagePhaseId}
       >

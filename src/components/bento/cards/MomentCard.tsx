@@ -55,6 +55,7 @@ interface MomentCardProps {
   priorityMedia?: boolean;
   deferMedia?: boolean;
   deferMediaDelayMs?: number;
+  suspendDeferredMedia?: boolean;
   homeImagePhaseId?: string;
   previewSeedSrc?: string;
 }
@@ -71,6 +72,7 @@ export function MomentCard({
   priorityMedia = false,
   deferMedia = false,
   deferMediaDelayMs,
+  suspendDeferredMedia = false,
   homeImagePhaseId,
   previewSeedSrc,
 }: MomentCardProps) {
@@ -285,7 +287,7 @@ export function MomentCard({
     const requestedWidth = Math.max(320, Math.round(measuredWidth * dpr));
     const preloadIndices = [
       (resolvedMediaIndex + 1) % mediaList.length,
-      (resolvedMediaIndex + 2) % mediaList.length,
+      (resolvedMediaIndex - 1 + mediaList.length) % mediaList.length,
     ];
     const seen = new Set<string>();
 
@@ -370,8 +372,8 @@ export function MomentCard({
         alt="Moment"
         sizes={previewImageSizes}
         unoptimized={layerSkipOptimization}
-        priority={eager}
-        loading={eager ? "eager" : undefined}
+        loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : "low"}
         preview
         homeImagePhaseId={homeImagePhaseId}
         sourceWidth={typeof media.width === "number" ? media.width : undefined}
@@ -525,6 +527,7 @@ export function MomentCard({
             <DeferredCardMediaSlot
               deferred={shouldDeferMediaMount}
               delayMs={deferMediaDelayMs}
+              suspended={suspendDeferredMedia}
               placeholder={<DeferredCardMediaPlaceholder variant="dark" />}
               homeImagePhaseId={homeImagePhaseId}
             >
@@ -533,6 +536,7 @@ export function MomentCard({
                   src={mainMedia!.url}
                   poster={mainMedia?.thumbnailUrl}
                   eager={priorityMedia}
+                  suspended={suspendDeferredMedia}
                   waitForHomeImagesReady={Boolean(homeImagePhaseId)}
                   homeImagePhaseId={homeImagePhaseId}
                   posterSizes={BENTO_CARD_MEDIA_SIZES}

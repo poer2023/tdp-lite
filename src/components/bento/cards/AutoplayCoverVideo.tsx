@@ -21,6 +21,7 @@ interface AutoplayCoverVideoProps {
   className?: string;
   poster?: string;
   eager?: boolean;
+  suspended?: boolean;
   posterSizes?: string;
   waitForHomeImagesReady?: boolean;
   homeImagePhaseId?: string;
@@ -31,6 +32,7 @@ export function AutoplayCoverVideo({
   className,
   poster,
   eager = false,
+  suspended = false,
   posterSizes = BENTO_CARD_MEDIA_SIZES,
   waitForHomeImagesReady = false,
   homeImagePhaseId,
@@ -77,7 +79,7 @@ export function AutoplayCoverVideo({
       setShouldLoad(true);
     };
 
-    if (eager) {
+    if (eager && !suspended) {
       setIsInView(true);
       let imagesReady = !waitForHomeImagesReady || areHomeImagesReady();
 
@@ -106,6 +108,13 @@ export function AutoplayCoverVideo({
       };
     }
 
+    if (suspended) {
+      setIsInView(false);
+      return () => {
+        video.pause();
+      };
+    }
+
     observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -129,10 +138,10 @@ export function AutoplayCoverVideo({
       observer?.disconnect();
       video.pause();
     };
-  }, [eager, src, waitForHomeImagesReady]);
+  }, [eager, src, suspended, waitForHomeImagesReady]);
 
   useEffect(() => {
-    if (eager || !isInView || shouldLoad) {
+    if (eager || suspended || !isInView || shouldLoad) {
       return;
     }
 
@@ -152,7 +161,7 @@ export function AutoplayCoverVideo({
     return () => {
       window.removeEventListener(HOME_IMAGES_READY_EVENT, onImagesReady);
     };
-  }, [eager, isInView, shouldLoad, waitForHomeImagesReady]);
+  }, [eager, isInView, shouldLoad, suspended, waitForHomeImagesReady]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -165,7 +174,7 @@ export function AutoplayCoverVideo({
       (navigator as NavigatorWithConnection).connection?.saveData === true;
     const canAutoplay = !(prefersReducedMotion || saveDataMode);
 
-    if (!canAutoplay || !isInView) {
+    if (!canAutoplay || !isInView || suspended) {
       video.pause();
       return;
     }
@@ -173,7 +182,7 @@ export function AutoplayCoverVideo({
     video.play().catch(() => {
       // Autoplay can be blocked by browser policies.
     });
-  }, [isInView, shouldLoad, src]);
+  }, [isInView, shouldLoad, src, suspended]);
 
   return (
     <div className={cn("relative h-full w-full overflow-hidden", className)}>

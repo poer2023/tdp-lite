@@ -42,11 +42,15 @@ interface BentoGridProps {
   deferredMediaStartDelayMs?: number;
   deferredMediaStepMs?: number;
   deferCardRenderingAfter?: number;
+  deferredCardRootMargin?: string;
+  suspendBackgroundLoading?: boolean;
 }
 
 interface DeferredBentoCardSlotProps {
   deferred: boolean;
   spanClass: string;
+  rootMargin?: string;
+  suspended?: boolean;
   children: ReactNode;
 }
 
@@ -64,13 +68,20 @@ function getDeferredCardIntrinsicSize(spanClass: string): string {
 function DeferredBentoCardSlot({
   deferred,
   spanClass,
+  rootMargin = "320px 0px",
+  suspended = false,
   children,
 }: DeferredBentoCardSlotProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [shouldMount, setShouldMount] = useState(() => !deferred);
 
   useEffect(() => {
-    if (!deferred || shouldMount) {
+    if (!deferred) {
+      setShouldMount(true);
+      return;
+    }
+
+    if (suspended) {
       return;
     }
 
@@ -86,25 +97,18 @@ function DeferredBentoCardSlot({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) {
-          return;
-        }
-
-        setShouldMount(true);
-        observer.disconnect();
+        const isIntersecting = entries.some((entry) => entry.isIntersecting);
+        setShouldMount(isIntersecting);
       },
       {
-        rootMargin: `${Math.max(
-          320,
-          Math.min(720, Math.round(window.innerHeight * 0.35))
-        )}px 0px`,
+        rootMargin,
         threshold: 0.01,
       }
     );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [deferred, shouldMount]);
+  }, [deferred, rootMargin, suspended]);
 
   const deferredCardStyle: CSSProperties | undefined = deferred
     ? {
@@ -147,6 +151,8 @@ export function BentoGrid({
   deferredMediaStartDelayMs = 1400,
   deferredMediaStepMs = 260,
   deferCardRenderingAfter = 8,
+  deferredCardRootMargin = "320px 0px",
+  suspendBackgroundLoading = false,
 }: BentoGridProps) {
   const spanByItemKey = computeBentoSpans(items);
   const highlightedId = highlightFeatured ? getHighlightedItemId(items) : null;
@@ -474,6 +480,7 @@ export function BentoGrid({
                 priorityMedia={priorityMedia}
                 deferMedia={shouldDeferVisibleMedia}
                 deferMediaDelayMs={deferredMediaDelayMs}
+                suspendDeferredMedia={suspendBackgroundLoading}
                 homeImagePhaseId={homeImagePhaseId}
               />
             )}
@@ -484,6 +491,7 @@ export function BentoGrid({
                 priorityMedia={priorityMedia}
                 deferMedia={shouldDeferVisibleMedia}
                 deferMediaDelayMs={deferredMediaDelayMs}
+                suspendDeferredMedia={suspendBackgroundLoading}
                 homeImagePhaseId={homeImagePhaseId}
                 onOpenPreview={(payload) =>
                   openMomentPreview(item.id, item.locale, payload)
@@ -496,6 +504,7 @@ export function BentoGrid({
                 priorityMedia={priorityMedia}
                 deferMedia={shouldDeferVisibleMedia}
                 deferMediaDelayMs={deferredMediaDelayMs}
+                suspendDeferredMedia={suspendBackgroundLoading}
                 homeImagePhaseId={homeImagePhaseId}
               />
             )}
@@ -508,6 +517,8 @@ export function BentoGrid({
             key={itemKey}
             deferred={shouldDeferCardRendering}
             spanClass={cn("bento-card", spanClass)}
+            rootMargin={deferredCardRootMargin}
+            suspended={suspendBackgroundLoading}
           >
             {card}
           </DeferredBentoCardSlot>
