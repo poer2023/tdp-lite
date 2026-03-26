@@ -16,16 +16,16 @@ function firstValue(value: string | string[] | undefined) {
 export default async function PublisherLoginPage({
   searchParams,
 }: LoginPageProps) {
-  const session = await getPublisherSession();
-  if (session) {
-    redirect("/");
-  }
-
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const error = firstValue(resolvedSearchParams.error);
   const nextPath = normalizePublisherNextPath(
     firstValue(resolvedSearchParams.next)
   );
+  const session = await getPublisherSession();
+  if (session) {
+    redirect(nextPath);
+  }
+
   const isConfigured = publisherAuthConfigured();
 
   return (

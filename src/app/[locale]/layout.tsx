@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { notFound } from "next/navigation";
 
-import { APP_LOCALES, type AppLocale } from "@/lib/locale";
+import { APP_LOCALES, isAppLocale, type AppLocale } from "@/lib/locale";
 
 type Locale = AppLocale;
 
@@ -42,6 +43,13 @@ export async function generateMetadata({
 
 export default async function LocaleLayout({
   children,
+  params,
 }: LocaleLayoutProps) {
+  const { locale } = await params;
+
+  if (!isAppLocale(locale)) {
+    notFound();
+  }
+
   return <>{children}</>;
 }
