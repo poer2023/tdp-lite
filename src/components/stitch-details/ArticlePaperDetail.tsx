@@ -5,6 +5,7 @@ import { ArrowLeft, Bookmark, MapPin, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FloatingDock } from "./FloatingDock";
 import type { FloatingDockItem } from "./types";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 export interface ArticlePaperDetailProps {
   title: string;
@@ -71,7 +72,7 @@ export function ArticlePaperDetail({
 }: ArticlePaperDetailProps) {
   const titleParts = accentTitle ? [title, accentTitle] : [title];
   const skipAvatarOptimization =
-    avatarSrc?.startsWith("blob:") || avatarSrc?.startsWith("data:");
+    shouldBypassNextImageOptimization(avatarSrc);
 
   return (
     <section

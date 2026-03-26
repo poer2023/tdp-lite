@@ -11,14 +11,11 @@ import type { FeedItem } from "@/components/bento/types";
 import { cn } from "@/lib/utils";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import type { GalleryImageAggregateDTO } from "@/lib/gallery";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 interface GalleryPageClientProps {
   locale: "en" | "zh";
   items: GalleryImageAggregateDTO[];
-}
-
-function shouldSkipOptimization(src: string): boolean {
-  return src.startsWith("blob:") || src.startsWith("data:");
 }
 
 function toLayoutItem(item: GalleryImageAggregateDTO): Extract<FeedItem, { type: "gallery" }> {
@@ -101,7 +98,7 @@ export function GalleryPageClient({ locale, items }: GalleryPageClientProps) {
                 src={imageSrc}
                 alt={item.title || t.imageAlt}
                 sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                unoptimized={shouldSkipOptimization(imageSrc)}
+                unoptimized={shouldBypassNextImageOptimization(imageSrc)}
                 className="paper-card"
               />
             </Link>

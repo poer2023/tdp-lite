@@ -9,6 +9,7 @@ import {
   resolveHomeImagePhaseItem,
 } from "@/components/home/homeMediaPhases";
 import { BENTO_CARD_MEDIA_SIZES } from "./mediaSizing";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 type NavigatorWithConnection = Navigator & {
   connection?: {
@@ -45,6 +46,7 @@ export function AutoplayCoverVideo({
   const hasPosterImage = Boolean(
     poster && !(poster.startsWith("blob:") || poster.startsWith("data:"))
   );
+  const bypassPosterOptimization = shouldBypassNextImageOptimization(poster);
 
   useEffect(() => {
     setIsReady(false);
@@ -194,6 +196,7 @@ export function AutoplayCoverVideo({
           aria-hidden="true"
           fill
           sizes={posterSizes}
+          unoptimized={bypassPosterOptimization}
           priority={eager}
           onLoad={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
           onError={() => resolveHomeImagePhaseItem(homeImagePhaseId)}

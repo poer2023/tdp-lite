@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import type { Moment } from "@/lib/content/types";
 import { resolveMomentDisplay } from "@/lib/content/momentDisplay";
 import { buildOptimizedImageUrl } from "./mediaSizing";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 interface MomentDetailCardProps {
   moment: Moment;
@@ -51,9 +52,7 @@ export function MomentDetailCard({
     mediaTitle: primaryMedia?.title,
     locale,
   });
-  const skipOptimization =
-    primaryMedia?.url.startsWith("blob:") ||
-    primaryMedia?.url.startsWith("data:");
+  const skipOptimization = shouldBypassNextImageOptimization(primaryMedia?.url);
 
   const handlePrevMedia = () => {
     if (!hasMultipleMedia) return;

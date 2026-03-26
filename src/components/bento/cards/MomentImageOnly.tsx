@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { DeferredCardMediaPlaceholder } from "./DeferredCardMediaSlot";
 import { buildOptimizedImageUrl } from "./mediaSizing";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 interface MomentImageOnlyProps {
   src: string;
@@ -36,8 +37,12 @@ export function MomentImageOnly({
 }: MomentImageOnlyProps) {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const shouldBypassOptimization = useMemo(
+    () => unoptimized || shouldBypassNextImageOptimization(src),
+    [src, unoptimized]
+  );
   const optimizedLoader = useMemo(() => {
-    if (unoptimized || (!preview && typeof sourceWidth !== "number")) {
+    if (shouldBypassOptimization || (!preview && typeof sourceWidth !== "number")) {
       return undefined;
     }
 
@@ -57,7 +62,7 @@ export function MomentImageOnly({
         quality,
         preview ? 640 : 384
       );
-  }, [preview, sourceWidth, unoptimized]);
+  }, [preview, shouldBypassOptimization, sourceWidth]);
 
   useEffect(() => {
     setIsLoaded(false);
@@ -105,7 +110,7 @@ export function MomentImageOnly({
         alt={alt}
         fill
         sizes={sizes}
-        unoptimized={unoptimized}
+        unoptimized={shouldBypassOptimization}
         loading={loading}
         priority={priority}
         fetchPriority={fetchPriority}

@@ -1,3 +1,5 @@
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
+
 export const BENTO_CARD_MEDIA_SIZES =
   "(max-width: 767px) calc(100vw - 3.5rem), (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw";
 
@@ -45,6 +47,10 @@ export function buildOptimizedImageUrl(
   quality = 75,
   minimumWidth = 384
 ) {
+  if (shouldBypassNextImageOptimization(src)) {
+    return src;
+  }
+
   const width = getOptimizedImageWidth(
     requestedWidth,
     sourceWidth,

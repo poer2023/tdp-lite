@@ -28,6 +28,7 @@ import { toLocalizedPath } from "@/lib/locale-routing";
 import { LgChipDark } from "@/components/ui/LgChipDark";
 import { resolveMomentDisplayFromMoment } from "@/lib/content/momentDisplay";
 import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 type MomentMedia = NonNullable<Moment["media"]>[number];
 
@@ -99,9 +100,7 @@ export function MomentCard({
       media && !isAudio && (media.type === "video" || isVideoUrl(media.url))
     );
     const shouldSkipOptimization = Boolean(
-      media &&
-      !isVideo &&
-      (media.url.startsWith("blob:") || media.url.startsWith("data:"))
+      media && !isVideo && shouldBypassNextImageOptimization(media.url)
     );
     return { isAudio, isVideo, shouldSkipOptimization };
   };

@@ -26,6 +26,7 @@ import {
 import { cn, formatDate } from "@/lib/utils";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import type { GalleryImageAggregateDTO } from "@/lib/gallery";
+import { shouldBypassNextImageOptimization as shouldSkipOptimization } from "@/lib/mediaOptimization";
 
 interface GalleryImageDetailProps {
   locale: "en" | "zh";
@@ -41,10 +42,6 @@ interface PointerPoint {
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
-
-function shouldSkipOptimization(src: string): boolean {
-  return src.startsWith("blob:") || src.startsWith("data:");
-}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));

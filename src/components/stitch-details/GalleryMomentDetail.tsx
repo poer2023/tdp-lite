@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { FloatingDock } from "./FloatingDock";
 import type { DetailMetaItem, FloatingDockItem } from "./types";
+import { shouldBypassNextImageOptimization as shouldSkipOptimization } from "@/lib/mediaOptimization";
 
 export interface GalleryMomentImage {
   id: string;
@@ -75,10 +76,6 @@ function getImageRatio(
     return FALLBACK_IMAGE_RATIO;
   }
   return Math.max(MIN_IMAGE_RATIO, Math.min(width / height, MAX_IMAGE_RATIO));
-}
-
-function shouldSkipOptimization(src: string) {
-  return src.startsWith("blob:") || src.startsWith("data:");
 }
 
 export function GalleryMomentDetail({

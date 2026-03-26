@@ -14,6 +14,7 @@ import { BENTO_CARD_MEDIA_SIZES } from "./mediaSizing";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 interface PostCardProps {
   post: Post;
@@ -51,8 +52,7 @@ export function PostCard({
     (coverMediaType ? coverMediaType === "video" : isVideoUrl(coverSrc))
   );
   const skipOptimization =
-    !hasVideoCover &&
-    (coverSrc?.startsWith("blob:") || coverSrc?.startsWith("data:"));
+    !hasVideoCover && shouldBypassNextImageOptimization(coverSrc);
   const wrapperClass = cn(
     "paper-card group relative flex h-full flex-col overflow-hidden",
     highlighted && "ring-1 ring-black/15 shadow-highlight",

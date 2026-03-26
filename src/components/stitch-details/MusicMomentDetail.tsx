@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { FloatingDock } from "./FloatingDock";
 import type { FloatingDockItem } from "./types";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 export interface MusicMomentDetailProps {
   title: string;
@@ -59,7 +60,7 @@ export function MusicMomentDetail({
 }: MusicMomentDetailProps) {
   const [isPlaying, setIsPlaying] = useState(true);
   const skipCoverOptimization =
-    coverImage.startsWith("blob:") || coverImage.startsWith("data:");
+    shouldBypassNextImageOptimization(coverImage);
   const bars = useMemo(
     () =>
       waveform || [

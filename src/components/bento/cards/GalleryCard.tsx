@@ -9,6 +9,7 @@ import {
 } from "./DeferredCardMediaSlot";
 import { BENTO_CARD_MEDIA_SIZES, buildOptimizedImageUrl } from "./mediaSizing";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
+import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 interface GalleryCardProps {
   item: GalleryItem;
@@ -32,8 +33,7 @@ export function GalleryCard({
   homeImagePhaseId,
 }: GalleryCardProps) {
   const imageSrc = item.thumbUrl || item.fileUrl;
-  const skipOptimization =
-    imageSrc.startsWith("blob:") || imageSrc.startsWith("data:");
+  const skipOptimization = shouldBypassNextImageOptimization(imageSrc);
 
   return (
     <div
