@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { FloatingDock } from "./FloatingDock";
 import type { DetailMetaItem, FloatingDockItem } from "./types";
 import { shouldBypassNextImageOptimization as shouldSkipOptimization } from "@/lib/mediaOptimization";
+import { createOptimizedImageLoader } from "@/components/bento/cards/mediaSizing";
 
 export interface GalleryMomentImage {
   id: string;
@@ -235,6 +236,11 @@ export function GalleryMomentDetail({
         width={56}
         height={56}
         unoptimized={shouldSkipOptimization(image.thumbSrc || image.src)}
+        loader={
+          shouldSkipOptimization(image.thumbSrc || image.src)
+            ? undefined
+            : createOptimizedImageLoader(image.width, 64)
+        }
         className="h-full w-full object-cover"
         onLoad={(event) => registerImageDimensions(image.id, event.currentTarget)}
       />
@@ -293,6 +299,11 @@ export function GalleryMomentDetail({
                     fill
                     sizes="(min-width: 1024px) 60vw, 100vw"
                     unoptimized={shouldSkipOptimization(currentImage.src)}
+                    loader={
+                      shouldSkipOptimization(currentImage.src)
+                        ? undefined
+                        : createOptimizedImageLoader(currentImage.width, 640)
+                    }
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.01]"
                     onLoad={(event) =>
                       registerImageDimensions(currentImage.id, event.currentTarget)
@@ -396,6 +407,11 @@ export function GalleryMomentDetail({
                           width={24}
                           height={24}
                           unoptimized={shouldSkipOptimization(avatarSrc)}
+                          loader={
+                            shouldSkipOptimization(avatarSrc)
+                              ? undefined
+                              : createOptimizedImageLoader(undefined, 48)
+                          }
                           className="h-full w-full object-cover grayscale"
                         />
                       </div>

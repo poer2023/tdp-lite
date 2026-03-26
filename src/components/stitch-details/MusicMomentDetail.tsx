@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { FloatingDock } from "./FloatingDock";
 import type { FloatingDockItem } from "./types";
 import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
+import { createOptimizedImageLoader } from "@/components/bento/cards/mediaSizing";
 
 export interface MusicMomentDetailProps {
   title: string;
@@ -61,6 +62,9 @@ export function MusicMomentDetail({
   const [isPlaying, setIsPlaying] = useState(true);
   const skipCoverOptimization =
     shouldBypassNextImageOptimization(coverImage);
+  const coverImageLoader = !skipCoverOptimization
+    ? createOptimizedImageLoader(undefined, 256)
+    : undefined;
   const bars = useMemo(
     () =>
       waveform || [
@@ -103,6 +107,7 @@ export function MusicMomentDetail({
                 width={40}
                 height={40}
                 unoptimized={skipCoverOptimization}
+                loader={coverImageLoader}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -131,6 +136,7 @@ export function MusicMomentDetail({
                       alt="Album Art"
                       fill
                       unoptimized={skipCoverOptimization}
+                      loader={coverImageLoader}
                       sizes="(min-width: 768px) 8rem, 6rem"
                       className="object-cover grayscale-[0.3]"
                     />

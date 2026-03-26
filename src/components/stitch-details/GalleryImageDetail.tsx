@@ -27,6 +27,7 @@ import { cn, formatDate } from "@/lib/utils";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import type { GalleryImageAggregateDTO } from "@/lib/gallery";
 import { shouldBypassNextImageOptimization as shouldSkipOptimization } from "@/lib/mediaOptimization";
+import { createOptimizedImageLoader } from "@/components/bento/cards/mediaSizing";
 
 interface GalleryImageDetailProps {
   locale: "en" | "zh";
@@ -125,6 +126,12 @@ export function GalleryImageDetail({
           zoomLabel: "Zoom",
         };
   const imageSrc = item.thumbUrl || item.imageUrl;
+  const galleryImageLoader = !shouldSkipOptimization(imageSrc)
+    ? createOptimizedImageLoader(item.width ?? undefined, 640)
+    : undefined;
+  const lightboxImageLoader = !shouldSkipOptimization(item.imageUrl)
+    ? createOptimizedImageLoader(item.width ?? undefined, 1080)
+    : undefined;
   const [isLightboxOpen, setLightboxOpen] = useState(false);
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -316,6 +323,7 @@ export function GalleryImageDetail({
                   width={item.width || 1600}
                   height={item.height || 1000}
                   unoptimized={shouldSkipOptimization(imageSrc)}
+                  loader={galleryImageLoader}
                   sizes="(min-width: 1024px) 60vw, 100vw"
                   className="h-auto w-full object-cover transition-transform duration-500 group-hover:scale-[1.01]"
                 />
@@ -504,6 +512,7 @@ export function GalleryImageDetail({
               width={item.width || 1920}
               height={item.height || 1080}
               unoptimized={shouldSkipOptimization(item.imageUrl)}
+              loader={lightboxImageLoader}
               draggable={false}
               className="max-h-full max-w-full select-none object-contain"
               style={{

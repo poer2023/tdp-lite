@@ -10,7 +10,7 @@ import {
   DeferredCardMediaPlaceholder,
   DeferredCardMediaSlot,
 } from "./DeferredCardMediaSlot";
-import { BENTO_CARD_MEDIA_SIZES } from "./mediaSizing";
+import { BENTO_CARD_MEDIA_SIZES, createOptimizedImageLoader } from "./mediaSizing";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
@@ -53,6 +53,10 @@ export function PostCard({
   );
   const skipOptimization =
     !hasVideoCover && shouldBypassNextImageOptimization(coverSrc);
+  const coverImageLoader =
+    coverSrc && !hasVideoCover && !skipOptimization
+      ? createOptimizedImageLoader(undefined, 384)
+      : undefined;
   const wrapperClass = cn(
     "paper-card group relative flex h-full flex-col overflow-hidden",
     highlighted && "ring-1 ring-black/15 shadow-highlight",
@@ -92,6 +96,7 @@ export function PostCard({
                 alt={post.title}
                 fill
                 unoptimized={Boolean(skipOptimization)}
+                loader={coverImageLoader}
                 sizes={BENTO_CARD_MEDIA_SIZES}
                 loading={priorityMedia ? undefined : "lazy"}
                 priority={priorityMedia}

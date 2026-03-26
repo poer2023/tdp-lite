@@ -7,7 +7,10 @@ import {
   DeferredCardMediaPlaceholder,
   DeferredCardMediaSlot,
 } from "./DeferredCardMediaSlot";
-import { BENTO_CARD_MEDIA_SIZES, buildOptimizedImageUrl } from "./mediaSizing";
+import {
+  BENTO_CARD_MEDIA_SIZES,
+  createOptimizedImageLoader,
+} from "./mediaSizing";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
@@ -34,6 +37,9 @@ export function GalleryCard({
 }: GalleryCardProps) {
   const imageSrc = item.thumbUrl || item.fileUrl;
   const skipOptimization = shouldBypassNextImageOptimization(imageSrc);
+  const imageLoader = !skipOptimization
+    ? createOptimizedImageLoader(item.width ?? undefined, 384)
+    : undefined;
 
   return (
     <div
@@ -59,17 +65,7 @@ export function GalleryCard({
           unoptimized={skipOptimization}
           loading={priorityMedia ? undefined : "lazy"}
           priority={priorityMedia}
-          loader={
-            skipOptimization
-              ? undefined
-              : ({ src, width, quality }) =>
-                  buildOptimizedImageUrl(
-                    src,
-                    width,
-                    item.width ?? undefined,
-                    quality
-                  )
-          }
+          loader={imageLoader}
           onLoad={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
           onError={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
           className={cn(

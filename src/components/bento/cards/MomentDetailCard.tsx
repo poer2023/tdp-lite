@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Music2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Moment } from "@/lib/content/types";
 import { resolveMomentDisplay } from "@/lib/content/momentDisplay";
-import { buildOptimizedImageUrl } from "./mediaSizing";
+import { createOptimizedImageLoader } from "./mediaSizing";
 import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 interface MomentDetailCardProps {
@@ -53,6 +53,10 @@ export function MomentDetailCard({
     locale,
   });
   const skipOptimization = shouldBypassNextImageOptimization(primaryMedia?.url);
+  const detailImageLoader =
+    primaryMedia?.type === "image" && !skipOptimization
+      ? createOptimizedImageLoader(primaryMedia.width, 640)
+      : undefined;
 
   const handlePrevMedia = () => {
     if (!hasMultipleMedia) return;
@@ -93,17 +97,7 @@ export function MomentDetailCard({
                 fill
                 unoptimized={Boolean(skipOptimization)}
                 sizes="(max-width: 767px) calc(100vw - 3rem), (min-width: 768px) 60vw, 100vw"
-                loader={
-                  skipOptimization
-                    ? undefined
-                    : ({ src, width, quality }) =>
-                        buildOptimizedImageUrl(
-                          src,
-                          width,
-                          primaryMedia.width,
-                          quality
-                        )
-                }
+                loader={detailImageLoader}
                 className="object-cover"
               />
             ) : primaryMedia.type === "video" ? (

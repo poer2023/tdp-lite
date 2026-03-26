@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { DeferredCardMediaPlaceholder } from "./DeferredCardMediaSlot";
-import { buildOptimizedImageUrl } from "./mediaSizing";
+import { createOptimizedImageLoader } from "./mediaSizing";
 import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 interface MomentImageOnlyProps {
@@ -42,26 +42,11 @@ export function MomentImageOnly({
     [src, unoptimized]
   );
   const optimizedLoader = useMemo(() => {
-    if (shouldBypassOptimization || (!preview && typeof sourceWidth !== "number")) {
+    if (shouldBypassOptimization) {
       return undefined;
     }
 
-    return ({
-      src: imageSrc,
-      width,
-      quality,
-    }: {
-      src: string;
-      width: number;
-      quality?: number;
-    }) =>
-      buildOptimizedImageUrl(
-        imageSrc,
-        width,
-        sourceWidth,
-        quality,
-        preview ? 640 : 384
-      );
+    return createOptimizedImageLoader(sourceWidth, preview ? 640 : 384);
   }, [preview, shouldBypassOptimization, sourceWidth]);
 
   useEffect(() => {

@@ -1,4 +1,7 @@
-import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
+import {
+  shouldBypassNextImageOptimization,
+  shouldUseCloudflareImageTransform,
+} from "@/lib/mediaOptimization";
 
 export const BENTO_CARD_MEDIA_SIZES =
   "(max-width: 767px) calc(100vw - 3.5rem), (min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw";
@@ -24,6 +27,12 @@ const NEXT_IMAGE_WIDTH_BUCKETS = [
   3840,
 ] as const;
 
+interface OptimizedImageLoaderArgs {
+  src: string;
+  width: number;
+  quality?: number;
+}
+
 function getOptimizedImageWidth(
   requestedWidth: number,
   sourceWidth?: number,
@@ -40,6 +49,24 @@ function getOptimizedImageWidth(
   );
 }
 
+function buildCloudflareImageTransformUrl(
+  src: string,
+  requestedWidth: number,
+  sourceWidth?: number,
+  quality = 75,
+  minimumWidth = 384
+) {
+  const url = new URL(src, "https://example.com");
+  const width = getOptimizedImageWidth(
+    requestedWidth,
+    sourceWidth,
+    minimumWidth
+  );
+  const options = `format=auto,quality=${quality},width=${width}`;
+
+  return `${url.origin}/cdn-cgi/image/${options}${url.pathname}${url.search}`;
+}
+
 export function buildOptimizedImageUrl(
   src: string,
   requestedWidth: number,
@@ -47,6 +74,16 @@ export function buildOptimizedImageUrl(
   quality = 75,
   minimumWidth = 384
 ) {
+  if (shouldUseCloudflareImageTransform(src)) {
+    return buildCloudflareImageTransformUrl(
+      src,
+      requestedWidth,
+      sourceWidth,
+      quality,
+      minimumWidth
+    );
+  }
+
   if (shouldBypassNextImageOptimization(src)) {
     return src;
   }
@@ -66,4 +103,12 @@ export function buildOptimizedPreviewImageUrl(
   quality = 75
 ) {
   return buildOptimizedImageUrl(src, requestedWidth, sourceWidth, quality, 640);
+}
+
+export function createOptimizedImageLoader(
+  sourceWidth?: number,
+  minimumWidth = 384
+) {
+  return ({ src, width, quality }: OptimizedImageLoaderArgs) =>
+    buildOptimizedImageUrl(src, width, sourceWidth, quality, minimumWidth);
 }
