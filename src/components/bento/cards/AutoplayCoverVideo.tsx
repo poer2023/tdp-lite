@@ -10,6 +10,7 @@ import {
 } from "@/components/home/homeMediaPhases";
 import {
   BENTO_CARD_MEDIA_SIZES,
+  buildOptimizedImageUrl,
   createOptimizedImageLoader,
 } from "./mediaSizing";
 import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
@@ -50,6 +51,16 @@ export function AutoplayCoverVideo({
     poster && !(poster.startsWith("blob:") || poster.startsWith("data:"))
   );
   const bypassPosterOptimization = shouldBypassNextImageOptimization(poster);
+  const optimizedPosterUrl =
+    poster && !bypassPosterOptimization
+      ? buildOptimizedImageUrl(
+          poster,
+          eager ? 640 : 384,
+          undefined,
+          75,
+          eager ? 640 : 384
+        )
+      : poster;
   const posterLoader =
     poster && !bypassPosterOptimization
       ? createOptimizedImageLoader(undefined, eager ? 640 : 384)
@@ -218,7 +229,7 @@ export function AutoplayCoverVideo({
         ref={videoRef}
         src={shouldLoad ? src : undefined}
         crossOrigin="anonymous"
-        poster={poster}
+        poster={optimizedPosterUrl}
         muted
         loop
         playsInline
