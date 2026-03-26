@@ -109,6 +109,24 @@ function sanitizeNextPath(value: string | null | undefined) {
   return value;
 }
 
+function isSecurePublisherRequest(request: Request) {
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  if (forwardedProto) {
+    return forwardedProto.split(",")[0]?.trim() === "https";
+  }
+
+  return new URL(request.url).protocol === "https:";
+}
+
+function redirectResponse(path: string) {
+  return new NextResponse(null, {
+    status: 303,
+    headers: {
+      Location: sanitizeNextPath(path),
+    },
+  });
+}
+
 export function publisherAuthConfigured() {
   return getPublisherAuthConfig() !== null;
 }
@@ -155,11 +173,11 @@ export async function requirePublisherApiAuth() {
 }
 
 export function redirectToPublisherLogin(request: Request, reason?: string) {
-  const url = new URL("/login", request.url);
+  const url = new URL("http://publisher.local/login");
   if (reason) {
     url.searchParams.set("error", reason);
   }
-  return NextResponse.redirect(url, { status: 303 });
+  return redirectResponse(`${url.pathname}${url.search}`);
 }
 
 export function buildPublisherLoginSuccessResponse(
@@ -171,17 +189,14 @@ export function buildPublisherLoginSuccessResponse(
     return redirectToPublisherLogin(request, "config");
   }
 
-  const response = NextResponse.redirect(
-    new URL(sanitizeNextPath(nextPath), request.url),
-    { status: 303 }
-  );
+  const response = redirectResponse(sanitizeNextPath(nextPath));
 
   response.cookies.set({
     name: SESSION_COOKIE_NAME,
     value: createSessionToken(config),
     httpOnly: true,
     sameSite: "lax",
-    secure: true,
+    secure: isSecurePublisherRequest(request),
     path: "/",
     maxAge: SESSION_TTL_SECONDS,
   });
@@ -190,16 +205,14 @@ export function buildPublisherLoginSuccessResponse(
 }
 
 export function buildPublisherLogoutResponse(request: Request) {
-  const response = NextResponse.redirect(new URL("/login", request.url), {
-    status: 303,
-  });
+  const response = redirectResponse("/login");
 
   response.cookies.set({
     name: SESSION_COOKIE_NAME,
     value: "",
     httpOnly: true,
     sameSite: "lax",
-    secure: true,
+    secure: isSecurePublisherRequest(request),
     path: "/",
     maxAge: 0,
   });
