@@ -71,6 +71,8 @@ export type PublicProfileSnapshot = {
     totalPushEvents: number | null;
     heatmapLevels: number[];
     heatmapCounts: number[];
+    heatmapStartDate: Date | null;
+    heatmapEndDate: Date | null;
     recentPushes: PublicGithubRecentPush[];
     fetchedAt: Date | null;
   } | null;
@@ -166,21 +168,30 @@ function resolveApiBaseUrl(): string {
 }
 
 const API_BASE_URL = resolveApiBaseUrl();
-const PROFILE_SNAPSHOT_FILE = path.join(process.cwd(), "data", "profile-snapshot.json");
+const PROFILE_SNAPSHOT_FILE = path.join(
+  process.cwd(),
+  "data",
+  "profile-snapshot.json"
+);
 const PROFILE_SNAPSHOT_CACHE_TTL_MS = 30_000;
 
-let lastProfileSnapshotCache:
-  | { item: PublicProfileSnapshot; fetchedAt: number }
-  | null = null;
+let lastProfileSnapshotCache: {
+  item: PublicProfileSnapshot;
+  fetchedAt: number;
+} | null = null;
 
 interface PublicApiGetOptions {
   revalidateSeconds?: number;
   tags?: string[];
 }
 
-async function apiGet<T>(path: string, options: PublicApiGetOptions = {}): Promise<T> {
+async function apiGet<T>(
+  path: string,
+  options: PublicApiGetOptions = {}
+): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
-  const { revalidateSeconds = PUBLIC_CACHE_REVALIDATE.contentList, tags } = options;
+  const { revalidateSeconds = PUBLIC_CACHE_REVALIDATE.contentList, tags } =
+    options;
   let response: Response;
   try {
     response = await fetch(url, {
@@ -191,7 +202,9 @@ async function apiGet<T>(path: string, options: PublicApiGetOptions = {}): Promi
     });
   } catch (error) {
     const reason =
-      error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      error instanceof Error
+        ? `${error.name}: ${error.message}`
+        : String(error);
     throw new Error(
       `public api network error: ${url}. ${reason}. Hint: run \`pnpm backend:api\` (or \`pnpm dev:all\`), ensure TDP_API_BASE_URL/NEXT_PUBLIC_TDP_API_BASE_URL points to backend, and restart Next dev if env changed.`
     );
@@ -220,7 +233,9 @@ function toDate(value: unknown): Date {
   return new Date(0);
 }
 
-function parsePublicProfileSnapshot(raw: unknown): PublicProfileSnapshot | null {
+function parsePublicProfileSnapshot(
+  raw: unknown
+): PublicProfileSnapshot | null {
   const item = asObject(raw);
   if (Object.keys(item).length === 0) {
     return null;
@@ -240,6 +255,12 @@ function parsePublicProfileSnapshot(raw: unknown): PublicProfileSnapshot | null 
         heatmapCounts: asArray(githubHeatmap.counts)
           .map((value) => asNumberOrNull(value))
           .filter((value): value is number => value !== null),
+        heatmapStartDate: githubHeatmap.startDate
+          ? toDate(githubHeatmap.startDate)
+          : null,
+        heatmapEndDate: githubHeatmap.endDate
+          ? toDate(githubHeatmap.endDate)
+          : null,
         recentPushes: asArray(githubObj.recentPushes).map((pushRaw) => {
           const push = asObject(pushRaw);
           return {
@@ -291,7 +312,9 @@ function parsePublicProfileSnapshot(raw: unknown): PublicProfileSnapshot | null 
             value: asNumberOrNull(ratio.value) ?? 0,
           };
         }),
-        generatedAt: derivedObj.generatedAt ? toDate(derivedObj.generatedAt) : null,
+        generatedAt: derivedObj.generatedAt
+          ? toDate(derivedObj.generatedAt)
+          : null,
       }
     : null;
 
@@ -340,10 +363,13 @@ function toPost(raw: unknown): Post {
     locale: obj.locale === "zh" ? "zh" : "en",
     title: asString(obj.title),
     excerpt: asNullableString(obj.excerpt),
-    content: rewriteConfiguredPublicMediaUrlsInText(asString(obj.content)) ?? "",
+    content:
+      rewriteConfiguredPublicMediaUrlsInText(asString(obj.content)) ?? "",
     coverUrl:
       rewriteConfiguredPublicMediaUrl(asNullableString(obj.coverUrl)) ?? null,
-    tags: asArray(obj.tags).map((tag) => asString(tag)).filter(Boolean),
+    tags: asArray(obj.tags)
+      .map((tag) => asString(tag))
+      .filter(Boolean),
     status: obj.status === "published" ? "published" : "draft",
     cardSpan: asCardSpan(obj.cardSpan),
     publishedAt: obj.publishedAt ? toDate(obj.publishedAt) : null,
@@ -358,7 +384,8 @@ function toMoment(raw: unknown): Moment {
     const item = asObject(itemRaw);
     const width = asNumberOrNull(item.width);
     const height = asNumberOrNull(item.height);
-    const mediaType: "image" | "video" = item.type === "video" ? "video" : "image";
+    const mediaType: "image" | "video" =
+      item.type === "video" ? "video" : "image";
 
     return {
       type: mediaType,
@@ -439,7 +466,10 @@ function toGalleryItem(raw: unknown): GalleryItem {
   };
 }
 
-export async function fetchPublicFeed(locale: Locale, limit: number = 10): Promise<FeedItem[]> {
+export async function fetchPublicFeed(
+  locale: Locale,
+  limit: number = 10
+): Promise<FeedItem[]> {
   const result = await apiGet<{ items: unknown[] }>(
     `/v1/public/feed?locale=${locale}&limit=${limit}`,
     {
@@ -473,7 +503,10 @@ export async function fetchPublicPosts(locale: Locale): Promise<Post[]> {
   return result.items.map(toPost);
 }
 
-export async function fetchPublicPost(locale: Locale, slug: string): Promise<Post | null> {
+export async function fetchPublicPost(
+  locale: Locale,
+  slug: string
+): Promise<Post | null> {
   try {
     const result = await apiGet<{ item: unknown }>(
       `/v1/public/posts/${encodeURIComponent(slug)}?locale=${locale}`,
@@ -499,7 +532,10 @@ export async function fetchPublicMoments(locale: Locale): Promise<Moment[]> {
   return result.items.map(toMoment);
 }
 
-export async function fetchPublicMoment(locale: Locale, id: string): Promise<Moment | null> {
+export async function fetchPublicMoment(
+  locale: Locale,
+  id: string
+): Promise<Moment | null> {
   try {
     const result = await apiGet<{ item: unknown }>(
       `/v1/public/moments/${encodeURIComponent(id)}?locale=${locale}`,
@@ -514,7 +550,9 @@ export async function fetchPublicMoment(locale: Locale, id: string): Promise<Mom
   }
 }
 
-export async function fetchPublicGallery(locale: Locale): Promise<GalleryItem[]> {
+export async function fetchPublicGallery(
+  locale: Locale
+): Promise<GalleryItem[]> {
   const result = await apiGet<{ items: unknown[] }>(
     `/v1/public/gallery?locale=${locale}`,
     {
@@ -553,7 +591,9 @@ export async function fetchPublicPresence(): Promise<PublicPresence | null> {
     const statusRaw = asString(item.status, "unknown");
     const status: PublicPresence["status"] =
       statusRaw === "online" || statusRaw === "offline" ? statusRaw : "unknown";
-    const lastHeartbeatAt = item.lastHeartbeatAt ? toDate(item.lastHeartbeatAt) : null;
+    const lastHeartbeatAt = item.lastHeartbeatAt
+      ? toDate(item.lastHeartbeatAt)
+      : null;
     const updatedAt = item.updatedAt ? toDate(item.updatedAt) : null;
 
     return {
@@ -577,10 +617,13 @@ export async function fetchPublicPresence(): Promise<PublicPresence | null> {
 
 export async function fetchPublicProfileSnapshot(): Promise<PublicProfileSnapshot | null> {
   try {
-    const result = await apiGet<{ item: unknown }>(`/v1/public/profile-snapshot`, {
-      revalidateSeconds: PUBLIC_CACHE_REVALIDATE.profileSnapshot,
-      tags: [PUBLIC_CACHE_TAGS.profileSnapshot],
-    });
+    const result = await apiGet<{ item: unknown }>(
+      `/v1/public/profile-snapshot`,
+      {
+        revalidateSeconds: PUBLIC_CACHE_REVALIDATE.profileSnapshot,
+        tags: [PUBLIC_CACHE_TAGS.profileSnapshot],
+      }
+    );
     const parsed = parsePublicProfileSnapshot(result.item);
     if (parsed) {
       lastProfileSnapshotCache = { item: parsed, fetchedAt: Date.now() };

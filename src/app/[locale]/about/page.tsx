@@ -17,9 +17,37 @@ import styles from "./about.module.css";
 export const dynamic = "force-dynamic";
 
 type Locale = AppLocale;
+type HeatmapCellItem = {
+  key: string;
+  level: number;
+  count: number;
+  date: Date | null;
+  tooltip: string | null;
+  isPadding: boolean;
+};
 
 interface AboutPageProps {
   params: Promise<{ locale: Locale }>;
+}
+
+const HEATMAP_ROWS = 7;
+const HEATMAP_DISPLAY_DAYS = 42;
+
+function clampHeatmapLevel(value: unknown): number {
+  const numeric = typeof value === "number" ? Math.trunc(value) : 0;
+  if (numeric < 0) return 0;
+  if (numeric > 4) return 4;
+  return numeric;
+}
+
+function startOfUtcDay(date: Date): Date {
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  );
+}
+
+function addUtcDays(date: Date, days: number): Date {
+  return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 }
 
 export default async function AboutPage({ params }: AboutPageProps) {
@@ -37,8 +65,6 @@ export default async function AboutPage({ params }: AboutPageProps) {
         sectionAtelier: "工作室",
         commitFrequency: "提交频率",
         year: "2024",
-        less: "少",
-        more: "多",
         techStack: "技术栈",
         latestPush: "最近推送",
         latestPushLabel: "仓库",
@@ -60,37 +86,37 @@ export default async function AboutPage({ params }: AboutPageProps) {
         ratioListen: "聆听",
         ratioExplore: "探索",
         syncFallback: "使用最近一次成功同步",
+        heatmapNoData: "等待同步",
         musicName: "Deep Focus 24'",
         musicArtist: "Ambient Works",
       }
     : {
-        title: "Atelier",
+        title: "Studio",
         subtitle: "& Lab",
         intro:
-          "A hybrid space where logic meets emotion. Creating digital artifacts through rigourous code and curated aesthetics.",
-        chipA: "Frontend Arch.",
+          "A hybrid space where logic and emotion move in parallel. Building usable digital work through rigorous code and restrained aesthetics.",
+        chipA: "Frontend Architecture",
         chipB: "Visual Design",
-        sectionLab: "The Lab",
-        sectionAtelier: "The Atelier",
+        sectionLab: "Lab",
+        sectionAtelier: "Studio",
         commitFrequency: "Commit Frequency",
         year: "2024",
-        less: "Less",
-        more: "More",
         techStack: "Tech Stack",
         latestPush: "Latest Push",
-        latestPushLabel: "Repo",
+        latestPushLabel: "Repository",
         latestPushFallback: "No recent code activity",
         quote:
-          '"Function without beauty is utilitarian. Beauty without function is decoration."',
+          '"Function without beauty is only a tool; beauty without function is only decoration."',
         quoteBody:
-          "I strive for the intersection. Where clean code enables fluid motion, and thoughtful design guides complex interactions.",
+          "I pursue the point where the two meet: let clean code carry fluid experiences, and let restrained design guide complex interactions.",
         focusMix: "Current Mix",
-        focusMixHint: "Derived from recent code, listening, and exploration",
+        focusMixHint:
+          "Generated from recently synced code, listening, and exploration activity",
         githubPulse: "GitHub Pulse",
         recentActivity: "Recent Activity",
         totalCommits: "Commits",
         totalPushes: "Pushes",
-        activeWindow: "Window",
+        activeWindow: "Range",
         noActivity: "No recent activity",
         musicSummary: "Listening Summary",
         topArtists: "Top Artists",
@@ -98,47 +124,14 @@ export default async function AboutPage({ params }: AboutPageProps) {
         ratioListen: "Listen",
         ratioExplore: "Explore",
         syncFallback: "Using the latest successful sync",
+        heatmapNoData: "Awaiting sync",
         musicName: "Deep Focus 24'",
         musicArtist: "Ambient Works",
       };
 
-  const defaultHeatmapCells = [
-    "bg-paper-grey",
-    "bg-ink/20",
-    "bg-ink/40",
-    "bg-ink/80",
-    "bg-ink",
-    "bg-paper-grey",
-    "bg-ink/60",
-    "bg-ink/20",
-    "bg-ink/90",
-    "bg-paper-grey",
-    "bg-ink/10",
-    "bg-ink/50",
-    "bg-ink/30",
-    "bg-ink/70",
-    "bg-paper-grey",
-    "bg-ink",
-    "bg-ink/40",
-    "bg-ink/20",
-    "bg-paper-grey",
-    "bg-ink/80",
-    "bg-ink/60",
-    "bg-ink/10",
-    "bg-paper-grey",
-    "bg-ink/90",
-    "bg-ink",
-    "bg-ink/20",
-    "bg-paper-grey",
-    "bg-ink/50",
-    "bg-ink/80",
-    "bg-ink/30",
-    "bg-paper-grey",
-    "bg-ink/60",
-    "bg-ink/90",
-    "bg-ink/10",
-    "bg-paper-grey",
-    "bg-ink",
+  const defaultHeatmapLevels = [
+    0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 2, 0, 1, 2, 0, 0, 0, 3, 4,
+    2, 0, 0, 0, 1, 2, 3, 4, 2, 0, 0, 0, 1, 2, 3, 0, 0,
   ];
 
   const techPills = [
@@ -160,26 +153,123 @@ export default async function AboutPage({ params }: AboutPageProps) {
     "bg-ink/70",
     "bg-ink",
   ];
-  const snapshotLevels = profileSnapshot?.github?.heatmapLevels ?? [];
-  const heatmapCells =
-    snapshotLevels.length === 0
-      ? defaultHeatmapCells
-      : (() => {
-          const normalized = snapshotLevels
-            .map((level) => {
-              const safe = Number.isFinite(level) ? Math.trunc(level) : 0;
-              if (safe < 0) return 0;
-              if (safe > 4) return 4;
-              return safe;
-            })
-            .slice(-36);
-          while (normalized.length < 36) {
-            normalized.unshift(0);
-          }
-          return normalized.map(
-            (level) => heatmapPalette[level] ?? heatmapPalette[0]
-          );
-        })();
+  const titleClass =
+    "font-display text-6xl font-semibold leading-[0.95] tracking-tight md:text-8xl";
+  const subtitleClass =
+    "text-ink-light pl-10 text-[0.82em] font-medium md:pl-16";
+  const introClass =
+    "text-ink-light mb-6 text-base font-normal leading-relaxed md:text-lg";
+  const chipClass =
+    "rounded-full border border-black/5 bg-white px-4 py-2 font-display text-xs tracking-[0.12em] shadow-sm";
+  const sectionLabelClass =
+    "text-ink-light text-xs font-semibold tracking-[0.18em]";
+  const cardTitleClass = "font-serif text-xl font-bold";
+  const monoMetaClass = "font-mono text-[10px] uppercase tracking-[0.22em]";
+  const subtleTextClass = "text-ink-light text-xs";
+  const latestPushBadgeClass =
+    "rounded-full border border-white/20 px-2 py-0.5 text-[10px] tracking-[0.12em]";
+  const latestPushRepoClass =
+    "font-display text-[1.65rem] font-semibold tracking-wide underline-offset-4 group-hover:underline";
+  const latestPushMetaClass = "mt-2 text-xs text-white/65";
+  const quoteClass =
+    "text-ink font-display text-[2rem] font-semibold leading-[1.35] md:text-[2.15rem]";
+  const quoteBodyClass =
+    "text-ink-light text-sm leading-relaxed tracking-[0.02em]";
+  const ratioLabelClass = "text-ink text-sm font-medium";
+  const heatmapCounts = profileSnapshot?.github?.heatmapCounts ?? [];
+  const heatmapLevels = profileSnapshot?.github?.heatmapLevels ?? [];
+  const hasSyncedHeatmap = heatmapCounts.length > 0 || heatmapLevels.length > 0;
+  const rawHeatmapLevels = (
+    hasSyncedHeatmap ? heatmapLevels : defaultHeatmapLevels
+  ).map((level) => clampHeatmapLevel(level));
+  const rawHeatmapCounts = rawHeatmapLevels.map((_, index) =>
+    hasSyncedHeatmap ? Math.max(0, heatmapCounts[index] ?? 0) : 0
+  );
+  const displayedHeatmapLevels = rawHeatmapLevels.slice(-HEATMAP_DISPLAY_DAYS);
+  const displayedHeatmapCounts = rawHeatmapCounts.slice(-HEATMAP_DISPLAY_DAYS);
+  const heatmapDateFormatter = new Intl.DateTimeFormat(
+    isZh ? "zh-CN" : "en-US",
+    {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      weekday: "short",
+      timeZone: "UTC",
+    }
+  );
+  const formatHeatmapCount = (count: number) =>
+    isZh ? `${count} 次提交` : `${count} ${count === 1 ? "commit" : "commits"}`;
+  const resolvedHeatmapEndDate =
+    profileSnapshot?.github?.heatmapEndDate ??
+    startOfUtcDay(
+      profileSnapshot?.github?.fetchedAt ??
+        profileSnapshot?.syncedAt ??
+        new Date()
+    );
+  const rawHeatmapStartDate =
+    profileSnapshot?.github?.heatmapStartDate ??
+    addUtcDays(resolvedHeatmapEndDate, -(rawHeatmapLevels.length - 1));
+  const resolvedHeatmapStartDate = addUtcDays(
+    rawHeatmapStartDate,
+    rawHeatmapLevels.length - displayedHeatmapLevels.length
+  );
+  const leadingPadding = hasSyncedHeatmap
+    ? resolvedHeatmapStartDate.getUTCDay()
+    : 0;
+  const baseHeatmapCells: HeatmapCellItem[] = displayedHeatmapLevels.map(
+    (level, index) => {
+      const count = displayedHeatmapCounts[index] ?? 0;
+      const date = hasSyncedHeatmap
+        ? addUtcDays(resolvedHeatmapStartDate, index)
+        : null;
+      const tooltip = date
+        ? `${heatmapDateFormatter.format(date)} · ${formatHeatmapCount(count)}`
+        : t.heatmapNoData;
+
+      return {
+        key: date?.toISOString() ?? `fallback-${index}`,
+        level,
+        count,
+        date,
+        tooltip,
+        isPadding: false,
+      };
+    }
+  );
+  const totalHeatmapSlots =
+    Math.ceil((leadingPadding + baseHeatmapCells.length) / HEATMAP_ROWS) *
+    HEATMAP_ROWS;
+  const trailingPadding = Math.max(
+    0,
+    totalHeatmapSlots - leadingPadding - baseHeatmapCells.length
+  );
+  const paddedHeatmapCells: HeatmapCellItem[] = [
+    ...Array.from({ length: leadingPadding }, (_, index) => ({
+      key: `pad-start-${index}`,
+      level: 0,
+      count: 0,
+      date: null,
+      tooltip: null,
+      isPadding: true,
+    })),
+    ...baseHeatmapCells,
+    ...Array.from({ length: trailingPadding }, (_, index) => ({
+      key: `pad-end-${index}`,
+      level: 0,
+      count: 0,
+      date: null,
+      tooltip: null,
+      isPadding: true,
+    })),
+  ];
+  const heatmapColumns = Array.from(
+    { length: paddedHeatmapCells.length / HEATMAP_ROWS },
+    (_, columnIndex) =>
+      paddedHeatmapCells.slice(
+        columnIndex * HEATMAP_ROWS,
+        (columnIndex + 1) * HEATMAP_ROWS
+      )
+  );
   const yearLabel =
     profileSnapshot?.syncedAt instanceof Date
       ? String(profileSnapshot.syncedAt.getUTCFullYear())
@@ -256,56 +346,18 @@ export default async function AboutPage({ params }: AboutPageProps) {
                   <Palette className="h-4 w-4" />
                 </span>
               </div>
-              <h1
-                className={
-                  isZh
-                    ? "font-display text-6xl font-semibold leading-[0.95] tracking-tight md:text-8xl"
-                    : "font-serif text-6xl font-bold leading-[0.9] tracking-tight md:text-8xl"
-                }
-              >
+              <h1 className={titleClass}>
                 {t.title}
                 <br />
-                <span
-                  className={
-                    isZh
-                      ? "text-ink-light pl-10 text-[0.82em] font-medium md:pl-16"
-                      : "text-ink-light pl-16 font-light italic"
-                  }
-                >
-                  {t.subtitle}
-                </span>
+                <span className={subtitleClass}>{t.subtitle}</span>
               </h1>
             </div>
 
             <div className="max-w-md text-right">
-              <p
-                className={
-                  isZh
-                    ? "text-ink-light mb-6 text-base font-normal leading-relaxed md:text-lg"
-                    : "text-ink-light mb-6 text-lg font-light leading-relaxed md:text-xl"
-                }
-              >
-                {t.intro}
-              </p>
+              <p className={introClass}>{t.intro}</p>
               <div className="flex justify-end gap-3">
-                <span
-                  className={
-                    isZh
-                      ? "rounded-full border border-black/5 bg-white px-4 py-2 font-display text-xs tracking-[0.12em] shadow-sm"
-                      : "rounded-full border border-black/5 bg-white px-4 py-2 font-mono text-xs uppercase tracking-widest shadow-sm"
-                  }
-                >
-                  {t.chipA}
-                </span>
-                <span
-                  className={
-                    isZh
-                      ? "rounded-full border border-black/5 bg-white px-4 py-2 font-display text-xs tracking-[0.12em] shadow-sm"
-                      : "rounded-full border border-black/5 bg-white px-4 py-2 font-mono text-xs uppercase tracking-widest shadow-sm"
-                  }
-                >
-                  {t.chipB}
-                </span>
+                <span className={chipClass}>{t.chipA}</span>
+                <span className={chipClass}>{t.chipB}</span>
               </div>
             </div>
           </header>
@@ -316,58 +368,79 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 className="invisible mb-2 flex items-center justify-between px-2"
                 aria-hidden="true"
               >
-                <h2
-                  className={
-                    isZh
-                      ? "text-ink-light text-xs font-semibold tracking-[0.18em]"
-                      : "text-ink-light font-mono text-xs font-bold uppercase tracking-[0.2em]"
-                  }
-                >
-                  {t.sectionLab}
-                </h2>
+                <h2 className={sectionLabelClass}>{t.sectionLab}</h2>
                 <span className="bg-ink/10 mx-4 h-px flex-1" />
                 <Terminal className="text-ink/40 h-[18px] w-[18px]" />
               </div>
 
-              <div className={cn(styles.card, "min-h-[200px] bg-white")}>
+              <div
+                className={cn(
+                  styles.card,
+                  styles.heatmapCard,
+                  "min-h-[200px] bg-white"
+                )}
+              >
                 <div className="mb-6 flex items-start justify-between">
-                  <h3 className="font-serif text-xl font-bold">
-                    {t.commitFrequency}
-                  </h3>
+                  <h3 className={cardTitleClass}>{t.commitFrequency}</h3>
                   <span className="bg-paper-grey text-ink-light rounded px-2 py-1 font-mono text-xs">
                     {yearLabel}
                   </span>
                 </div>
-                <div className="flex h-full flex-wrap content-center justify-center gap-1">
-                  <div className="grid w-full grid-cols-12 gap-1">
-                    {heatmapCells.map((cellColor, index) => (
+                <div className={styles.heatmapFrame}>
+                  <div
+                    className={styles.heatmapGrid}
+                    aria-label={t.commitFrequency}
+                  >
+                    {heatmapColumns.map((column, columnIndex) => (
                       <div
-                        key={`${cellColor}-${index}`}
-                        className={cn(
-                          styles.heatmapCell,
-                          "aspect-square",
-                          cellColor
+                        key={`heatmap-column-${columnIndex}`}
+                        className={styles.heatmapColumn}
+                      >
+                        {column.map((cell) =>
+                          cell.isPadding ? (
+                            <div
+                              key={cell.key}
+                              className={cn(
+                                styles.heatmapCellSlot,
+                                styles.heatmapCellPadding
+                              )}
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            <div
+                              key={cell.key}
+                              className={styles.heatmapCellSlot}
+                            >
+                              <div
+                                role="img"
+                                tabIndex={0}
+                                aria-label={
+                                  cell.tooltip ?? formatHeatmapCount(cell.count)
+                                }
+                                title={
+                                  cell.tooltip ?? formatHeatmapCount(cell.count)
+                                }
+                                className={cn(
+                                  styles.heatmapCell,
+                                  heatmapPalette[cell.level]
+                                )}
+                              >
+                                <span className={styles.heatmapTooltip}>
+                                  {cell.tooltip ??
+                                    formatHeatmapCount(cell.count)}
+                                </span>
+                              </div>
+                            </div>
+                          )
                         )}
-                      />
+                      </div>
                     ))}
                   </div>
-                </div>
-                <div
-                  className={
-                    isZh
-                      ? "text-ink-light mt-4 flex justify-between text-[10px]"
-                      : "text-ink-light mt-4 flex justify-between font-mono text-[10px] uppercase"
-                  }
-                >
-                  <span>{t.less}</span>
-                  <span>{t.more}</span>
                 </div>
               </div>
 
               <div className={cn(styles.card, "bg-white")}>
-                <h3 className="mb-4 font-serif text-xl font-bold">
-                  {t.techStack}
-                </h3>
+                <h3 className={cn("mb-4", cardTitleClass)}>{t.techStack}</h3>
                 <div className="flex flex-wrap gap-2">
                   {techPills.map((pill) => (
                     <div key={pill} className={styles.codePill}>
@@ -387,44 +460,14 @@ export default async function AboutPage({ params }: AboutPageProps) {
                   <div className="flex size-8 items-center justify-center rounded-full border border-white/20">
                     <ArrowUpRight className="h-4 w-4" />
                   </div>
-                  <span
-                    className={
-                      isZh
-                        ? "rounded-full border border-white/20 px-2 py-0.5 text-[10px]"
-                        : "rounded-full border border-white/20 px-2 py-0.5 font-mono text-[10px] uppercase"
-                    }
-                  >
-                    {t.latestPush}
-                  </span>
+                  <span className={latestPushBadgeClass}>{t.latestPush}</span>
                 </div>
                 <div className="mt-auto">
-                  <h4
-                    className={
-                      isZh
-                        ? "mb-1 text-xs text-white/60"
-                        : "mb-1 font-mono text-xs text-white/60"
-                    }
-                  >
+                  <h4 className="mb-1 text-xs text-white/60">
                     {t.latestPushLabel}
                   </h4>
-                  <h3
-                    className={
-                      isZh
-                        ? "font-display text-[1.65rem] font-semibold tracking-wide underline-offset-4 group-hover:underline"
-                        : "font-serif text-2xl font-bold underline-offset-4 group-hover:underline"
-                    }
-                  >
-                    {latestRepoName}
-                  </h3>
-                  <p
-                    className={
-                      isZh
-                        ? "mt-2 text-xs text-white/65"
-                        : "mt-2 font-mono text-xs text-white/65"
-                    }
-                  >
-                    {latestPushMeta}
-                  </p>
+                  <h3 className={latestPushRepoClass}>{latestRepoName}</h3>
+                  <p className={latestPushMetaClass}>{latestPushMeta}</p>
                 </div>
               </div>
             </div>
@@ -440,25 +483,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
               >
                 <Sparkles className="text-ink-light mb-8 h-10 w-10" />
                 <div className="mx-auto max-w-xs space-y-8 md:max-w-sm">
-                  <p
-                    className={
-                      isZh
-                        ? "text-ink font-display text-[2rem] font-semibold leading-[1.35] md:text-[2.15rem]"
-                        : "text-ink font-serif text-3xl font-bold leading-tight md:text-4xl"
-                    }
-                  >
-                    {t.quote}
-                  </p>
+                  <p className={quoteClass}>{t.quote}</p>
                   <div className="bg-ink mx-auto h-px w-12" />
-                  <p
-                    className={
-                      isZh
-                        ? "text-ink-light text-sm leading-relaxed tracking-[0.02em]"
-                        : "text-ink-light font-mono text-sm leading-relaxed"
-                    }
-                  >
-                    {t.quoteBody}
-                  </p>
+                  <p className={quoteBodyClass}>{t.quoteBody}</p>
                 </div>
                 <div className="mt-12">
                   <Image
@@ -480,21 +507,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
               >
                 <Brush className="text-ink/40 h-[18px] w-[18px]" />
                 <span className="bg-ink/10 mx-4 h-px flex-1" />
-                <h2
-                  className={
-                    isZh
-                      ? "text-ink-light text-xs font-semibold tracking-[0.18em]"
-                      : "text-ink-light font-mono text-xs font-bold uppercase tracking-[0.2em]"
-                  }
-                >
-                  {t.sectionAtelier}
-                </h2>
+                <h2 className={sectionLabelClass}>{t.sectionAtelier}</h2>
               </div>
 
               <div className={cn(styles.card, "bg-white")}>
                 <div className="mb-6 flex items-center justify-between">
-                  <h3 className="font-serif text-xl font-bold">{t.focusMix}</h3>
-                  <span className="text-ink-light font-mono text-[10px] uppercase tracking-[0.22em]">
+                  <h3 className={cardTitleClass}>{t.focusMix}</h3>
+                  <span className={cn("text-ink-light", monoMetaClass)}>
                     {githubUsername}
                   </span>
                 </div>
@@ -502,15 +521,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                   {focusRatios.map((ratio, index) => (
                     <div key={`${ratio.key}-${index}`} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span
-                          className={
-                            isZh
-                              ? "text-ink text-sm font-medium"
-                              : "text-ink font-mono text-xs uppercase tracking-[0.18em]"
-                          }
-                        >
-                          {ratio.label}
-                        </span>
+                        <span className={ratioLabelClass}>{ratio.label}</span>
                         <span className="text-ink-light font-mono text-xs">
                           {ratio.value}%
                         </span>
@@ -526,23 +537,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
                     </div>
                   ))}
                 </div>
-                <p
-                  className={
-                    isZh
-                      ? "text-ink-light mt-4 text-xs"
-                      : "text-ink-light mt-4 font-mono text-xs"
-                  }
-                >
-                  {t.focusMixHint}
-                </p>
+                <p className={cn("mt-4", subtleTextClass)}>{t.focusMixHint}</p>
               </div>
 
               <div className={cn(styles.card, "bg-[#111] text-white")}>
                 <div className="mb-6 flex items-start justify-between">
-                  <h3 className="font-serif text-xl font-bold">
-                    {t.githubPulse}
-                  </h3>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/45">
+                  <h3 className={cardTitleClass}>{t.githubPulse}</h3>
+                  <span className={cn(monoMetaClass, "text-white/45")}>
                     {githubUsername}
                   </span>
                 </div>
@@ -562,13 +563,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                   ))}
                 </div>
                 <div className="mt-6">
-                  <p
-                    className={
-                      isZh
-                        ? "mb-3 text-xs text-white/45"
-                        : "mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/45"
-                    }
-                  >
+                  <p className="mb-3 text-xs text-white/45">
                     {t.recentActivity}
                   </p>
                   <div className="space-y-3">
@@ -652,15 +647,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                           </span>
                         ))
                       ) : (
-                        <span
-                          className={
-                            isZh
-                              ? "text-ink-light text-xs"
-                              : "text-ink-light font-mono text-[10px] uppercase tracking-[0.15em]"
-                          }
-                        >
-                          {t.topArtists}
-                        </span>
+                        <span className={subtleTextClass}>{t.topArtists}</span>
                       )}
                     </div>
                   </div>
