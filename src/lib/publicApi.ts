@@ -15,6 +15,10 @@ import {
   publicPostTags,
   publicPostsTags,
 } from "@/lib/publicCache";
+import {
+  rewriteConfiguredPublicMediaUrl,
+  rewriteConfiguredPublicMediaUrlsInText,
+} from "@/lib/mediaPublicUrl";
 
 export type Locale = AppLocale;
 export type PublicPresence = {
@@ -336,8 +340,9 @@ function toPost(raw: unknown): Post {
     locale: obj.locale === "zh" ? "zh" : "en",
     title: asString(obj.title),
     excerpt: asNullableString(obj.excerpt),
-    content: asString(obj.content),
-    coverUrl: asNullableString(obj.coverUrl),
+    content: rewriteConfiguredPublicMediaUrlsInText(asString(obj.content)) ?? "",
+    coverUrl:
+      rewriteConfiguredPublicMediaUrl(asNullableString(obj.coverUrl)) ?? null,
     tags: asArray(obj.tags).map((tag) => asString(tag)).filter(Boolean),
     status: obj.status === "published" ? "published" : "draft",
     cardSpan: asCardSpan(obj.cardSpan),
@@ -357,10 +362,12 @@ function toMoment(raw: unknown): Moment {
 
     return {
       type: mediaType,
-      url: asString(item.url),
+      url: rewriteConfiguredPublicMediaUrl(asString(item.url)) ?? "",
       width: width === null ? undefined : width,
       height: height === null ? undefined : height,
-      thumbnailUrl: asNullableString(item.thumbnailUrl) ?? undefined,
+      thumbnailUrl:
+        rewriteConfiguredPublicMediaUrl(asNullableString(item.thumbnailUrl)) ??
+        undefined,
       capturedAt: item.capturedAt ? toDate(item.capturedAt) : undefined,
       camera: asNullableString(item.camera) ?? undefined,
       lens: asNullableString(item.lens) ?? undefined,
@@ -407,8 +414,9 @@ function toGalleryItem(raw: unknown): GalleryItem {
     id: asString(obj.id),
     translationKey: resolveTranslationKey(obj),
     locale: obj.locale === "zh" ? "zh" : "en",
-    fileUrl: asString(obj.fileUrl),
-    thumbUrl: asNullableString(obj.thumbUrl),
+    fileUrl: rewriteConfiguredPublicMediaUrl(asString(obj.fileUrl)) ?? "",
+    thumbUrl:
+      rewriteConfiguredPublicMediaUrl(asNullableString(obj.thumbUrl)) ?? null,
     title: asNullableString(obj.title),
     width,
     height,
@@ -421,7 +429,8 @@ function toGalleryItem(raw: unknown): GalleryItem {
     latitude: asNumberOrNull(obj.latitude),
     longitude: asNumberOrNull(obj.longitude),
     isLivePhoto: asBoolean(obj.isLivePhoto),
-    videoUrl: asNullableString(obj.videoUrl),
+    videoUrl:
+      rewriteConfiguredPublicMediaUrl(asNullableString(obj.videoUrl)) ?? null,
     status: asString(obj.status, "published"),
     publishedAt: obj.publishedAt ? toDate(obj.publishedAt) : null,
     createdAt: toDate(obj.createdAt),

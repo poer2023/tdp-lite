@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import type { GalleryItem, Moment } from "@/lib/content/types";
+import { rewriteConfiguredPublicMediaUrl } from "@/lib/mediaPublicUrl";
 import { isVideoUrl } from "../media";
 import { toLocalizedPath } from "../locale-routing";
 import type {
@@ -75,7 +76,7 @@ export function normalizeGalleryImageUrl(raw: string): string | null {
   const normalized = withoutHash.trim();
   if (!normalized) return null;
 
-  return normalized;
+  return rewriteConfiguredPublicMediaUrl(normalized) ?? normalized;
 }
 
 export function extractImageUrlsFromPostContent(content: string): string[] {

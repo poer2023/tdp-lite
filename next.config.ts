@@ -33,6 +33,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "assets.dybzy.com",
+      },
+      {
+        protocol: "https",
         hostname: "images.unsplash.com",
       },
       {
