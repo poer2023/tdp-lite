@@ -31,7 +31,7 @@ interface AboutPageProps {
 }
 
 const HEATMAP_ROWS = 7;
-const HEATMAP_DISPLAY_DAYS = 42;
+const HEATMAP_DISPLAY_DAYS = 35;
 
 function clampHeatmapLevel(value: unknown): number {
   const numeric = typeof value === "number" ? Math.trunc(value) : 0;
@@ -377,7 +377,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 className={cn(
                   styles.card,
                   styles.heatmapCard,
-                  "min-h-[200px] bg-white"
+                  "min-h-[240px] bg-white"
                 )}
               >
                 <div className="mb-6 flex items-start justify-between">

@@ -162,32 +162,212 @@ async function fetchJSON(url, { headers = {}, timeoutMs = 20000 } = {}) {
   return body;
 }
 
-async function fetchGithubSnapshot(config) {
-  if (config.githubSyncTarget === "publisher") {
-    return fetchGithubSnapshotFromPublisher(config);
+async function fetchText(url, { headers = {}, timeoutMs = 20000 } = {}) {
+  const response = await fetch(url, {
+    headers,
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(
+      `request failed ${response.status}: ${url}; body=${text.slice(0, 240)}`
+    );
+  }
+  return text;
+}
+
+async function fetchContributionWindowFromGraphql(
+  username,
+  startDay,
+  endDay,
+  config
+) {
+  if (!String(config.githubToken || "").trim()) {
+    return null;
   }
 
-  const username = config.githubUsername?.trim();
-  if (!username) {
-    return {
-      ok: false,
-      skipped: true,
-      error: "GITHUB_SYNC_USERNAME is empty",
-      payload: null,
-    };
-  }
-
-  const now = new Date();
-  const windowDays = config.githubWindowDays;
-  const endDay = makeUtcDayStart(now);
-  const startDay = new Date(
-    endDay.getTime() - (windowDays - 1) * 24 * 3600 * 1000
+  const response = await fetch(
+    `${config.githubApiBase.replace(/\/$/, "")}/graphql`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.githubToken}`,
+        "User-Agent": "tdp-lite-profile-sync",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+      body: JSON.stringify({
+        query: `
+          query ContributionWindow($login: String!, $from: DateTime!, $to: DateTime!) {
+            user(login: $login) {
+              contributionsCollection(from: $from, to: $to) {
+                contributionCalendar {
+                  weeks {
+                    contributionDays {
+                      date
+                      contributionCount
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `,
+        variables: {
+          login: username,
+          from: startDay.toISOString(),
+          to: new Date(endDay.getTime() + 24 * 3600 * 1000 - 1).toISOString(),
+        },
+      }),
+      signal: AbortSignal.timeout(config.timeoutMs),
+    }
   );
-  const startTs = startDay.getTime();
-  const countsByDay = new Map();
+
+  const text = await response.text();
+  const body = text ? JSON.parse(text) : {};
+  if (!response.ok) {
+    throw new Error(
+      `request failed ${response.status}: github graphql; body=${text.slice(0, 240)}`
+    );
+  }
+
+  if (Array.isArray(body.errors) && body.errors.length > 0) {
+    const message = body.errors
+      .map((error) => String(error?.message || "unknown graphql error"))
+      .join("; ");
+    throw new Error(`github graphql error: ${message}`);
+  }
+
+  const weeks =
+    body?.data?.user?.contributionsCollection?.contributionCalendar?.weeks;
+  if (!Array.isArray(weeks)) {
+    return null;
+  }
+
+  const countsByDate = new Map();
+  for (const week of weeks) {
+    const days = Array.isArray(week?.contributionDays)
+      ? week.contributionDays
+      : [];
+    for (const day of days) {
+      const date = typeof day?.date === "string" ? day.date : "";
+      const count =
+        typeof day?.contributionCount === "number" ? day.contributionCount : 0;
+      if (!date) continue;
+      countsByDate.set(date, Math.max(0, count));
+    }
+  }
+
+  const counts = [];
+  for (let index = 0; index < config.githubWindowDays; index += 1) {
+    const day = new Date(startDay.getTime() + index * 24 * 3600 * 1000);
+    counts.push(countsByDate.get(dayKeyUTC(day)) || 0);
+  }
+
+  return {
+    counts,
+    levels: normalizeHeatmapLevels(counts),
+  };
+}
+
+function parseContributionCount(label) {
+  const normalized = String(label || "").trim();
+  if (!normalized || /^No contributions\b/i.test(normalized)) {
+    return 0;
+  }
+
+  const match = normalized.match(/^(\d+)\s+contribution/i);
+  return match ? Number.parseInt(match[1] || "0", 10) || 0 : 0;
+}
+
+function parseContributionLevel(value) {
+  const parsed = Number.parseInt(String(value || "0"), 10);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  if (parsed > 4) return 4;
+  return parsed;
+}
+
+function parseContributionCalendar(html) {
+  const days = [];
+  const cellPattern =
+    /(<td\b[^>]*\bclass="ContributionCalendar-day"[^>]*><\/td>)\s*<tool-tip\b[^>]*>([^<]+)<\/tool-tip>/g;
+
+  for (const match of html.matchAll(cellPattern)) {
+    const cellMarkup = match[1] || "";
+    const tooltip = match[2] || "";
+    const dateMatch = cellMarkup.match(/\bdata-date="([^"]+)"/);
+    const levelMatch = cellMarkup.match(/\bdata-level="([^"]+)"/);
+    const date = dateMatch?.[1]?.trim();
+
+    if (!date) continue;
+
+    days.push({
+      date,
+      count: parseContributionCount(tooltip),
+      level: parseContributionLevel(levelMatch?.[1] || "0"),
+    });
+  }
+
+  return days;
+}
+
+async function fetchContributionDaysForYear(username, year, config) {
+  const base = (config.githubHtmlBase || "https://github.com")
+    .trim()
+    .replace(/\/$/, "");
+  const html = await fetchText(
+    `${base}/users/${encodeURIComponent(username)}/contributions?from=${year}-01-01&to=${year}-12-31`,
+    {
+      timeoutMs: config.timeoutMs,
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": "tdp-lite-profile-sync",
+      },
+    }
+  );
+
+  return parseContributionCalendar(html);
+}
+
+async function fetchContributionWindow(username, startDay, endDay, config) {
+  const graphqlWindow = await fetchContributionWindowFromGraphql(
+    username,
+    startDay,
+    endDay,
+    config
+  ).catch(() => null);
+  if (graphqlWindow) {
+    return graphqlWindow;
+  }
+
+  const dates = new Map();
+  for (
+    let year = startDay.getUTCFullYear();
+    year <= endDay.getUTCFullYear();
+    year += 1
+  ) {
+    const days = await fetchContributionDaysForYear(username, year, config);
+    for (const day of days) {
+      dates.set(day.date, day);
+    }
+  }
+
+  const counts = [];
+  const levels = [];
+  for (let index = 0; index < config.githubWindowDays; index += 1) {
+    const day = new Date(startDay.getTime() + index * 24 * 3600 * 1000);
+    const entry = dates.get(dayKeyUTC(day));
+    counts.push(entry?.count ?? 0);
+    levels.push(entry?.level ?? 0);
+  }
+
+  return { counts, levels };
+}
+
+async function fetchRecentPushSummary(config, username, startTs) {
   const recentPushes = [];
   let totalPushEvents = 0;
-  let totalCommits = 0;
 
   for (let page = 1; page <= config.githubMaxPages; page += 1) {
     const url = `${config.githubApiBase.replace(/\/$/, "")}/users/${encodeURIComponent(username)}/events/public?per_page=100&page=${page}`;
@@ -219,11 +399,8 @@ async function fetchGithubSnapshot(config) {
         ? event.payload.commits.length
         : 0;
       const commitCount = Math.max(payloadCommits, 1);
-      const day = dayKeyUTC(createdAt);
 
-      countsByDay.set(day, (countsByDay.get(day) || 0) + commitCount);
       totalPushEvents += 1;
-      totalCommits += commitCount;
 
       if (recentPushes.length < 8) {
         recentPushes.push({
@@ -239,13 +416,102 @@ async function fetchGithubSnapshot(config) {
     }
   }
 
-  const counts = [];
-  for (let i = 0; i < windowDays; i += 1) {
-    const day = new Date(startDay.getTime() + i * 24 * 3600 * 1000);
-    counts.push(countsByDay.get(dayKeyUTC(day)) || 0);
+  return { recentPushes, totalPushEvents };
+}
+
+async function fetchGithubSnapshot(config) {
+  if (config.githubSyncTarget === "publisher") {
+    return fetchGithubSnapshotFromPublisher(config);
   }
 
-  const levels = normalizeHeatmapLevels(counts);
+  const username = config.githubUsername?.trim();
+  if (!username) {
+    return {
+      ok: false,
+      skipped: true,
+      error: "GITHUB_SYNC_USERNAME is empty",
+      payload: null,
+    };
+  }
+
+  const now = new Date();
+  const windowDays = config.githubWindowDays;
+  const endDay = makeUtcDayStart(now);
+  const startDay = new Date(
+    endDay.getTime() - (windowDays - 1) * 24 * 3600 * 1000
+  );
+  const startTs = startDay.getTime();
+  const countsByDay = new Map();
+  let counts = [];
+  let levels = [];
+  try {
+    const contributionWindow = await fetchContributionWindow(
+      username,
+      startDay,
+      endDay,
+      config
+    );
+    counts = contributionWindow.counts;
+    levels = contributionWindow.levels;
+  } catch {
+    for (let page = 1; page <= config.githubMaxPages; page += 1) {
+      const url = `${config.githubApiBase.replace(/\/$/, "")}/users/${encodeURIComponent(username)}/events/public?per_page=100&page=${page}`;
+      const headers = {
+        "User-Agent": "tdp-lite-profile-sync",
+        ...(config.githubToken
+          ? { Authorization: `Bearer ${config.githubToken}` }
+          : {}),
+        ...(config.githubToken ? { "X-GitHub-Api-Version": "2022-11-28" } : {}),
+      };
+      const list = await fetchJSON(url, {
+        headers,
+        timeoutMs: config.timeoutMs,
+      });
+      if (!Array.isArray(list) || list.length === 0) {
+        break;
+      }
+
+      let reachedBeforeWindow = false;
+      for (const event of list) {
+        if (!event || typeof event !== "object") continue;
+        if (event.type !== "PushEvent") continue;
+
+        const createdAt = new Date(String(event.created_at || ""));
+        if (!Number.isFinite(createdAt.getTime())) continue;
+        if (createdAt.getTime() < startTs) {
+          reachedBeforeWindow = true;
+          continue;
+        }
+
+        const payloadCommits = Array.isArray(event.payload?.commits)
+          ? event.payload.commits.length
+          : 0;
+        const commitCount = Math.max(payloadCommits, 1);
+        const day = dayKeyUTC(createdAt);
+
+        countsByDay.set(day, (countsByDay.get(day) || 0) + commitCount);
+      }
+
+      if (reachedBeforeWindow) {
+        break;
+      }
+    }
+
+    counts = [];
+    for (let i = 0; i < windowDays; i += 1) {
+      const day = new Date(startDay.getTime() + i * 24 * 3600 * 1000);
+      counts.push(countsByDay.get(dayKeyUTC(day)) || 0);
+    }
+
+    levels = normalizeHeatmapLevels(counts);
+  }
+
+  const { recentPushes, totalPushEvents } = await fetchRecentPushSummary(
+    config,
+    username,
+    startTs
+  );
+  const totalCommits = counts.reduce((sum, count) => sum + count, 0);
   return {
     ok: true,
     skipped: false,
@@ -515,11 +781,12 @@ function buildConfig(args) {
       process.env.TDP_INTERNAL_KEY_SECRET ||
       "",
     githubApiBase: process.env.GITHUB_SYNC_API_BASE || "https://api.github.com",
+    githubHtmlBase: process.env.GITHUB_SYNC_HTML_BASE || "https://github.com",
     githubUsername: process.env.GITHUB_SYNC_USERNAME || "",
     githubToken: process.env.GITHUB_SYNC_TOKEN || "",
     githubWindowDays: Math.max(
       7,
-      asInt(process.env.GITHUB_SYNC_WINDOW_DAYS, 36)
+      Math.min(35, asInt(process.env.GITHUB_SYNC_WINDOW_DAYS, 35))
     ),
     githubMaxPages: Math.max(1, asInt(process.env.GITHUB_SYNC_MAX_PAGES, 4)),
     appleMusicApiBase:
