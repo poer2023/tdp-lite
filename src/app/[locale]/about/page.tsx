@@ -147,11 +147,11 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
   const profileSnapshot = await getPublicProfileSnapshot();
   const heatmapPalette = [
-    "bg-paper-grey",
-    "bg-ink/20",
-    "bg-ink/40",
-    "bg-ink/70",
-    "bg-ink",
+    styles.heatmapLevel0,
+    styles.heatmapLevel1,
+    styles.heatmapLevel2,
+    styles.heatmapLevel3,
+    styles.heatmapLevel4,
   ];
   const titleClass =
     "font-display text-6xl font-semibold leading-[0.95] tracking-tight md:text-8xl";
@@ -377,7 +377,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                 className={cn(
                   styles.card,
                   styles.heatmapCard,
-                  "min-h-[240px] bg-white"
+                  "min-h-[300px] bg-white md:min-h-[320px]"
                 )}
               >
                 <div className="mb-6 flex items-start justify-between">
