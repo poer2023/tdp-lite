@@ -44,11 +44,7 @@ function sha256Hex(input) {
 
 function canonicalQuery(rawQuery) {
   if (!rawQuery) return "";
-  return rawQuery
-    .split("&")
-    .filter(Boolean)
-    .sort()
-    .join("&");
+  return rawQuery.split("&").filter(Boolean).sort().join("&");
 }
 
 function buildSignature({
@@ -80,7 +76,9 @@ function dayKeyUTC(date) {
 }
 
 function makeUtcDayStart(date) {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+  );
 }
 
 function normalizeHeatmapLevels(counts) {
@@ -100,7 +98,9 @@ function normalizeHeatmapLevels(counts) {
 
 function normalizeArtworkUrl(template, width = 240, height = 240) {
   if (!template || typeof template !== "string") return null;
-  return template.replaceAll("{w}", String(width)).replaceAll("{h}", String(height));
+  return template
+    .replaceAll("{w}", String(width))
+    .replaceAll("{h}", String(height));
 }
 
 function buildRatios({ github, music }) {
@@ -109,11 +109,17 @@ function buildRatios({ github, music }) {
     const duration = Number.isFinite(track.durationMs) ? track.durationMs : 0;
     return sum + Math.max(duration, 0);
   }, 0);
-  const uniqueArtists = new Set((music?.recentTracks || []).map((track) => track.artist)).size;
+  const uniqueArtists = new Set(
+    (music?.recentTracks || []).map((track) => track.artist)
+  ).size;
 
   const rawValues = [
     { key: "code", label: "Code", value: Math.max(githubCommits, 1) },
-    { key: "listen", label: "Listen", value: Math.max(Math.round(musicDurationMs / 60000), 1) },
+    {
+      key: "listen",
+      label: "Listen",
+      value: Math.max(Math.round(musicDurationMs / 60000), 1),
+    },
     { key: "explore", label: "Explore", value: Math.max(uniqueArtists, 1) },
   ];
   const total = rawValues.reduce((sum, item) => sum + item.value, 0);
@@ -149,12 +155,18 @@ async function fetchJSON(url, { headers = {}, timeoutMs = 20000 } = {}) {
   const text = await response.text();
   const body = text ? JSON.parse(text) : {};
   if (!response.ok) {
-    throw new Error(`request failed ${response.status}: ${url}; body=${text.slice(0, 240)}`);
+    throw new Error(
+      `request failed ${response.status}: ${url}; body=${text.slice(0, 240)}`
+    );
   }
   return body;
 }
 
 async function fetchGithubSnapshot(config) {
+  if (config.githubSyncTarget === "publisher") {
+    return fetchGithubSnapshotFromPublisher(config);
+  }
+
   const username = config.githubUsername?.trim();
   if (!username) {
     return {
@@ -168,7 +180,9 @@ async function fetchGithubSnapshot(config) {
   const now = new Date();
   const windowDays = config.githubWindowDays;
   const endDay = makeUtcDayStart(now);
-  const startDay = new Date(endDay.getTime() - (windowDays - 1) * 24 * 3600 * 1000);
+  const startDay = new Date(
+    endDay.getTime() - (windowDays - 1) * 24 * 3600 * 1000
+  );
   const startTs = startDay.getTime();
   const countsByDay = new Map();
   const recentPushes = [];
@@ -179,7 +193,9 @@ async function fetchGithubSnapshot(config) {
     const url = `${config.githubApiBase.replace(/\/$/, "")}/users/${encodeURIComponent(username)}/events/public?per_page=100&page=${page}`;
     const headers = {
       "User-Agent": "tdp-lite-profile-sync",
-      ...(config.githubToken ? { Authorization: `Bearer ${config.githubToken}` } : {}),
+      ...(config.githubToken
+        ? { Authorization: `Bearer ${config.githubToken}` }
+        : {}),
       ...(config.githubToken ? { "X-GitHub-Api-Version": "2022-11-28" } : {}),
     };
     const list = await fetchJSON(url, { headers, timeoutMs: config.timeoutMs });
@@ -252,6 +268,48 @@ async function fetchGithubSnapshot(config) {
   };
 }
 
+async function fetchGithubSnapshotFromPublisher(config) {
+  const baseUrl = config.githubPublisherBaseUrl?.trim().replace(/\/$/, "");
+  if (!baseUrl) {
+    throw new Error(
+      "GITHUB_SYNC_TARGET=publisher but GITHUB_SYNC_PUBLISHER_BASE_URL/PUBLISHER_BASE_URL is empty."
+    );
+  }
+
+  const response = await fetch(`${baseUrl}/api/internal/profile-sync/github`, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      ...(config.publisherCronSecret
+        ? { Authorization: `Bearer ${config.publisherCronSecret}` }
+        : {}),
+    },
+    signal: AbortSignal.timeout(config.timeoutMs),
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(
+      `publisher github sync failed (${response.status}): ${text.slice(0, 320)}`
+    );
+  }
+
+  const body = text ? JSON.parse(text) : {};
+  if (typeof body !== "object" || body === null) {
+    throw new Error("publisher github sync returned an invalid payload.");
+  }
+
+  return {
+    ok: Boolean(body.ok),
+    skipped: Boolean(body.skipped),
+    error: typeof body.error === "string" ? body.error : null,
+    payload:
+      typeof body.payload === "object" && body.payload !== null
+        ? body.payload
+        : null,
+  };
+}
+
 async function fetchAppleMusicSnapshot(config) {
   const developerToken = config.appleMusicDeveloperToken?.trim();
   const userToken = config.appleMusicUserToken?.trim();
@@ -284,7 +342,9 @@ async function fetchAppleMusicSnapshot(config) {
         artist: typeof attrs.artistName === "string" ? attrs.artistName : "",
         album: typeof attrs.albumName === "string" ? attrs.albumName : null,
         durationMs:
-          typeof attrs.durationInMillis === "number" ? attrs.durationInMillis : null,
+          typeof attrs.durationInMillis === "number"
+            ? attrs.durationInMillis
+            : null,
         url: typeof attrs.url === "string" ? attrs.url : null,
         artworkUrl: normalizeArtworkUrl(attrs.artwork?.url),
       };
@@ -347,7 +407,9 @@ async function postSnapshot(config, body) {
 
   const text = await response.text();
   if (!response.ok) {
-    throw new Error(`snapshot upsert failed (${response.status}): ${text.slice(0, 320)}`);
+    throw new Error(
+      `snapshot upsert failed (${response.status}): ${text.slice(0, 320)}`
+    );
   }
   return text ? JSON.parse(text) : {};
 }
@@ -425,7 +487,10 @@ function buildConfig(args) {
   return {
     loop: asBoolean(args.loop, false),
     intervalHours: Math.max(1, intervalHours),
-    timeoutMs: Math.max(2000, asInt(process.env.PROFILE_SYNC_TIMEOUT_MS, 20000)),
+    timeoutMs: Math.max(
+      2000,
+      asInt(process.env.PROFILE_SYNC_TIMEOUT_MS, 20000)
+    ),
     writeLocalSnapshot: asBoolean(process.env.PROFILE_SYNC_WRITE_LOCAL, true),
     localSnapshotFile: path.resolve(
       process.env.PROFILE_SYNC_OUTPUT_FILE || "data/profile-snapshot.json"
@@ -437,16 +502,35 @@ function buildConfig(args) {
     ).replace(/\/$/, ""),
     internalKeyID: process.env.TDP_INTERNAL_KEY_ID || "",
     internalKeySecret: process.env.TDP_INTERNAL_KEY_SECRET || "",
+    githubSyncTarget:
+      process.env.GITHUB_SYNC_TARGET?.trim().toLowerCase() === "publisher"
+        ? "publisher"
+        : "local",
+    githubPublisherBaseUrl:
+      process.env.GITHUB_SYNC_PUBLISHER_BASE_URL ||
+      process.env.PUBLISHER_BASE_URL ||
+      "",
+    publisherCronSecret:
+      process.env.PUBLISHER_CRON_SECRET ||
+      process.env.TDP_INTERNAL_KEY_SECRET ||
+      "",
     githubApiBase: process.env.GITHUB_SYNC_API_BASE || "https://api.github.com",
     githubUsername: process.env.GITHUB_SYNC_USERNAME || "",
     githubToken: process.env.GITHUB_SYNC_TOKEN || "",
-    githubWindowDays: Math.max(7, asInt(process.env.GITHUB_SYNC_WINDOW_DAYS, 36)),
+    githubWindowDays: Math.max(
+      7,
+      asInt(process.env.GITHUB_SYNC_WINDOW_DAYS, 36)
+    ),
     githubMaxPages: Math.max(1, asInt(process.env.GITHUB_SYNC_MAX_PAGES, 4)),
-    appleMusicApiBase: process.env.APPLE_MUSIC_API_BASE || "https://api.music.apple.com/v1",
+    appleMusicApiBase:
+      process.env.APPLE_MUSIC_API_BASE || "https://api.music.apple.com/v1",
     appleMusicDeveloperToken: process.env.APPLE_MUSIC_DEVELOPER_TOKEN || "",
     appleMusicUserToken: process.env.APPLE_MUSIC_USER_TOKEN || "",
     appleMusicStorefront: process.env.APPLE_MUSIC_STOREFRONT || "us",
-    appleMusicLimit: Math.min(100, Math.max(1, asInt(process.env.APPLE_MUSIC_SYNC_LIMIT, 25))),
+    appleMusicLimit: Math.min(
+      100,
+      Math.max(1, asInt(process.env.APPLE_MUSIC_SYNC_LIMIT, 25))
+    ),
   };
 }
 

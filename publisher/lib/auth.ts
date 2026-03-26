@@ -131,7 +131,10 @@ export function publisherAuthConfigured() {
   return getPublisherAuthConfig() !== null;
 }
 
-export function validatePublisherCredentials(username: string, password: string) {
+export function validatePublisherCredentials(
+  username: string,
+  password: string
+) {
   const config = getPublisherAuthConfig();
   if (!config) {
     return false;
@@ -150,10 +153,7 @@ export async function getPublisherSession() {
   }
 
   const cookieStore = await cookies();
-  return parseSessionToken(
-    config,
-    cookieStore.get(SESSION_COOKIE_NAME)?.value
-  );
+  return parseSessionToken(config, cookieStore.get(SESSION_COOKIE_NAME)?.value);
 }
 
 export async function requirePublisherPageAuth(nextPath = "/") {
@@ -170,6 +170,38 @@ export async function requirePublisherApiAuth() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return null;
+}
+
+function extractCronToken(request: Request) {
+  const authHeader = request.headers.get("authorization") || "";
+  const [scheme, token] = authHeader.split(" ");
+  if (/^Bearer$/i.test(scheme) && token?.trim()) {
+    return token.trim();
+  }
+
+  return request.headers.get("x-publisher-cron-secret")?.trim() || "";
+}
+
+export function validatePublisherCronSecret(request: Request) {
+  const expected =
+    process.env.PUBLISHER_CRON_SECRET ||
+    process.env.TDP_INTERNAL_KEY_SECRET ||
+    process.env.PUBLISHER_KEY_SECRET ||
+    "";
+  const actual = extractCronToken(request);
+  if (!expected || !actual) {
+    return false;
+  }
+
+  return secureEquals(expected, actual, expected);
+}
+
+export async function requirePublisherApiOrCronAuth(request: Request) {
+  if (validatePublisherCronSecret(request)) {
+    return null;
+  }
+
+  return requirePublisherApiAuth();
 }
 
 export function redirectToPublisherLogin(request: Request, reason?: string) {
@@ -220,6 +252,8 @@ export function buildPublisherLogoutResponse(request: Request) {
   return response;
 }
 
-export function normalizePublisherNextPath(nextPath: string | null | undefined) {
+export function normalizePublisherNextPath(
+  nextPath: string | null | undefined
+) {
   return sanitizeNextPath(nextPath);
 }

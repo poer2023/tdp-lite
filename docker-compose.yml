@@ -68,7 +68,11 @@ services:
     ports:
       - "${TDP_API_BIND_HOST:-127.0.0.1}:${TDP_API_PORT:-8080}:8080"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:8080/healthz || exit 1",
+        ]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -122,7 +126,8 @@ services:
     ports:
       - "${TDP_WEB_BIND_HOST:-0.0.0.0}:${TDP_WEB_PORT:-3000}:3000"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      test:
+        ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 10
@@ -149,10 +154,13 @@ services:
       SEARCH_SYNC_INTERVAL_HOURS: ${SEARCH_SYNC_INTERVAL_HOURS:-1}
       SEARCH_SYNC_WRITE_LOCAL: ${SEARCH_SYNC_WRITE_LOCAL:-false}
       PROFILE_SYNC_TIMEOUT_MS: ${PROFILE_SYNC_TIMEOUT_MS:-20000}
+      GITHUB_SYNC_TARGET: ${GITHUB_SYNC_TARGET:-local}
+      GITHUB_SYNC_PUBLISHER_BASE_URL: ${GITHUB_SYNC_PUBLISHER_BASE_URL:-}
       GITHUB_SYNC_USERNAME: ${GITHUB_SYNC_USERNAME:-}
       GITHUB_SYNC_TOKEN: ${GITHUB_SYNC_TOKEN:-}
       GITHUB_SYNC_WINDOW_DAYS: ${GITHUB_SYNC_WINDOW_DAYS:-36}
       GITHUB_SYNC_MAX_PAGES: ${GITHUB_SYNC_MAX_PAGES:-4}
+      PUBLISHER_CRON_SECRET: ${PUBLISHER_CRON_SECRET:-}
       APPLE_MUSIC_API_BASE: ${APPLE_MUSIC_API_BASE:-https://api.music.apple.com/v1}
       APPLE_MUSIC_DEVELOPER_TOKEN: ${APPLE_MUSIC_DEVELOPER_TOKEN:-}
       APPLE_MUSIC_USER_TOKEN: ${APPLE_MUSIC_USER_TOKEN:-}
@@ -195,10 +203,18 @@ services:
       PUBLISH_TARGET_BASE_URL: http://lite-api:8080
       TDP_INTERNAL_KEY_ID: ${TDP_INTERNAL_KEY_ID:?TDP_INTERNAL_KEY_ID is required}
       TDP_INTERNAL_KEY_SECRET: ${TDP_INTERNAL_KEY_SECRET:?TDP_INTERNAL_KEY_SECRET is required}
+      PUBLISHER_CRON_SECRET: ${PUBLISHER_CRON_SECRET:-}
+      PROFILE_SYNC_TIMEOUT_MS: ${PROFILE_SYNC_TIMEOUT_MS:-20000}
+      GITHUB_SYNC_API_BASE: ${GITHUB_SYNC_API_BASE:-https://api.github.com}
+      GITHUB_SYNC_USERNAME: ${GITHUB_SYNC_USERNAME:-}
+      GITHUB_SYNC_TOKEN: ${GITHUB_SYNC_TOKEN:-}
+      GITHUB_SYNC_WINDOW_DAYS: ${GITHUB_SYNC_WINDOW_DAYS:-36}
+      GITHUB_SYNC_MAX_PAGES: ${GITHUB_SYNC_MAX_PAGES:-4}
     ports:
       - "${PUBLISHER_BIND_HOST:-127.0.0.1}:${PUBLISHER_PORT:-3100}:3100"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3100/ || exit 1"]
+      test:
+        ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3100/ || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 10

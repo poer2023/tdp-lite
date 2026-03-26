@@ -141,7 +141,6 @@
 - `src/lib/content/read.ts` is API-backed and degrades to empty results on backend errors.
 - Default search source is Go (`TDP_SEARCH_PRIMARY=go`); keep `TDP_SEARCH_ALLOW_FALLBACK_TO_NEXT=false` to avoid DB fallback in frontend-only mode.
 
-
 ## Lightweight Frontend Build
 
 - `pnpm build` can run without `DATABASE_URL` for frontend-only packaging.
@@ -194,6 +193,12 @@ Optional env:
   - disable writing `data/profile-snapshot.json`
 - `PROFILE_SYNC_OUTPUT_FILE=/custom/path/profile-snapshot.json`
   - override the local profile snapshot output path
+- `GITHUB_SYNC_TARGET=publisher`
+  - delegate GitHub fetch + normalization to `tdp-publisher`, while the sync runner only collects the payload and writes the merged snapshot to Go API
+- `GITHUB_SYNC_PUBLISHER_BASE_URL=http://publisher:3100`
+  - publisher base URL used by the sync runner when `GITHUB_SYNC_TARGET=publisher`
+- `PUBLISHER_CRON_SECRET=...`
+  - optional shared secret for the publisher internal sync endpoint (`Authorization: Bearer ...`); when omitted, the sync runner reuses `TDP_INTERNAL_KEY_SECRET`
 
 Required env:
 
@@ -201,6 +206,7 @@ Required env:
 - GitHub:
   - `GITHUB_SYNC_USERNAME` (required for GitHub sync)
   - `GITHUB_SYNC_TOKEN` (optional, recommended to avoid low rate limits)
+  - when `GITHUB_SYNC_TARGET=publisher`, the same GitHub env vars must also be present on the publisher app
 - Apple Music:
   - `APPLE_MUSIC_DEVELOPER_TOKEN`
   - `APPLE_MUSIC_USER_TOKEN`
@@ -208,6 +214,16 @@ Required env:
 - Search sync:
   - `SEARCH_SYNC_INTERVAL_HOURS` (default `1` in compose sync profile)
   - `SEARCH_SYNC_WRITE_LOCAL` (`true` for local dev, `false` for isolated sync container)
+
+Publisher-proxied GitHub sync:
+
+- `publisher` exposes `POST /api/internal/profile-sync/github`
+- auth: publisher session cookie or `Authorization: Bearer $PUBLISHER_CRON_SECRET` (fallback: `TDP_INTERNAL_KEY_SECRET`)
+- intended flow:
+  1. sync runner calls publisher route daily
+  2. publisher fetches real GitHub events and returns normalized heatmap / recent pushes
+  3. sync runner merges that payload with other profile snapshot fields and writes `/v1/internal/profile-snapshot`
+- result: main site only renders snapshot data and never talks to GitHub directly
 
 ## CI/CD
 
