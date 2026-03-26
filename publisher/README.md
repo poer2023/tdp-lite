@@ -14,6 +14,7 @@ cp .env.example .env.local
 
 - `PUBLISH_TARGET_BASE_URL` must point to your Go API host (for example `tdp-lite-api`), not the Next.js frontend host.
 - `TDP_INTERNAL_KEY_ID` + `TDP_INTERNAL_KEY_SECRET` must match a Go API key in `tdp-lite` (legacy `PUBLISHER_KEY_*` env is still supported as fallback aliases).
+- `PUBLISHER_AUTH_USERNAME` + `PUBLISHER_AUTH_PASSWORD` + `PUBLISHER_SESSION_SECRET` are required to unlock the publisher UI and API routes.
 
 3. Run:
 

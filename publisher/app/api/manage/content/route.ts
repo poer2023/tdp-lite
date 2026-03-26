@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePublisherApiAuth } from "@/lib/auth";
 import { z } from "zod";
 import {
   manageContentKindSchema,
@@ -20,6 +21,11 @@ const querySchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const authError = await requirePublisherApiAuth();
+  if (authError) {
+    return authError;
+  }
+
   try {
     const url = new URL(request.url);
     const parsed = querySchema.safeParse({

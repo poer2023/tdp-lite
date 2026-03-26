@@ -90,6 +90,11 @@ textarea {
   gap: 10px;
 }
 
+.inline-form {
+  display: inline-flex;
+  margin: 0;
+}
+
 .publisher-main {
   margin-top: 16px;
   display: grid;
@@ -355,6 +360,59 @@ select:focus {
 
 .ghost:hover {
   border-color: var(--line-strong);
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: min(100%, 420px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--panel) 82%, white);
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.auth-card h1 {
+  margin: 8px 0 0;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.auth-subtitle {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.auth-form {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-error {
+  margin-top: 16px;
+  border: 1px solid rgba(157, 44, 44, 0.2);
+  background: rgba(157, 44, 44, 0.08);
+  color: var(--danger);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-error code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
 }
 
 .primary {

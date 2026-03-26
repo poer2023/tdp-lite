@@ -518,6 +518,11 @@ export function ContentManager() {
           <a href="/" className="ghost">
             返回发布台
           </a>
+          <form action="/api/auth/logout" method="post" className="inline-form">
+            <button type="submit" className="ghost">
+              退出登录
+            </button>
+          </form>
           <button
             type="button"
             className="ghost"

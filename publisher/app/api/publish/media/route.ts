@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
+import { requirePublisherApiAuth } from "@/lib/auth";
 import { SiteClientError, uploadMediaToSite } from "@/lib/siteClient";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const authError = await requirePublisherApiAuth();
+  if (authError) {
+    return authError;
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file");

@@ -429,6 +429,11 @@ export function PublisherStudio() {
           <a href="/manage" className="ghost">
             内容管理
           </a>
+          <form action="/api/auth/logout" method="post" className="inline-form">
+            <button type="submit" className="ghost">
+              退出登录
+            </button>
+          </form>
           <button
             type="button"
             className="ghost"

@@ -1,7 +1,9 @@
 import { ContentManager } from "@/components/ContentManager";
+import { requirePublisherPageAuth } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default function ManagePage() {
+export default async function ManagePage() {
+  await requirePublisherPageAuth("/manage");
   return <ContentManager />;
 }

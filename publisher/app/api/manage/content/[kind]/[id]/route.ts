@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { requirePublisherApiAuth } from "@/lib/auth";
 import { z } from "zod";
 import {
   manageCardSpanUpdateSchema,
@@ -24,6 +25,11 @@ const paramsSchema = z.object({
 });
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
+  const authError = await requirePublisherApiAuth();
+  if (authError) {
+    return authError;
+  }
+
   try {
     const parsed = paramsSchema.safeParse(await params);
     if (!parsed.success) {
@@ -53,6 +59,11 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
 }
 
 export async function PATCH(request: Request, { params }: RouteContext) {
+  const authError = await requirePublisherApiAuth();
+  if (authError) {
+    return authError;
+  }
+
   try {
     const parsedParams = paramsSchema.safeParse(await params);
     if (!parsedParams.success) {
