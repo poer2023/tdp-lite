@@ -14,6 +14,8 @@ import { type AppLocale } from "@/lib/locale";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import styles from "./about.module.css";
 
+export const dynamic = "force-dynamic";
+
 type Locale = AppLocale;
 
 interface AboutPageProps {
