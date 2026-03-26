@@ -1,5 +1,9 @@
 import type { FeedItem } from "@/components/bento/types";
 import type { GalleryItem, MediaItem, Moment, Post } from "@/lib/content/types";
+import {
+  rewriteConfiguredPublicMediaUrl,
+  rewriteConfiguredPublicMediaUrlsInText,
+} from "@/lib/mediaPublicUrl";
 
 export interface SearchSerializedPostFeedItem {
   type: "post";
@@ -118,10 +122,10 @@ function toDate(value: string | null | undefined): Date | null {
 function serializeMediaItem(item: MediaItem): SearchSerializedMediaItem {
   return {
     type: item.type,
-    url: item.url,
+    url: rewriteConfiguredPublicMediaUrl(item.url) ?? item.url,
     width: item.width,
     height: item.height,
-    thumbnailUrl: item.thumbnailUrl,
+    thumbnailUrl: rewriteConfiguredPublicMediaUrl(item.thumbnailUrl) ?? undefined,
     title: item.title,
     artist: item.artist,
     album: item.album,
@@ -168,8 +172,8 @@ export function serializePostFeedItem(post: Post): SearchSerializedPostFeedItem 
     locale: post.locale,
     title: post.title,
     excerpt: post.excerpt,
-    content: post.content,
-    coverUrl: post.coverUrl,
+    content: rewriteConfiguredPublicMediaUrlsInText(post.content) ?? post.content,
+    coverUrl: rewriteConfiguredPublicMediaUrl(post.coverUrl) ?? null,
     tags: Array.isArray(post.tags) ? post.tags.filter(Boolean) : [],
     status: post.status,
     cardSpan: post.cardSpan,
@@ -210,8 +214,8 @@ export function serializeGalleryFeedItem(item: GalleryItem): SearchSerializedGal
     id: item.id,
     translationKey: item.translationKey,
     locale: item.locale,
-    fileUrl: item.fileUrl,
-    thumbUrl: item.thumbUrl,
+    fileUrl: rewriteConfiguredPublicMediaUrl(item.fileUrl) ?? item.fileUrl,
+    thumbUrl: rewriteConfiguredPublicMediaUrl(item.thumbUrl) ?? null,
     title: item.title,
     width: item.width,
     height: item.height,
@@ -224,7 +228,7 @@ export function serializeGalleryFeedItem(item: GalleryItem): SearchSerializedGal
     latitude: item.latitude,
     longitude: item.longitude,
     isLivePhoto: Boolean(item.isLivePhoto),
-    videoUrl: item.videoUrl,
+    videoUrl: rewriteConfiguredPublicMediaUrl(item.videoUrl) ?? null,
     status: item.status,
     publishedAt: toIsoString(item.publishedAt),
     createdAt: toRequiredIsoString(item.createdAt),
