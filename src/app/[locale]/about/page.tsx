@@ -31,7 +31,7 @@ interface AboutPageProps {
 }
 
 const HEATMAP_ROWS = 7;
-const HEATMAP_DISPLAY_DAYS = 35;
+const HEATMAP_DISPLAY_DAYS = 56;
 
 function clampHeatmapLevel(value: unknown): number {
   const numeric = typeof value === "number" ? Math.trunc(value) : 0;

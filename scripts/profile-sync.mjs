@@ -786,7 +786,7 @@ function buildConfig(args) {
     githubToken: process.env.GITHUB_SYNC_TOKEN || "",
     githubWindowDays: Math.max(
       7,
-      Math.min(35, asInt(process.env.GITHUB_SYNC_WINDOW_DAYS, 35))
+      Math.min(56, asInt(process.env.GITHUB_SYNC_WINDOW_DAYS, 56))
     ),
     githubMaxPages: Math.max(1, asInt(process.env.GITHUB_SYNC_MAX_PAGES, 4)),
     appleMusicApiBase:
