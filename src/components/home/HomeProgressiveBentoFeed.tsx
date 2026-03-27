@@ -72,6 +72,7 @@ export function HomeProgressiveBentoFeed({
   const nextOffsetRef = useRef(initialItems.length);
   const abortControllerRef = useRef<AbortController | null>(null);
   const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+  const scrollActivityTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (
@@ -122,16 +123,79 @@ export function HomeProgressiveBentoFeed({
     }
 
     const scrollThreshold = isCompactViewport ? 220 : 320;
+    let hasTriggeredLead = false;
     const updateScrollLeadState = () => {
-      if (window.scrollY >= scrollThreshold) {
-        setHasScrolledPastLead(true);
+      if (hasTriggeredLead || window.scrollY < scrollThreshold) {
+        return;
       }
+
+      hasTriggeredLead = true;
+      window.removeEventListener("scroll", updateScrollLeadState);
+      setHasScrolledPastLead(true);
     };
 
     updateScrollLeadState();
     window.addEventListener("scroll", updateScrollLeadState, { passive: true });
     return () => window.removeEventListener("scroll", updateScrollLeadState);
   }, [isCompactViewport]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const supportsHoverScrollSuppression = window.matchMedia(
+      "(hover: hover) and (pointer: fine)"
+    ).matches;
+
+    if (!supportsHoverScrollSuppression) {
+      return;
+    }
+
+    const root = document.documentElement;
+
+    const clearScrollActivity = () => {
+      delete root.dataset.homeScroll;
+      if (scrollActivityTimerRef.current !== null) {
+        window.clearTimeout(scrollActivityTimerRef.current);
+        scrollActivityTimerRef.current = null;
+      }
+    };
+
+    const handleScroll = () => {
+      if (isPreviewActive) {
+        clearScrollActivity();
+        return;
+      }
+
+      root.dataset.homeScroll = "active";
+
+      if (scrollActivityTimerRef.current !== null) {
+        window.clearTimeout(scrollActivityTimerRef.current);
+      }
+
+      scrollActivityTimerRef.current = window.setTimeout(() => {
+        delete root.dataset.homeScroll;
+        scrollActivityTimerRef.current = null;
+      }, 140);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearScrollActivity();
+    };
+  }, [isPreviewActive]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollActivityTimerRef.current !== null) {
+        window.clearTimeout(scrollActivityTimerRef.current);
+        scrollActivityTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const requestNextBatch = useCallback(
     async (mode: "auto" | "scroll") => {

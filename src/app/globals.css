@@ -454,14 +454,28 @@ body {
 
 /* Bento card hover animation */
 .bento-card {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition:
+    transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+    box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.bento-card:hover {
-  transform: translateY(-4px) scale(1.005);
-  box-shadow:
-    0 12px 24px -6px rgba(0, 0, 0, 0.08),
-    0 8px 16px -8px rgba(0, 0, 0, 0.1);
+@media (hover: hover) and (pointer: fine) {
+  .bento-card:hover {
+    transform: translateY(-4px) scale(1.005);
+    box-shadow:
+      0 12px 24px -6px rgba(0, 0, 0, 0.08),
+      0 8px 16px -8px rgba(0, 0, 0, 0.1);
+  }
+
+  html[data-home-scroll="active"] [data-route-surface="home"] .bento-grid {
+    pointer-events: none;
+  }
+
+  html[data-home-scroll="active"] [data-route-surface="home"] .bento-grid,
+  html[data-home-scroll="active"] [data-route-surface="home"] .bento-grid * {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* About page bento cards - matching Stitch design */

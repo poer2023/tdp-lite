@@ -496,7 +496,7 @@ export function BentoGrid({
     <>
       <div
         className={cn(
-          "grid grid-flow-dense auto-rows-[220px] grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4",
+          "bento-grid grid grid-flow-dense auto-rows-[220px] grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4",
           className
         )}
       >
