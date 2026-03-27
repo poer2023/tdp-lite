@@ -15,7 +15,9 @@ import {
   Wrench,
   X,
 } from "lucide-react";
+import { useRouteTransition } from "@/components/route-transition/RouteTransitionProvider";
 import { IconNavItem, IconNavShell } from "@/components/ui/IconNav";
+import { toLocalizedPath } from "@/lib/locale-routing";
 import { cn } from "@/lib/utils";
 import { usePreviewDockContext } from "@/components/bento/PreviewDockContext";
 
@@ -123,6 +125,7 @@ function BottomNavInner({
   activeTab,
   hideLocaleToggle = false,
 }: BottomNavProps) {
+  const { pendingSurface, stage } = useRouteTransition();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const previewDockContext = usePreviewDockContext();
@@ -377,6 +380,10 @@ function BottomNavInner({
 
   const previewCounter = `${previewDock?.currentIndex ?? 1}/${previewDock?.total ?? 1}`;
   const canCycle = Boolean(previewDock?.canCycle);
+  const pendingTab: Tab | null =
+    stage === "idle" || !pendingSurface || pendingSurface === "other"
+      ? null
+      : pendingSurface;
   const normalizedLocale = locale === "en" ? "en" : "zh";
   const isZh = normalizedLocale === "zh";
   const localizedTabs = tabs.map((tab) => ({
@@ -403,9 +410,10 @@ function BottomNavInner({
   const pathWithoutLocalePrefix =
     currentPath.replace(localePrefixPattern, "") || "/";
   const targetLocalePath =
-    nextLocale === "zh"
-      ? `/zh${pathWithoutLocalePrefix === "/" ? "" : pathWithoutLocalePrefix}`
-      : `/en${pathWithoutLocalePrefix === "/" ? "" : pathWithoutLocalePrefix}`;
+    toLocalizedPath(
+      nextLocale,
+      pathWithoutLocalePrefix === "/" ? "" : pathWithoutLocalePrefix
+    );
   const targetQuery = searchParams.toString();
   const localeTargetHref = targetQuery
     ? `${targetLocalePath}?${targetQuery}`
@@ -472,7 +480,7 @@ function BottomNavInner({
                 return (
                   <IconNavItem
                     key={`measure-${tab.id}`}
-                    href={`/${locale}${tab.path}`}
+                    href={toLocalizedPath(locale, tab.path)}
                     prefetch={false}
                     icon={<Icon className="h-5 w-5" />}
                     label={tab.label}
@@ -481,7 +489,7 @@ function BottomNavInner({
                 );
               })}
             <IconNavItem
-              href={`/${locale}/about`}
+              href={toLocalizedPath(locale, "/about")}
               prefetch={false}
               icon={<User className="h-5 w-5" />}
               label={aboutLabel}
@@ -513,7 +521,7 @@ function BottomNavInner({
                 return (
                   <IconNavItem
                     key={`measure-expanded-${tab.id}`}
-                    href={`/${locale}${tab.path}`}
+                    href={toLocalizedPath(locale, tab.path)}
                     prefetch={false}
                     icon={<Icon className="h-5 w-5" />}
                     label={tab.label}
@@ -522,7 +530,7 @@ function BottomNavInner({
                 );
               })}
             <IconNavItem
-              href={`/${locale}/about`}
+              href={toLocalizedPath(locale, "/about")}
               prefetch={false}
               icon={<User className="h-5 w-5" />}
               label={aboutLabel}
@@ -612,22 +620,26 @@ function BottomNavInner({
                     const Icon = tab.icon;
                     const isActive = activeTab === tab.id;
                     return (
-                      <IconNavItem
-                        key={tab.id}
-                        href={`/${locale}${tab.path}`}
-                        prefetch={false}
-                        icon={<Icon className="h-5 w-5" />}
-                        label={tab.label}
-                        active={isActive}
-                      />
-                    );
-                  })}
+                  <IconNavItem
+                    key={tab.id}
+                    href={toLocalizedPath(locale, tab.path)}
+                    prefetch
+                    transitionAware
+                    icon={<Icon className="h-5 w-5" />}
+                    label={tab.label}
+                    active={isActive}
+                    pending={pendingTab === tab.id}
+                  />
+                );
+              })}
                 <IconNavItem
-                  href={`/${locale}/about`}
-                  prefetch={false}
+                  href={toLocalizedPath(locale, "/about")}
+                  prefetch
+                  transitionAware
                   icon={<User className="h-5 w-5" />}
                   label={aboutLabel}
                   active={activeTab === "about"}
+                  pending={pendingTab === "about"}
                 />
               </div>
               <div className="bottom-nav-divider" />

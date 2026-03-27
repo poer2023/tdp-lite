@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useId } from "react";
+import { PageTransitionLink } from "@/components/route-transition/PageTransitionLink";
 import { cn } from "@/lib/utils";
 import { Vaso } from "vaso";
 
@@ -94,8 +94,10 @@ interface IconNavItemProps {
   icon: React.ReactNode;
   href?: string;
   prefetch?: boolean;
+  transitionAware?: boolean;
   label?: string;
   active?: boolean;
+  pending?: boolean;
   emphasized?: boolean;
   textClassName?: string;
   tooltipTopClassName?: string;
@@ -106,8 +108,10 @@ export function IconNavItem({
   icon,
   href,
   prefetch,
+  transitionAware = false,
   label,
   active = false,
+  pending = false,
   emphasized = false,
   textClassName,
   tooltipTopClassName = "-top-12",
@@ -123,6 +127,9 @@ export function IconNavItem({
             "text-[rgb(102,102,102)] hover:bg-black/5 hover:text-[rgb(17,17,17)]",
             textClassName
           ),
+    pending && !active && !emphasized
+      ? "route-transition-link--pending bg-white/80 text-[rgb(17,17,17)] ring-1 ring-black/10 shadow-[0_10px_24px_-18px_rgba(0,0,0,0.45)]"
+      : null,
     className
   );
 
@@ -144,14 +151,24 @@ export function IconNavItem({
 
   if (href) {
     return (
-      <Link href={href} prefetch={prefetch} className={baseClass}>
+      <PageTransitionLink
+        href={href}
+        prefetch={prefetch}
+        transitionAware={transitionAware}
+        className={baseClass}
+        data-route-pending={pending ? "true" : undefined}
+      >
         {content}
-      </Link>
+      </PageTransitionLink>
     );
   }
 
   return (
-    <button type="button" className={baseClass}>
+    <button
+      type="button"
+      className={baseClass}
+      data-route-pending={pending ? "true" : undefined}
+    >
       {content}
     </button>
   );

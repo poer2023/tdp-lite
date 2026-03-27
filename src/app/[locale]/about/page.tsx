@@ -9,12 +9,13 @@ import {
   Sparkles,
   Terminal,
 } from "lucide-react";
+import { RouteTransitionMarker } from "@/components/route-transition/RouteTransitionMarker";
 import { getPublicProfileSnapshot } from "@/lib/content/read";
 import { type AppLocale } from "@/lib/locale";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import styles from "./about.module.css";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type Locale = AppLocale;
 type HeatmapCellItem = {
@@ -333,7 +334,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
           "tdp-safe-surface text-ink min-h-dvh overflow-x-hidden pb-[calc(8rem+var(--tdp-content-bottom-inset))] font-display selection:bg-black/10 selection:text-black md:pb-[calc(10rem+var(--tdp-content-bottom-inset))]"
         )}
         data-lg-bg-layer="about-root"
+        data-route-surface="about"
       >
+        <RouteTransitionMarker kind="content" surface="about" />
         <div className="relative z-10 mx-auto max-w-[1400px] px-6 pb-8 pt-[calc(1.5rem+var(--tdp-content-top-inset))] md:px-12 md:pt-[calc(5rem+var(--tdp-content-top-inset))]">
           <header className="mb-16 flex flex-col items-end justify-between gap-8 lg:flex-row">
             <div className="invisible" aria-hidden="true">

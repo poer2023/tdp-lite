@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AppChrome } from "@/components/AppChrome";
 import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
+import { RouteTransitionProvider } from "@/components/route-transition/RouteTransitionProvider";
 import { ViewportInsetVars } from "@/components/ViewportInsetVars";
 import "./globals.css";
 
@@ -46,9 +47,11 @@ export default function RootLayout({
       </head>
       <body className="min-h-dvh antialiased">
         <PreviewDockProvider>
-          <ViewportInsetVars />
-          {children}
-          <AppChrome />
+          <RouteTransitionProvider>
+            <ViewportInsetVars />
+            {children}
+            <AppChrome />
+          </RouteTransitionProvider>
         </PreviewDockProvider>
       </body>
     </html>

@@ -1,9 +1,10 @@
+import { Suspense } from "react";
 import { getPublicFeed, getPublicPresence } from "@/lib/content/read";
-import Link from "next/link";
 import Image from "next/image";
-import { headers } from "next/headers";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import { HomeProgressiveBentoFeed } from "@/components/home/HomeProgressiveBentoFeed";
+import { PageTransitionLink } from "@/components/route-transition/PageTransitionLink";
+import { RouteTransitionMarker } from "@/components/route-transition/RouteTransitionMarker";
 
 import { type AppLocale } from "@/lib/locale";
 import { SITE_AVATAR_SRC } from "@/lib/branding";
@@ -15,27 +16,12 @@ interface HomePageProps {
 }
 
 const HOME_INITIAL_FEED_LIMIT = 8;
-const HOME_COMPACT_INITIAL_FEED_LIMIT = 4;
 const HOME_TOTAL_FEED_LIMIT = 72;
-
-function resolveHomeInitialFeedLimit(userAgentValue: string) {
-  return /Android.+Mobile|iPhone|iPod|Windows Phone|Opera Mini|Mobile/i.test(
-    userAgentValue
-  )
-    ? HOME_COMPACT_INITIAL_FEED_LIMIT
-    : HOME_INITIAL_FEED_LIMIT;
-}
 
 export default async function HomePage({ params }: HomePageProps) {
   const { locale } = await params;
-  const requestHeaders = await headers();
-  const homeInitialFeedLimit = resolveHomeInitialFeedLimit(
-    requestHeaders.get("user-agent") ?? ""
-  );
-  const [initialItems, presence] = await Promise.all([
-    getPublicFeed(locale, homeInitialFeedLimit),
-    getPublicPresence(),
-  ]);
+  const homeInitialFeedLimit = HOME_INITIAL_FEED_LIMIT;
+  const initialItems = await getPublicFeed(locale, homeInitialFeedLimit);
   const t =
     locale === "zh"
       ? {
@@ -62,22 +48,15 @@ export default async function HomePage({ params }: HomePageProps) {
           heroDescription:
             "[001] Capturing the ephemeral fragments of daily life through a layered prism.",
         };
-
-  const locationLabel = (presence?.locationLabel || t.fallbackLocation).trim();
-  const onlinePrefix =
-    presence?.status === "online"
-      ? t.statusOnlinePrefix
-      : presence?.status === "offline"
-        ? t.statusOfflinePrefix
-        : t.statusUnknown;
-  const statusValue = `${onlinePrefix} • ${locationLabel}`;
   const initialFeedKey = `${locale}:${initialItems.map((item) => item.id).join(":")}`;
 
   return (
     <div
       className="tdp-safe-surface text-ink bg-page-surface relative min-h-dvh overflow-x-hidden pb-[calc(7rem+var(--tdp-content-bottom-inset))] font-display selection:bg-black/10 selection:text-black md:pb-[calc(8rem+var(--tdp-content-bottom-inset))]"
       data-lg-bg-layer="home-root"
+      data-route-surface="home"
     >
+      <RouteTransitionMarker kind="content" surface="home" />
       <div
         className="tdp-safe-noise bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply"
         data-lg-bg-layer="home-noise"
@@ -106,14 +85,28 @@ export default async function HomePage({ params }: HomePageProps) {
           {/* Right: Status + Avatar */}
           <div className="shrink-0">
             <div className="flex items-center gap-6">
-              <div className="hidden text-right font-mono sm:block">
-                <p className="text-ink-light text-[10px] uppercase tracking-widest">
-                  {t.statusLabel}
-                </p>
-                <p className="text-xs font-medium">{statusValue}</p>
-              </div>
+              <Suspense
+                fallback={
+                  <HomePresenceFallback
+                    fallbackLocation={t.fallbackLocation}
+                    statusLabel={t.statusLabel}
+                  />
+                }
+              >
+                <HomePresenceStatus
+                  fallbackLocation={t.fallbackLocation}
+                  locale={locale}
+                  statusLabel={t.statusLabel}
+                  statusOfflinePrefix={t.statusOfflinePrefix}
+                  statusOnlinePrefix={t.statusOnlinePrefix}
+                  statusUnknown={t.statusUnknown}
+                />
+              </Suspense>
               {/* Avatar - links to about page */}
-              <Link href={toLocalizedPath(locale, "/about")} prefetch={false}>
+              <PageTransitionLink
+                href={toLocalizedPath(locale, "/about")}
+                transitionAware
+              >
                 <Image
                   src={SITE_AVATAR_SRC}
                   alt={t.profileAlt}
@@ -122,7 +115,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   sizes="48px"
                   className="size-12 rounded-full border border-white object-cover shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03),inset_0_0_0_1px_rgba(255,255,255,0.5)] ring-1 ring-black/5 sepia-[0.1] transition-transform hover:scale-105"
                 />
-              </Link>
+              </PageTransitionLink>
             </div>
           </div>
         </div>
@@ -138,6 +131,60 @@ export default async function HomePage({ params }: HomePageProps) {
           />
         </main>
       </div>
+    </div>
+  );
+}
+
+function HomePresenceFallback({
+  fallbackLocation,
+  statusLabel,
+}: {
+  fallbackLocation: string;
+  statusLabel: string;
+}) {
+  return (
+    <div className="hidden min-w-[120px] text-right font-mono sm:block">
+      <p className="text-ink-light text-[10px] uppercase tracking-widest">
+        {statusLabel}
+      </p>
+      <p className="text-xs font-medium opacity-70">··· • {fallbackLocation}</p>
+    </div>
+  );
+}
+
+async function HomePresenceStatus({
+  fallbackLocation,
+  locale,
+  statusLabel,
+  statusOfflinePrefix,
+  statusOnlinePrefix,
+  statusUnknown,
+}: {
+  fallbackLocation: string;
+  locale: Locale;
+  statusLabel: string;
+  statusOfflinePrefix: string;
+  statusOnlinePrefix: string;
+  statusUnknown: string;
+}) {
+  const presence = await getPublicPresence();
+  const locationLabel = (presence?.locationLabel || fallbackLocation).trim();
+  const onlinePrefix =
+    presence?.status === "online"
+      ? statusOnlinePrefix
+      : presence?.status === "offline"
+        ? statusOfflinePrefix
+        : statusUnknown;
+  const statusValue = `${onlinePrefix} • ${locationLabel}`;
+
+  return (
+    <div className="hidden min-w-[120px] text-right font-mono sm:block">
+      <p className="text-ink-light text-[10px] uppercase tracking-widest">
+        {statusLabel}
+      </p>
+      <p className="text-xs font-medium" lang={locale === "zh" ? "zh" : "en"}>
+        {statusValue}
+      </p>
     </div>
   );
 }

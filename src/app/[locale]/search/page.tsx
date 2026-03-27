@@ -1,4 +1,5 @@
 import { SearchPageClient } from "@/components/search/SearchPageClient";
+import { RouteTransitionMarker } from "@/components/route-transition/RouteTransitionMarker";
 import { getPublicFeed } from "@/lib/content/read";
 import { isAppLocale, type AppLocale } from "@/lib/locale";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,9 @@ export default async function SearchPage({ params }: SearchPageProps) {
         styles.root,
         "tdp-safe-surface relative min-h-dvh overflow-hidden pb-[calc(7rem+var(--tdp-content-bottom-inset))] font-display selection:bg-black selection:text-white md:pb-[calc(8rem+var(--tdp-content-bottom-inset))]"
       )}
+      data-route-surface="search"
     >
+      <RouteTransitionMarker kind="content" surface="search" />
       <SearchPageClient locale={validLocale} initialItems={initialItems} />
     </div>
   );

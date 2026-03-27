@@ -3,7 +3,7 @@ export const PUBLIC_CACHE_REVALIDATE = {
   feed: 30,
   contentList: 30,
   contentDetail: 30,
-  profileSnapshot: 30,
+  profileSnapshot: 60,
 } as const;
 
 export const PUBLIC_CACHE_TAGS = {
