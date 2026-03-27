@@ -16,8 +16,10 @@ export async function generateStaticParams() {
 
 export function generateViewport(): Viewport {
   return {
-    themeColor: "#111",
-    viewportFit: "cover",
+    themeColor: [
+      { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+      { media: "(prefers-color-scheme: dark)", color: "#202833" },
+    ],
   };
 }
 

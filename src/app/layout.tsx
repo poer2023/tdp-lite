@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { AppChrome } from "@/components/AppChrome";
 import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
 import { RouteTransitionProvider } from "@/components/route-transition/RouteTransitionProvider";
-import { ViewportInsetVars } from "@/components/ViewportInsetVars";
 import "./globals.css";
 
 const documentBootstrapScript = `
@@ -31,8 +30,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#111",
-  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#202833" },
+  ],
 };
 
 export default function RootLayout({
@@ -48,7 +49,6 @@ export default function RootLayout({
       <body className="min-h-dvh antialiased">
         <PreviewDockProvider>
           <RouteTransitionProvider>
-            <ViewportInsetVars />
             {children}
             <AppChrome />
           </RouteTransitionProvider>
