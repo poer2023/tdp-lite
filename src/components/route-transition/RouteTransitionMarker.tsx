@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import {
   type RouteRenderKind,
@@ -22,7 +22,7 @@ export function RouteTransitionMarker({
   const resolvedSurface = surface ?? resolveRouteSurface(pathname);
   const { notifyRouteVisible } = useRouteTransition();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     notifyRouteVisible({
       kind,
       pathname,

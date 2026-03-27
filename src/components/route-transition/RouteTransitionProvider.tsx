@@ -34,7 +34,6 @@ interface RouteTransitionContextValue {
   currentSurface: RouteSurface;
   pendingSurface: RouteSurface | null;
   renderKind: RouteRenderKind;
-  renderToken: number;
   stage: RouteTransitionStage;
   beginRouteTransition: (href: string) => void;
   notifyRouteVisible: (payload: RouteVisibilityPayload) => void;
@@ -68,7 +67,6 @@ export function RouteTransitionProvider({
     null
   );
   const [renderKind, setRenderKind] = useState<RouteRenderKind>("content");
-  const [renderToken, setRenderToken] = useState(0);
 
   const pendingTimerRef = useRef<number | null>(null);
   const settleTimerRef = useRef<number | null>(null);
@@ -141,8 +139,6 @@ export function RouteTransitionProvider({
         setStage("idle");
         return;
       }
-
-      setRenderToken((current) => current + 1);
 
       if (kind === "loading") {
         setPendingSurface(surface);
@@ -253,7 +249,6 @@ export function RouteTransitionProvider({
       currentSurface,
       pendingSurface,
       renderKind,
-      renderToken,
       stage,
       beginRouteTransition,
       notifyRouteVisible,
@@ -267,7 +262,6 @@ export function RouteTransitionProvider({
       pendingSurface,
       prefetchHref,
       renderKind,
-      renderToken,
       stage,
     ]
   );

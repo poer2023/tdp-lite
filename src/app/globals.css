@@ -1232,22 +1232,22 @@ html.lg-webgl-active .lg-webgl-canvas-root {
 .route-transition-viewport {
   position: relative;
   transform-origin: 50% 0;
-  will-change: opacity, transform, filter;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: opacity, transform;
 }
 
 .route-transition-viewport--pending,
 .route-transition-viewport--loading {
-  opacity: 0.82;
-  transform: translateY(-4px) scale(0.992);
-  filter: blur(4px);
+  opacity: 0.92;
+  transform: translate3d(0, -2px, 0);
   transition:
-    opacity 120ms cubic-bezier(0.22, 1, 0.36, 1),
-    transform 120ms cubic-bezier(0.22, 1, 0.36, 1),
-    filter 120ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .route-transition-viewport--entering {
-  animation: route-surface-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: route-surface-enter 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .route-transition-link--pending {
@@ -1256,15 +1256,13 @@ html.lg-webgl-active .lg-webgl-canvas-root {
 
 @keyframes route-surface-enter {
   from {
-    opacity: 0;
-    transform: translateY(12px) scale(0.992);
-    filter: blur(8px);
+    opacity: 0.86;
+    transform: translate3d(0, 6px, 0);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -1288,14 +1286,13 @@ html.lg-webgl-active .lg-webgl-canvas-root {
 
   .route-transition-viewport--pending,
   .route-transition-viewport--loading {
-    opacity: 0.9;
+    opacity: 0.96;
     transform: none;
-    filter: none;
     transition: opacity 80ms ease;
   }
 
   .route-transition-viewport--entering {
-    animation: route-surface-enter-reduced 120ms ease both;
+    animation: route-surface-enter-reduced 100ms ease both;
   }
 
   .route-transition-link--pending {
