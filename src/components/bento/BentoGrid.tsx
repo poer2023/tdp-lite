@@ -82,7 +82,7 @@ function DeferredBentoCardSlot({
       return;
     }
 
-    if (suspended) {
+    if (suspended || shouldMount) {
       return;
     }
 
@@ -98,8 +98,12 @@ function DeferredBentoCardSlot({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const isIntersecting = entries.some((entry) => entry.isIntersecting);
-        setShouldMount(isIntersecting);
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          return;
+        }
+
+        setShouldMount(true);
+        observer.disconnect();
       },
       {
         rootMargin,
@@ -109,7 +113,7 @@ function DeferredBentoCardSlot({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [deferred, rootMargin, suspended]);
+  }, [deferred, rootMargin, shouldMount, suspended]);
 
   const deferredCardStyle: CSSProperties | undefined = deferred
     ? {
