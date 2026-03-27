@@ -1,6 +1,5 @@
 import Image from "next/image";
 import {
-  ArrowUpRight,
   AudioLines,
   Brush,
   Code2,
@@ -67,9 +66,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
         commitFrequency: "提交频率",
         year: "2024",
         techStack: "技术栈",
-        latestPush: "最近推送",
-        latestPushLabel: "仓库",
-        latestPushFallback: "暂无近期代码动态",
+        techStackHint: "按当前仓库依赖、锁文件与服务边界整理",
         quote: "“没有美感的功能只是工具；没有功能的美感只是装饰。”",
         quoteBody:
           "我追求两者的交汇点：让干净的代码承载流动的体验，让审慎的设计引导复杂交互。",
@@ -103,9 +100,8 @@ export default async function AboutPage({ params }: AboutPageProps) {
         commitFrequency: "Commit Frequency",
         year: "2024",
         techStack: "Tech Stack",
-        latestPush: "Latest Push",
-        latestPushLabel: "Repository",
-        latestPushFallback: "No recent code activity",
+        techStackHint:
+          "Based on the current repo dependencies, lockfile, and service boundaries",
         quote:
           '"Function without beauty is only a tool; beauty without function is only decoration."',
         quoteBody:
@@ -136,14 +132,15 @@ export default async function AboutPage({ params }: AboutPageProps) {
   ];
 
   const techPills = [
-    "TypeScript",
-    "React Three Fiber",
-    "Next.js 14",
-    "Tailwind",
-    "WebGL",
-    "Node.js",
-    "Rust",
-    "GraphQL",
+    "TypeScript 5.9",
+    "React 19",
+    "Next.js 16",
+    "Tailwind CSS 3",
+    "Three.js + R3F",
+    "Go 1.23",
+    "PostgreSQL 15+",
+    "Drizzle ORM",
+    "Cloudflare R2",
   ];
 
   const profileSnapshot = await getPublicProfileSnapshot();
@@ -167,11 +164,6 @@ export default async function AboutPage({ params }: AboutPageProps) {
   const cardTitleClass = "font-serif text-xl font-bold";
   const monoMetaClass = "font-mono text-[10px] uppercase tracking-[0.22em]";
   const subtleTextClass = "text-ink-light text-xs";
-  const latestPushBadgeClass =
-    "rounded-full border border-white/20 px-2 py-0.5 text-[10px] tracking-[0.12em]";
-  const latestPushRepoClass =
-    "font-display text-[1.65rem] font-semibold tracking-wide underline-offset-4 group-hover:underline";
-  const latestPushMetaClass = "mt-2 text-xs text-white/65";
   const quoteClass =
     "text-ink font-display text-[2rem] font-semibold leading-[1.35] md:text-[2.15rem]";
   const quoteBodyClass =
@@ -290,17 +282,11 @@ export default async function AboutPage({ params }: AboutPageProps) {
     { key: "listen", label: t.ratioListen, value: 33 },
     { key: "explore", label: t.ratioExplore, value: 33 },
   ];
-  const latestPush = profileSnapshot?.github?.recentPushes?.[0] ?? null;
   const recentPushes = profileSnapshot?.github?.recentPushes?.slice(0, 3) ?? [];
   const topArtists = profileSnapshot?.music?.topArtists?.slice(0, 3) ?? [];
   const latestTrack = profileSnapshot?.music?.recentTracks?.[0] ?? null;
   const musicName = latestTrack?.name || t.musicName;
   const musicArtist = latestTrack?.artist || t.musicArtist;
-  const latestRepoName =
-    latestPush?.repo.split("/").pop() ?? t.latestPushFallback;
-  const latestPushMeta = latestPush
-    ? `${latestPush.commitCount} ${t.totalCommits} · ${formatRelativeTime(latestPush.createdAt ?? new Date(), locale)}`
-    : t.syncFallback;
   const githubUsername = profileSnapshot?.github?.username
     ? `@${profileSnapshot.github.username}`
     : t.githubPulse;
@@ -451,27 +437,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div
-                className={cn(
-                  styles.card,
-                  "bg-ink group cursor-pointer text-white"
-                )}
-              >
-                <div className="mb-8 flex items-start justify-between">
-                  <div className="flex size-8 items-center justify-center rounded-full border border-white/20">
-                    <ArrowUpRight className="h-4 w-4" />
-                  </div>
-                  <span className={latestPushBadgeClass}>{t.latestPush}</span>
-                </div>
-                <div className="mt-auto">
-                  <h4 className="mb-1 text-xs text-white/60">
-                    {t.latestPushLabel}
-                  </h4>
-                  <h3 className={latestPushRepoClass}>{latestRepoName}</h3>
-                  <p className={latestPushMetaClass}>{latestPushMeta}</p>
-                </div>
+                <p className={cn("mt-4", subtleTextClass)}>{t.techStackHint}</p>
               </div>
             </div>
 

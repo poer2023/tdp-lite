@@ -236,6 +236,10 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
 }
 
 type ChoiceOption<T extends string> = { value: T; label: string };
+type GithubPulseSyncResponse = {
+  ok: true;
+  message: string;
+};
 
 function ChoiceGroup<T extends string>(props: {
   value: T;
@@ -269,8 +273,12 @@ export function PublisherStudio() {
   const [previewMessage, setPreviewMessage] = useState<string>("等待输入...");
   const [isSyncingPreview, setIsSyncingPreview] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isSyncingGithubPulse, setIsSyncingGithubPulse] = useState(false);
   const [uploadingField, setUploadingField] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [githubPulseMessage, setGithubPulseMessage] = useState<string | null>(
+    null
+  );
   const [lastPublishResult, setLastPublishResult] =
     useState<PublishResult | null>(null);
 
@@ -410,6 +418,28 @@ export function PublisherStudio() {
     }
   };
 
+  const handleGithubPulseSync = async () => {
+    setIsSyncingGithubPulse(true);
+    setError(null);
+    setGithubPulseMessage(null);
+
+    try {
+      const response = await fetch("/api/manage/profile-sync/github", {
+        method: "POST",
+      });
+      const payload = await parseJsonResponse<GithubPulseSyncResponse>(response);
+      setGithubPulseMessage(payload.message);
+    } catch (syncError) {
+      const message =
+        syncError instanceof Error
+          ? syncError.message
+          : "GitHub Pulse 刷新失败";
+      setError(message);
+    } finally {
+      setIsSyncingGithubPulse(false);
+    }
+  };
+
   const activePreviewUrl =
     previewMode === "card"
       ? preview?.cardPreviewUrl
@@ -437,6 +467,14 @@ export function PublisherStudio() {
           <button
             type="button"
             className="ghost"
+            onClick={() => void handleGithubPulseSync()}
+            disabled={isSyncingGithubPulse}
+          >
+            {isSyncingGithubPulse ? "刷新 Pulse..." : "刷新 GitHub Pulse"}
+          </button>
+          <button
+            type="button"
+            className="ghost"
             onClick={() => {
               window.localStorage.removeItem(STORAGE_KEY);
               setDraft(defaultDraftState);
@@ -459,6 +497,14 @@ export function PublisherStudio() {
           </button>
         </div>
       </header>
+
+      {githubPulseMessage ? (
+        <div className="publisher-feedback">
+          <div className="success-box">
+            <p>{githubPulseMessage}</p>
+          </div>
+        </div>
+      ) : null}
 
       <div className="publisher-main">
         <section className="compose-panel">

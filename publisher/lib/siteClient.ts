@@ -39,6 +39,15 @@ type TargetConfig = {
   keySecret: string;
 };
 
+export type SiteProfileSnapshot = {
+  github: Record<string, unknown> | null;
+  music: Record<string, unknown> | null;
+  derived: Record<string, unknown> | null;
+  sourceStatus: Record<string, unknown> | null;
+  syncedAt: string | null;
+  updatedAt: string | null;
+};
+
 function getTargetConfig(): TargetConfig {
   const baseUrl = process.env.PUBLISH_TARGET_BASE_URL?.replace(/\/$/, "");
   const keyId = process.env.TDP_INTERNAL_KEY_ID || process.env.PUBLISHER_KEY_ID;
@@ -58,6 +67,12 @@ function asObject(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
     : {};
+}
+
+function asNullableObject(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null
+    ? (value as Record<string, unknown>)
+    : null;
 }
 
 function asString(value: unknown): string {
@@ -232,6 +247,19 @@ function buildQueryString(params: Record<string, string | number | undefined>) {
   }
   const query = searchParams.toString();
   return query ? `?${query}` : "";
+}
+
+function parseSiteProfileSnapshot(raw: unknown): SiteProfileSnapshot {
+  const item = asObject(raw);
+
+  return {
+    github: asNullableObject(item.github),
+    music: asNullableObject(item.music),
+    derived: asNullableObject(item.derived),
+    sourceStatus: asNullableObject(item.sourceStatus),
+    syncedAt: parseIsoDate(item.syncedAt),
+    updatedAt: parseIsoDate(item.updatedAt),
+  };
 }
 
 export async function uploadMediaToSite(params: {
@@ -589,4 +617,43 @@ export async function updateMomentCardSpanOnSite(
     id,
     cardSpan,
   }) as Promise<ManagedMoment>;
+}
+
+export async function getProfileSnapshotFromSite(): Promise<SiteProfileSnapshot> {
+  const data = await signedGetJson("/v1/public/profile-snapshot");
+  return parseSiteProfileSnapshot(asObject(data).item);
+}
+
+export async function upsertProfileSnapshotOnSite(params: {
+  github?: Record<string, unknown>;
+  music?: Record<string, unknown>;
+  derived?: Record<string, unknown>;
+  sourceStatus?: Record<string, unknown>;
+  syncedAt?: string;
+}): Promise<SiteProfileSnapshot> {
+  const body: Record<string, unknown> = {};
+
+  if (params.github) {
+    body.github = params.github;
+  }
+  if (params.music) {
+    body.music = params.music;
+  }
+  if (params.derived) {
+    body.derived = params.derived;
+  }
+  if (params.sourceStatus) {
+    body.sourceStatus = params.sourceStatus;
+  }
+  if (params.syncedAt) {
+    body.syncedAt = params.syncedAt;
+  }
+
+  const data = await signedJson({
+    path: "/v1/internal/profile-snapshot",
+    body,
+    idempotencyKey: randomUUID(),
+  });
+
+  return parseSiteProfileSnapshot(asObject(data).item);
 }

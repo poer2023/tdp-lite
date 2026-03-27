@@ -102,6 +102,10 @@ textarea {
   grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
 }
 
+.publisher-feedback {
+  margin-top: 16px;
+}
+
 .compose-panel,
 .preview-panel {
   border: 1px solid var(--line);
