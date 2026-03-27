@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { AppChrome } from "@/components/AppChrome";
 import { PreviewDockProvider } from "@/components/bento/PreviewDockContext";
+import { ViewportInsetVars } from "@/components/ViewportInsetVars";
 import "./globals.css";
 
 const documentBootstrapScript = `
@@ -28,6 +29,11 @@ export const metadata: Metadata = {
   description: "A minimal blog platform",
 };
 
+export const viewport: Viewport = {
+  themeColor: "#111",
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -38,8 +44,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: documentBootstrapScript }} />
       </head>
-      <body className="min-h-screen antialiased">
+      <body className="min-h-dvh antialiased">
         <PreviewDockProvider>
+          <ViewportInsetVars />
           {children}
           <AppChrome />
         </PreviewDockProvider>

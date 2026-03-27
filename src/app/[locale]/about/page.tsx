@@ -330,11 +330,11 @@ export default async function AboutPage({ params }: AboutPageProps) {
       <div
         className={cn(
           styles.root,
-          "text-ink min-h-screen overflow-x-hidden pb-40 font-display selection:bg-black/10 selection:text-black"
+          "text-ink min-h-dvh overflow-x-hidden pb-[calc(10rem+var(--tdp-inset-bottom))] font-display selection:bg-black/10 selection:text-black"
         )}
         data-lg-bg-layer="about-root"
       >
-        <div className="relative z-10 mx-auto max-w-[1400px] px-6 pb-8 pt-12 md:px-12 md:pt-20">
+        <div className="relative z-10 mx-auto max-w-[1400px] px-6 pb-8 pt-[calc(3rem+var(--tdp-inset-top))] md:px-12 md:pt-[calc(5rem+var(--tdp-inset-top))]">
           <header className="mb-16 flex flex-col items-end justify-between gap-8 lg:flex-row">
             <div className="invisible" aria-hidden="true">
               <div className="mb-4 flex items-center gap-4">

@@ -141,6 +141,30 @@
   --lg-chip-dark-border: rgba(255, 255, 255, 0.26);
   --lg-chip-dark-text: rgba(255, 255, 255, 0.94);
   --lg-noise-opacity: 0.05;
+  --tdp-safe-area-top: env(safe-area-inset-top, 0px);
+  --tdp-safe-area-right: env(safe-area-inset-right, 0px);
+  --tdp-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --tdp-safe-area-left: env(safe-area-inset-left, 0px);
+  --tdp-viewport-top-offset: 0px;
+  --tdp-viewport-right-offset: 0px;
+  --tdp-viewport-bottom-offset: 0px;
+  --tdp-viewport-left-offset: 0px;
+  --tdp-inset-top: max(
+    var(--tdp-safe-area-top),
+    var(--tdp-viewport-top-offset)
+  );
+  --tdp-inset-right: max(
+    var(--tdp-safe-area-right),
+    var(--tdp-viewport-right-offset)
+  );
+  --tdp-inset-bottom: max(
+    var(--tdp-safe-area-bottom),
+    var(--tdp-viewport-bottom-offset)
+  );
+  --tdp-inset-left: max(
+    var(--tdp-safe-area-left),
+    var(--tdp-viewport-left-offset)
+  );
 }
 
 :root.dark {
@@ -224,10 +248,12 @@
 }
 
 html {
+  min-height: 100%;
   background: var(--background);
 }
 
 body {
+  min-height: 100dvh;
   color: var(--foreground);
   background: var(--background);
   font-family:

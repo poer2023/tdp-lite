@@ -590,7 +590,10 @@ function BottomNavInner({
 
       <div
         ref={rootRef}
-        className={cn("bottom-nav-root fixed bottom-8 left-1/2", rootZClass)}
+        className={cn(
+          "bottom-nav-root fixed bottom-[calc(2rem+var(--tdp-inset-bottom))] left-1/2",
+          rootZClass
+        )}
       >
         <IconNavShell
           className="bottom-nav-shell relative overflow-hidden"

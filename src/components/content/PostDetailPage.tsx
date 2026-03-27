@@ -29,9 +29,9 @@ export function PostDetailPage({ locale, post }: PostDetailPageProps) {
         : "Journal";
 
   return (
-    <div className="bg-page-surface min-h-screen">
+    <div className="bg-page-surface min-h-dvh">
       <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
-      <div className="relative z-10 p-6 pb-32 md:p-10 md:pb-36">
+      <div className="relative z-10 px-6 pb-[calc(8rem+var(--tdp-inset-bottom))] pt-[calc(1.5rem+var(--tdp-inset-top))] md:px-10 md:pb-[calc(9rem+var(--tdp-inset-bottom))] md:pt-[calc(2.5rem+var(--tdp-inset-top))]">
         <ArticlePaperDetail
           title={post.title}
           excerpt={post.excerpt || undefined}

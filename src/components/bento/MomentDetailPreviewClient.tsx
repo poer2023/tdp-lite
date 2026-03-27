@@ -112,7 +112,7 @@ export function MomentDetailPreviewClient({
   }, [canCyclePreviewMedia, previewMediaTotal]);
 
   return (
-    <div className="flex min-h-[calc(100vh-11rem)] items-center justify-center px-4 pt-8 pb-28 md:px-8 md:pt-10 md:pb-32">
+    <div className="flex min-h-[calc(100dvh-11rem)] items-center justify-center px-4 pb-[calc(7rem+var(--tdp-inset-bottom))] pt-[calc(2rem+var(--tdp-inset-top))] md:px-8 md:pb-[calc(8rem+var(--tdp-inset-bottom))] md:pt-[calc(2.5rem+var(--tdp-inset-top))]">
       <div className="w-full max-w-3xl">
         <MomentCard
           moment={moment}
