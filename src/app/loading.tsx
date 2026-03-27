@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
-    <div className="bg-page-surface min-h-dvh">
-      <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-30 mix-blend-multiply" />
+    <div className="tdp-safe-surface bg-page-surface min-h-dvh">
+      <div className="tdp-safe-noise bg-noise pointer-events-none fixed inset-0 z-0 opacity-30 mix-blend-multiply" />
       <div className="relative z-10 mx-auto flex max-w-[1400px] flex-col gap-8 px-6 pb-12 pt-[calc(3rem+var(--tdp-inset-top))] md:px-12">
         <div className="flex items-start justify-between gap-8">
           <div className="min-w-0 flex-1 space-y-4">

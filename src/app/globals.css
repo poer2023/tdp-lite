@@ -249,13 +249,13 @@
 
 html {
   min-height: 100%;
-  background: var(--background);
+  background: transparent;
 }
 
 body {
   min-height: 100dvh;
   color: var(--foreground);
-  background: var(--background);
+  background: transparent;
   font-family:
     "Space Grotesk",
     system-ui,
@@ -277,6 +277,27 @@ body {
 
 .bg-page-surface {
   background-color: var(--page-surface);
+}
+
+.tdp-safe-surface {
+  position: relative;
+  isolation: isolate;
+  background: transparent !important;
+}
+
+.tdp-safe-surface::before {
+  content: "";
+  position: fixed;
+  inset: var(--tdp-inset-top) var(--tdp-inset-right) var(--tdp-inset-bottom)
+    var(--tdp-inset-left);
+  background: var(--tdp-safe-surface-color, var(--page-surface));
+  pointer-events: none;
+  z-index: -1;
+}
+
+.tdp-safe-noise {
+  inset: var(--tdp-inset-top) var(--tdp-inset-right) var(--tdp-inset-bottom)
+    var(--tdp-inset-left) !important;
 }
 
 /* Dark mode compatibility overrides for legacy light utility classes */
@@ -564,7 +585,8 @@ body {
 /* Global liquid glass primitives (WebGL upgraded) */
 .lg-webgl-canvas-root {
   position: fixed;
-  inset: 0;
+  inset: var(--tdp-inset-top) var(--tdp-inset-right) var(--tdp-inset-bottom)
+    var(--tdp-inset-left);
   z-index: 70;
   pointer-events: none;
   overflow: hidden;

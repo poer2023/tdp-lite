@@ -15,8 +15,8 @@ export function MomentDetailPage({ locale, moment }: MomentDetailPageProps) {
   const backLabel = locale === "zh" ? "返回" : "Back";
 
   return (
-    <div className="bg-page-surface relative min-h-dvh overflow-x-hidden font-display">
-      <div className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
+    <div className="tdp-safe-surface bg-page-surface relative min-h-dvh overflow-x-hidden font-display">
+      <div className="tdp-safe-noise bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
       <div className="relative z-10 min-h-dvh">
         <div className="mx-auto max-w-5xl px-6 pt-[calc(2rem+var(--tdp-inset-top))] md:px-8">
           <Link

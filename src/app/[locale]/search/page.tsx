@@ -19,7 +19,7 @@ export default async function SearchPage({ params }: SearchPageProps) {
     <div
       className={cn(
         styles.root,
-        "relative min-h-dvh overflow-hidden pb-[calc(8rem+var(--tdp-inset-bottom))] font-display selection:bg-black selection:text-white"
+        "tdp-safe-surface relative min-h-dvh overflow-hidden pb-[calc(8rem+var(--tdp-inset-bottom))] font-display selection:bg-black selection:text-white"
       )}
     >
       <SearchPageClient locale={validLocale} initialItems={initialItems} />

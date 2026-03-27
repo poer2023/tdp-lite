@@ -75,11 +75,11 @@ export default async function HomePage({ params }: HomePageProps) {
 
   return (
     <div
-      className="text-ink bg-page-surface relative min-h-dvh overflow-x-hidden pb-[calc(8rem+var(--tdp-inset-bottom))] font-display selection:bg-black/10 selection:text-black"
+      className="tdp-safe-surface text-ink bg-page-surface relative min-h-dvh overflow-x-hidden pb-[calc(8rem+var(--tdp-inset-bottom))] font-display selection:bg-black/10 selection:text-black"
       data-lg-bg-layer="home-root"
     >
       <div
-        className="bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply"
+        className="tdp-safe-noise bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply"
         data-lg-bg-layer="home-noise"
       />
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 pb-12 pt-[calc(3rem+var(--tdp-inset-top))] md:px-12">

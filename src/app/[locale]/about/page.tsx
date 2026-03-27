@@ -324,13 +324,13 @@ export default async function AboutPage({ params }: AboutPageProps) {
   return (
     <>
       <div
-        className="bg-noise pointer-events-none fixed inset-0 z-0 mix-blend-multiply"
+        className="tdp-safe-noise bg-noise pointer-events-none fixed inset-0 z-0 mix-blend-multiply"
         data-lg-bg-layer="about-noise"
       />
       <div
         className={cn(
           styles.root,
-          "text-ink min-h-dvh overflow-x-hidden pb-[calc(10rem+var(--tdp-inset-bottom))] font-display selection:bg-black/10 selection:text-black"
+          "tdp-safe-surface text-ink min-h-dvh overflow-x-hidden pb-[calc(10rem+var(--tdp-inset-bottom))] font-display selection:bg-black/10 selection:text-black"
         )}
         data-lg-bg-layer="about-root"
       >
