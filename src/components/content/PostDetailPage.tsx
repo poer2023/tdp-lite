@@ -31,7 +31,7 @@ export function PostDetailPage({ locale, post }: PostDetailPageProps) {
   return (
     <div className="tdp-safe-surface bg-page-surface min-h-dvh">
       <div className="tdp-safe-noise bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
-      <div className="relative z-10 px-6 pb-[calc(8rem+var(--tdp-inset-bottom))] pt-[calc(1.5rem+var(--tdp-inset-top))] md:px-10 md:pb-[calc(9rem+var(--tdp-inset-bottom))] md:pt-[calc(2.5rem+var(--tdp-inset-top))]">
+      <div className="relative z-10 px-6 pb-[calc(7rem+var(--tdp-content-bottom-inset))] pt-[calc(1.25rem+var(--tdp-content-top-inset))] md:px-10 md:pb-[calc(8rem+var(--tdp-content-bottom-inset))] md:pt-[calc(2.5rem+var(--tdp-content-top-inset))]">
         <ArticlePaperDetail
           title={post.title}
           excerpt={post.excerpt || undefined}

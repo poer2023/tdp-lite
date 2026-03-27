@@ -18,7 +18,7 @@ export function MomentDetailPage({ locale, moment }: MomentDetailPageProps) {
     <div className="tdp-safe-surface bg-page-surface relative min-h-dvh overflow-x-hidden font-display">
       <div className="tdp-safe-noise bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply" />
       <div className="relative z-10 min-h-dvh">
-        <div className="mx-auto max-w-5xl px-6 pt-[calc(2rem+var(--tdp-inset-top))] md:px-8">
+        <div className="mx-auto max-w-5xl px-6 pt-[calc(1.25rem+var(--tdp-content-top-inset))] md:px-8 md:pt-[calc(2rem+var(--tdp-content-top-inset))]">
           <Link
             href={toLocalizedPath(locale, "/")}
             className="dark:bg-[#364151]/72 inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 font-mono text-xs uppercase tracking-widest text-[#666] shadow-sm backdrop-blur transition-all hover:bg-white hover:text-[#111] dark:text-[#c4cfde] dark:hover:bg-[#3d4858] dark:hover:text-[#eff4fb]"

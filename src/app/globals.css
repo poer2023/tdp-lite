@@ -149,6 +149,26 @@
   --tdp-viewport-right-offset: 0px;
   --tdp-viewport-bottom-offset: 0px;
   --tdp-viewport-left-offset: 0px;
+  --tdp-content-top-inset: var(--tdp-safe-area-top);
+  --tdp-content-right-inset: var(--tdp-safe-area-right);
+  --tdp-content-bottom-inset: var(--tdp-safe-area-bottom);
+  --tdp-content-left-inset: var(--tdp-safe-area-left);
+  --tdp-fixed-top-inset: max(
+    var(--tdp-safe-area-top),
+    var(--tdp-viewport-top-offset)
+  );
+  --tdp-fixed-right-inset: max(
+    var(--tdp-safe-area-right),
+    var(--tdp-viewport-right-offset)
+  );
+  --tdp-fixed-bottom-inset: max(
+    var(--tdp-safe-area-bottom),
+    var(--tdp-viewport-bottom-offset)
+  );
+  --tdp-fixed-left-inset: max(
+    var(--tdp-safe-area-left),
+    var(--tdp-viewport-left-offset)
+  );
   --tdp-inset-top: max(
     var(--tdp-safe-area-top),
     var(--tdp-viewport-top-offset)
@@ -249,13 +269,13 @@
 
 html {
   min-height: 100%;
-  background: transparent;
+  background: var(--background);
 }
 
 body {
   min-height: 100dvh;
   color: var(--foreground);
-  background: transparent;
+  background: var(--background);
   font-family:
     "Space Grotesk",
     system-ui,
@@ -282,22 +302,14 @@ body {
 .tdp-safe-surface {
   position: relative;
   isolation: isolate;
-  background: transparent !important;
 }
 
 .tdp-safe-surface::before {
-  content: "";
-  position: fixed;
-  inset: var(--tdp-inset-top) var(--tdp-inset-right) var(--tdp-inset-bottom)
-    var(--tdp-inset-left);
-  background: var(--tdp-safe-surface-color, var(--page-surface));
-  pointer-events: none;
-  z-index: -1;
+  content: none;
 }
 
 .tdp-safe-noise {
-  inset: var(--tdp-inset-top) var(--tdp-inset-right) var(--tdp-inset-bottom)
-    var(--tdp-inset-left) !important;
+  inset: 0 !important;
 }
 
 /* Dark mode compatibility overrides for legacy light utility classes */
@@ -585,8 +597,7 @@ body {
 /* Global liquid glass primitives (WebGL upgraded) */
 .lg-webgl-canvas-root {
   position: fixed;
-  inset: var(--tdp-inset-top) var(--tdp-inset-right) var(--tdp-inset-bottom)
-    var(--tdp-inset-left);
+  inset: 0;
   z-index: 70;
   pointer-events: none;
   overflow: hidden;

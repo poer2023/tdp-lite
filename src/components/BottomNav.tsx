@@ -591,7 +591,7 @@ function BottomNavInner({
       <div
         ref={rootRef}
         className={cn(
-          "bottom-nav-root fixed bottom-[calc(2rem+var(--tdp-inset-bottom))] left-1/2",
+          "bottom-nav-root fixed bottom-[calc(1rem+var(--tdp-fixed-bottom-inset))] left-1/2 md:bottom-[calc(1.5rem+var(--tdp-fixed-bottom-inset))]",
           rootZClass
         )}
       >
