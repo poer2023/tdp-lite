@@ -20,6 +20,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { toLocalizedPath } from "@/lib/locale-routing";
 import {
   computeBentoSpans,
@@ -443,114 +444,122 @@ export function BentoGrid({
     };
   }, [previewMoment, previewOriginRect]);
 
-  return (
-    <div
-      className={cn(
-        "grid grid-flow-dense auto-rows-[220px] grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4",
-        className
-      )}
-    >
-      {items.map((item, index) => {
-        const itemKey = getFeedItemLayoutKey(item);
-        const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
-        const isHighlighted = item.id === highlightedId;
-        const mediaOrder = mediaOrderByItemKey[itemKey];
-        const priorityMedia =
-          mediaOrder !== null && mediaOrder < priorityMediaCount;
-        const shouldDeferVisibleMedia =
-          mediaOrder !== null &&
-          !priorityMedia &&
-          (deferNonPriorityMedia || index < deferVisibleMediaUntilIndex);
-        const deferredMediaDelayMs =
-          shouldDeferVisibleMedia && mediaOrder !== null
-            ? deferredMediaStartDelayMs +
-              Math.max(0, mediaOrder - priorityMediaCount) * deferredMediaStepMs
-            : undefined;
-        const homeImagePhaseId =
-          mediaOrder !== null && mediaOrder < homeImagePhaseMediaCount
-            ? `home:${itemKey}`
-            : undefined;
-        const shouldDeferCardRendering = index >= deferCardRenderingAfter;
-        const card = (
-          <>
-            {item.type === "post" && (
-              <PostCard
-                post={item}
-                isHighlighted={isHighlighted}
-                priorityMedia={priorityMedia}
-                deferMedia={shouldDeferVisibleMedia}
-                deferMediaDelayMs={deferredMediaDelayMs}
-                suspendDeferredMedia={suspendBackgroundLoading}
-                homeImagePhaseId={homeImagePhaseId}
-              />
-            )}
-            {item.type === "moment" && (
-              <MomentCard
-                moment={item}
-                isHighlighted={isHighlighted}
-                priorityMedia={priorityMedia}
-                deferMedia={shouldDeferVisibleMedia}
-                deferMediaDelayMs={deferredMediaDelayMs}
-                suspendDeferredMedia={suspendBackgroundLoading}
-                homeImagePhaseId={homeImagePhaseId}
-                onOpenPreview={(payload) =>
-                  openMomentPreview(item.id, item.locale, payload)
-                }
-              />
-            )}
-            {item.type === "gallery" && (
-              <GalleryCard
-                item={item}
-                priorityMedia={priorityMedia}
-                deferMedia={shouldDeferVisibleMedia}
-                deferMediaDelayMs={deferredMediaDelayMs}
-                suspendDeferredMedia={suspendBackgroundLoading}
-                homeImagePhaseId={homeImagePhaseId}
-              />
-            )}
-            {item.type === "action" && <ActionCard item={item} />}
-          </>
-        );
-
-        return (
-          <DeferredBentoCardSlot
-            key={itemKey}
-            deferred={shouldDeferCardRendering}
-            spanClass={cn("bento-card", spanClass)}
-            rootMargin={deferredCardRootMargin}
-            suspended={suspendBackgroundLoading}
-          >
-            {card}
-          </DeferredBentoCardSlot>
-        );
-      })}
-
-      {previewMoment && (
-        <div className="moment-preview-layer fixed inset-0 z-[70] flex items-center justify-center px-4 py-8 md:px-8">
-          <button
-            ref={previewBackdropRef}
-            type="button"
-            aria-label="Close moment preview"
-            className="moment-preview-backdrop absolute inset-0"
-            onClick={closeMomentPreview}
-          />
-
-          <div
-            ref={previewCardRef}
-            className="moment-preview-card relative z-10 w-full max-w-3xl"
-          >
-            <MomentCard
-              moment={previewMoment}
-              preview
-              className="w-full"
-              previewMediaIndex={previewMediaIndex}
-              onPreviewMediaIndexChange={setPreviewMediaIndex}
-              showPreviewMediaControls={false}
-              previewSeedSrc={previewSeedSrc ?? undefined}
+  const previewOverlay =
+    previewMoment && typeof document !== "undefined" && document.body
+      ? createPortal(
+          <div className="moment-preview-layer fixed inset-0 z-[70] flex items-center justify-center px-4 py-8 md:px-8">
+            <button
+              ref={previewBackdropRef}
+              type="button"
+              aria-label="Close moment preview"
+              className="moment-preview-backdrop absolute inset-0"
+              onClick={closeMomentPreview}
             />
-          </div>
-        </div>
-      )}
-    </div>
+
+            <div
+              ref={previewCardRef}
+              className="moment-preview-card relative z-10 w-full max-w-3xl"
+            >
+              <MomentCard
+                moment={previewMoment}
+                preview
+                className="w-full"
+                previewMediaIndex={previewMediaIndex}
+                onPreviewMediaIndexChange={setPreviewMediaIndex}
+                showPreviewMediaControls={false}
+                previewSeedSrc={previewSeedSrc ?? undefined}
+              />
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
+  return (
+    <>
+      <div
+        className={cn(
+          "grid grid-flow-dense auto-rows-[220px] grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4",
+          className
+        )}
+      >
+        {items.map((item, index) => {
+          const itemKey = getFeedItemLayoutKey(item);
+          const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
+          const isHighlighted = item.id === highlightedId;
+          const mediaOrder = mediaOrderByItemKey[itemKey];
+          const priorityMedia =
+            mediaOrder !== null && mediaOrder < priorityMediaCount;
+          const shouldDeferVisibleMedia =
+            mediaOrder !== null &&
+            !priorityMedia &&
+            (deferNonPriorityMedia || index < deferVisibleMediaUntilIndex);
+          const deferredMediaDelayMs =
+            shouldDeferVisibleMedia && mediaOrder !== null
+              ? deferredMediaStartDelayMs +
+                Math.max(0, mediaOrder - priorityMediaCount) *
+                  deferredMediaStepMs
+              : undefined;
+          const homeImagePhaseId =
+            mediaOrder !== null && mediaOrder < homeImagePhaseMediaCount
+              ? `home:${itemKey}`
+              : undefined;
+          const shouldDeferCardRendering = index >= deferCardRenderingAfter;
+          const card = (
+            <>
+              {item.type === "post" && (
+                <PostCard
+                  post={item}
+                  isHighlighted={isHighlighted}
+                  priorityMedia={priorityMedia}
+                  deferMedia={shouldDeferVisibleMedia}
+                  deferMediaDelayMs={deferredMediaDelayMs}
+                  suspendDeferredMedia={suspendBackgroundLoading}
+                  homeImagePhaseId={homeImagePhaseId}
+                />
+              )}
+              {item.type === "moment" && (
+                <MomentCard
+                  moment={item}
+                  isHighlighted={isHighlighted}
+                  priorityMedia={priorityMedia}
+                  deferMedia={shouldDeferVisibleMedia}
+                  deferMediaDelayMs={deferredMediaDelayMs}
+                  suspendDeferredMedia={suspendBackgroundLoading}
+                  homeImagePhaseId={homeImagePhaseId}
+                  onOpenPreview={(payload) =>
+                    openMomentPreview(item.id, item.locale, payload)
+                  }
+                />
+              )}
+              {item.type === "gallery" && (
+                <GalleryCard
+                  item={item}
+                  priorityMedia={priorityMedia}
+                  deferMedia={shouldDeferVisibleMedia}
+                  deferMediaDelayMs={deferredMediaDelayMs}
+                  suspendDeferredMedia={suspendBackgroundLoading}
+                  homeImagePhaseId={homeImagePhaseId}
+                />
+              )}
+              {item.type === "action" && <ActionCard item={item} />}
+            </>
+          );
+
+          return (
+            <DeferredBentoCardSlot
+              key={itemKey}
+              deferred={shouldDeferCardRendering}
+              spanClass={cn("bento-card", spanClass)}
+              rootMargin={deferredCardRootMargin}
+              suspended={suspendBackgroundLoading}
+            >
+              {card}
+            </DeferredBentoCardSlot>
+          );
+        })}
+      </div>
+      {previewOverlay}
+    </>
   );
 }
