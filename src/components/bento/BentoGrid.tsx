@@ -352,12 +352,25 @@ export function BentoGrid({
     };
 
     const previousOverflow = document.body.style.overflow;
+    const previousPaddingRight = document.body.style.paddingRight;
+    const computedBodyPaddingRight =
+      Number.parseFloat(window.getComputedStyle(document.body).paddingRight) ||
+      0;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${
+        computedBodyPaddingRight + scrollbarWidth
+      }px`;
+    }
     document.body.style.overflow = "hidden";
     document.body.classList.add("moment-preview-open");
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      document.body.style.paddingRight = previousPaddingRight;
       document.body.classList.remove("moment-preview-open");
       window.removeEventListener("keydown", onKeyDown);
     };

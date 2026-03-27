@@ -473,7 +473,7 @@ export function MomentCard({
           </div>
         </div>
 
-        <div className="mx-3 mt-3 rounded-[20px] border border-white/75 bg-white/80 p-3.5 shadow-preview-info backdrop-blur-md">
+        <div className="mx-3 mt-3 rounded-[20px] border border-white/75 bg-white/90 p-3.5 shadow-preview-info">
           <div className="mb-2.5 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 px-2.5 py-0.5 text-[11px] font-medium text-[#333]">
               {isHighlighted ? "Spotlight" : "Insight"}
