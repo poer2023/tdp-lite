@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronLeft, ChevronRight, Music2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Moment } from "@/lib/content/types";
@@ -38,10 +38,6 @@ export function MomentDetailCard({
   const hasMedia = mediaList.length > 0;
   const hasMultipleMedia = mediaList.length > 1;
   const [activeMediaIndex, setActiveMediaIndex] = useState(0);
-
-  useEffect(() => {
-    setActiveMediaIndex(0);
-  }, [moment.id]);
 
   const primaryMedia = hasMedia
     ? (mediaList[Math.min(activeMediaIndex, mediaList.length - 1)] ??

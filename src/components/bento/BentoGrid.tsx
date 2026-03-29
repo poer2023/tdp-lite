@@ -74,15 +74,10 @@ function DeferredBentoCardSlot({
   children,
 }: DeferredBentoCardSlotProps) {
   const hostRef = useRef<HTMLDivElement>(null);
-  const [shouldMount, setShouldMount] = useState(() => !deferred);
+  const [hasIntersected, setHasIntersected] = useState(() => !deferred);
 
   useEffect(() => {
-    if (!deferred) {
-      setShouldMount(true);
-      return;
-    }
-
-    if (suspended || shouldMount) {
+    if (!deferred || suspended || hasIntersected) {
       return;
     }
 
@@ -92,8 +87,10 @@ function DeferredBentoCardSlot({
     }
 
     if (typeof IntersectionObserver !== "function") {
-      setShouldMount(true);
-      return;
+      const fallbackTimer = window.setTimeout(() => {
+        setHasIntersected(true);
+      }, 0);
+      return () => window.clearTimeout(fallbackTimer);
     }
 
     const observer = new IntersectionObserver(
@@ -102,7 +99,7 @@ function DeferredBentoCardSlot({
           return;
         }
 
-        setShouldMount(true);
+        setHasIntersected(true);
         observer.disconnect();
       },
       {
@@ -113,7 +110,9 @@ function DeferredBentoCardSlot({
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [deferred, rootMargin, shouldMount, suspended]);
+  }, [deferred, hasIntersected, rootMargin, suspended]);
+
+  const shouldMount = !deferred || hasIntersected;
 
   const deferredCardStyle: CSSProperties | undefined = deferred
     ? {
@@ -239,8 +238,11 @@ export function BentoGrid({
 
   const previewMediaTotal = Math.max(1, previewMoment?.media?.length ?? 0);
   const canCyclePreviewMedia = previewMediaTotal > 1;
+  const normalizedPreviewMediaIndex = canCyclePreviewMedia
+    ? previewMediaIndex % previewMediaTotal
+    : 0;
   const previewMediaDisplayIndex = canCyclePreviewMedia
-    ? (previewMediaIndex % previewMediaTotal) + 1
+    ? normalizedPreviewMediaIndex + 1
     : 1;
 
   const goToPreviousPreviewMedia = useCallback(() => {
@@ -380,14 +382,6 @@ export function BentoGrid({
     };
   }, [closeMomentPreview, previewMoment]);
 
-  useEffect(() => {
-    if (!previewMoment || !canCyclePreviewMedia) {
-      setPreviewMediaIndex(0);
-      return;
-    }
-    setPreviewMediaIndex((previous) => previous % previewMediaTotal);
-  }, [canCyclePreviewMedia, previewMediaTotal, previewMoment]);
-
   useLayoutEffect(() => {
     if (!previewMoment) {
       return;
@@ -481,7 +475,7 @@ export function BentoGrid({
                 moment={previewMoment}
                 preview
                 className="w-full"
-                previewMediaIndex={previewMediaIndex}
+                previewMediaIndex={normalizedPreviewMediaIndex}
                 onPreviewMediaIndexChange={setPreviewMediaIndex}
                 showPreviewMediaControls={false}
                 previewSeedSrc={previewSeedSrc ?? undefined}

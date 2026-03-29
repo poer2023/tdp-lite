@@ -123,13 +123,11 @@ async function main() {
   }
 
   const data = text ? JSON.parse(text) : {};
-  // eslint-disable-next-line no-console
   console.log(JSON.stringify(data, null, 2));
 }
 
 main().catch((error) => {
   const message = error instanceof Error ? error.message : String(error);
-  // eslint-disable-next-line no-console
   console.error(`[presence-heartbeat] ${message}`);
   process.exit(1);
 });

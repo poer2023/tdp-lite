@@ -153,6 +153,11 @@ function BottomNavInner({
   const homeLayerStateRef = useRef<LayerVisualState>("shown");
   const previewLayerStateRef = useRef<LayerVisualState>("hidden");
   const transitionTimersRef = useRef<number[]>([]);
+  const animatedWidthFrameRef = useRef<number | null>(null);
+  const themeModeFrameRef = useRef<number | null>(null);
+  const closeToolsFrameRef = useRef<number | null>(null);
+  const homeLayerFrameRef = useRef<number | null>(null);
+  const previewLayerFrameRef = useRef<number | null>(null);
 
   const EXIT_MS = 180;
   const ENTER_MS = 180;
@@ -165,7 +170,102 @@ function BottomNavInner({
     previewLayerStateRef.current = previewLayerState;
   }, [previewLayerState]);
 
+  const scheduleAnimatedWidth = useCallback((nextWidth: number) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (animatedWidthFrameRef.current !== null) {
+      window.cancelAnimationFrame(animatedWidthFrameRef.current);
+    }
+
+    animatedWidthFrameRef.current = window.requestAnimationFrame(() => {
+      animatedWidthFrameRef.current = null;
+      setAnimatedWidth((previous) =>
+        previous === nextWidth ? previous : nextWidth
+      );
+    });
+  }, []);
+
+  const scheduleThemeMode = useCallback((nextTheme: "light" | "dark") => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (themeModeFrameRef.current !== null) {
+      window.cancelAnimationFrame(themeModeFrameRef.current);
+    }
+
+    themeModeFrameRef.current = window.requestAnimationFrame(() => {
+      themeModeFrameRef.current = null;
+      setThemeMode(nextTheme);
+    });
+  }, []);
+
+  const scheduleCloseToolsPanel = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (closeToolsFrameRef.current !== null) {
+      window.cancelAnimationFrame(closeToolsFrameRef.current);
+    }
+
+    closeToolsFrameRef.current = window.requestAnimationFrame(() => {
+      closeToolsFrameRef.current = null;
+      setIsToolsOpen(false);
+    });
+  }, []);
+
+  const scheduleHomeLayerState = useCallback(
+    (
+      nextState:
+        | LayerVisualState
+        | ((previous: LayerVisualState) => LayerVisualState)
+    ) => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      if (homeLayerFrameRef.current !== null) {
+        window.cancelAnimationFrame(homeLayerFrameRef.current);
+      }
+
+      homeLayerFrameRef.current = window.requestAnimationFrame(() => {
+        homeLayerFrameRef.current = null;
+        setHomeLayerState(nextState);
+      });
+    },
+    []
+  );
+
+  const schedulePreviewLayerState = useCallback(
+    (
+      nextState:
+        | LayerVisualState
+        | ((previous: LayerVisualState) => LayerVisualState)
+    ) => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      if (previewLayerFrameRef.current !== null) {
+        window.cancelAnimationFrame(previewLayerFrameRef.current);
+      }
+
+      previewLayerFrameRef.current = window.requestAnimationFrame(() => {
+        previewLayerFrameRef.current = null;
+        setPreviewLayerState(nextState);
+      });
+    },
+    []
+  );
+
   const clearTransitionTimers = useCallback(() => {
+    if (animatedWidthFrameRef.current !== null) {
+      window.cancelAnimationFrame(animatedWidthFrameRef.current);
+      animatedWidthFrameRef.current = null;
+    }
     transitionTimersRef.current.forEach((timerId) =>
       window.clearTimeout(timerId)
     );
@@ -216,7 +316,7 @@ function BottomNavInner({
     return () => observer.disconnect();
   }, [previewDock?.currentIndex, previewDock?.total]);
 
-  const applyTheme = useCallback((nextTheme: "light" | "dark") => {
+  const applyDocumentTheme = useCallback((nextTheme: "light" | "dark") => {
     if (typeof document === "undefined") {
       return;
     }
@@ -226,7 +326,6 @@ function BottomNavInner({
     root.classList.toggle("light", !isDark);
     root.style.colorScheme = isDark ? "dark" : "light";
     window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-    setThemeMode(nextTheme);
   }, []);
 
   useEffect(() => {
@@ -236,7 +335,8 @@ function BottomNavInner({
 
     const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
     if (storedTheme === "dark" || storedTheme === "light") {
-      applyTheme(storedTheme);
+      applyDocumentTheme(storedTheme);
+      scheduleThemeMode(storedTheme);
       return;
     }
 
@@ -247,8 +347,9 @@ function BottomNavInner({
     const hasDarkClass = root.classList.contains("dark");
     const initialTheme: "light" | "dark" =
       hasDarkClass || prefersDark ? "dark" : "light";
-    applyTheme(initialTheme);
-  }, [applyTheme]);
+    applyDocumentTheme(initialTheme);
+    scheduleThemeMode(initialTheme);
+  }, [applyDocumentTheme, scheduleThemeMode]);
 
   useEffect(() => {
     if (!isToolsOpen) {
@@ -275,36 +376,18 @@ function BottomNavInner({
     if (!isPreviewMode || !isToolsOpen) {
       return;
     }
-    setIsToolsOpen(false);
-  }, [isPreviewMode, isToolsOpen]);
+    scheduleCloseToolsPanel();
+  }, [isPreviewMode, isToolsOpen, scheduleCloseToolsPanel]);
+
+  const currentHomeWidth = isToolsOpen
+    ? (homeExpandedWidth ?? homeCollapsedWidth)
+    : (homeCollapsedWidth ?? homeExpandedWidth);
+  const desiredWidth = isPreviewMode
+    ? (previewWidth ?? currentHomeWidth)
+    : (currentHomeWidth ?? previewWidth);
+  const resolvedAnimatedWidth = animatedWidth ?? desiredWidth;
 
   useEffect(() => {
-    if (animatedWidth !== null) return;
-    const currentHomeWidth = isToolsOpen
-      ? (homeExpandedWidth ?? homeCollapsedWidth)
-      : (homeCollapsedWidth ?? homeExpandedWidth);
-    const initialWidth = isPreviewMode
-      ? (previewWidth ?? currentHomeWidth)
-      : (currentHomeWidth ?? previewWidth);
-    if (initialWidth) {
-      setAnimatedWidth(initialWidth);
-    }
-  }, [
-    animatedWidth,
-    homeCollapsedWidth,
-    homeExpandedWidth,
-    isPreviewMode,
-    isToolsOpen,
-    previewWidth,
-  ]);
-
-  useEffect(() => {
-    const currentHomeWidth = isToolsOpen
-      ? (homeExpandedWidth ?? homeCollapsedWidth)
-      : (homeCollapsedWidth ?? homeExpandedWidth);
-    const desiredWidth = isPreviewMode
-      ? (previewWidth ?? currentHomeWidth)
-      : (currentHomeWidth ?? previewWidth);
     if (!desiredWidth) {
       return;
     }
@@ -316,15 +399,15 @@ function BottomNavInner({
         previewLayerStateRef.current === "shown" ||
         previewLayerStateRef.current === "entering"
       ) {
-        setAnimatedWidth(desiredWidth);
+        scheduleAnimatedWidth(desiredWidth);
         return;
       }
 
-      setAnimatedWidth(desiredWidth);
-      setHomeLayerState((previous) =>
+      scheduleAnimatedWidth(desiredWidth);
+      scheduleHomeLayerState((previous) =>
         previous === "hidden" ? "hidden" : "exiting"
       );
-      setPreviewLayerState("hidden");
+      schedulePreviewLayerState("hidden");
 
       const exitTimer = window.setTimeout(() => {
         setHomeLayerState("hidden");
@@ -343,15 +426,15 @@ function BottomNavInner({
       homeLayerStateRef.current === "shown" ||
       homeLayerStateRef.current === "entering"
     ) {
-      setAnimatedWidth(desiredWidth);
+      scheduleAnimatedWidth(desiredWidth);
       return;
     }
 
-    setAnimatedWidth(desiredWidth);
-    setPreviewLayerState((previous) =>
+    scheduleAnimatedWidth(desiredWidth);
+    schedulePreviewLayerState((previous) =>
       previous === "hidden" ? "hidden" : "exiting"
     );
-    setHomeLayerState("hidden");
+    scheduleHomeLayerState("hidden");
 
     const exitTimer = window.setTimeout(() => {
       setPreviewLayerState("hidden");
@@ -367,15 +450,29 @@ function BottomNavInner({
     ENTER_MS,
     EXIT_MS,
     clearTransitionTimers,
-    homeCollapsedWidth,
-    homeExpandedWidth,
+    desiredWidth,
     isPreviewMode,
-    isToolsOpen,
-    previewWidth,
+    scheduleHomeLayerState,
+    scheduleAnimatedWidth,
+    schedulePreviewLayerState,
   ]);
 
   useEffect(() => {
-    return () => clearTransitionTimers();
+    return () => {
+      clearTransitionTimers();
+      if (themeModeFrameRef.current !== null) {
+        window.cancelAnimationFrame(themeModeFrameRef.current);
+      }
+      if (closeToolsFrameRef.current !== null) {
+        window.cancelAnimationFrame(closeToolsFrameRef.current);
+      }
+      if (homeLayerFrameRef.current !== null) {
+        window.cancelAnimationFrame(homeLayerFrameRef.current);
+      }
+      if (previewLayerFrameRef.current !== null) {
+        window.cancelAnimationFrame(previewLayerFrameRef.current);
+      }
+    };
   }, [clearTransitionTimers]);
 
   const previewCounter = `${previewDock?.currentIndex ?? 1}/${previewDock?.total ?? 1}`;
@@ -458,7 +555,8 @@ function BottomNavInner({
   const toggleToolsPanel = () => setIsToolsOpen((previous) => !previous);
   const toggleTheme = () => {
     const nextTheme = themeMode === "dark" ? "light" : "dark";
-    applyTheme(nextTheme);
+    applyDocumentTheme(nextTheme);
+    setThemeMode(nextTheme);
   };
 
   return (
@@ -606,8 +704,8 @@ function BottomNavInner({
         <IconNavShell
           className="bottom-nav-shell relative overflow-hidden"
           style={
-            animatedWidth
-              ? { width: `${Math.round(animatedWidth)}px` }
+            resolvedAnimatedWidth
+              ? { width: `${Math.round(resolvedAnimatedWidth)}px` }
               : undefined
           }
         >

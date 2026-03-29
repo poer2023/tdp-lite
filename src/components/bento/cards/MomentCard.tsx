@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -31,6 +32,18 @@ import { RelativeTimeLabel } from "@/components/ui/RelativeTimeLabel";
 import { shouldBypassNextImageOptimization } from "@/lib/mediaOptimization";
 
 type MomentMedia = NonNullable<Moment["media"]>[number];
+const EMPTY_MOMENT_MEDIA: MomentMedia[] = [];
+
+function getMomentMediaPresentation(media: MomentMedia | null) {
+  const isAudio = Boolean(media?.type === "audio");
+  const isVideo = Boolean(
+    media && !isAudio && (media.type === "video" || isVideoUrl(media.url))
+  );
+  const shouldSkipOptimization = Boolean(
+    media && !isVideo && shouldBypassNextImageOptimization(media.url)
+  );
+  return { isAudio, isVideo, shouldSkipOptimization };
+}
 
 export interface MomentCardOpenOriginRect {
   left: number;
@@ -77,7 +90,7 @@ export function MomentCard({
   homeImagePhaseId,
   previewSeedSrc,
 }: MomentCardProps) {
-  const mediaList = moment.media ?? [];
+  const mediaList = moment.media ?? EMPTY_MOMENT_MEDIA;
   const hasMedia = mediaList.length > 0;
   const hasMultipleMedia = mediaList.length > 1;
   const [internalPreviewMediaIndex, setInternalPreviewMediaIndex] = useState(0);
@@ -88,32 +101,12 @@ export function MomentCard({
     "forward" | "backward"
   >("forward");
   const mediaTransitionTimerRef = useRef<number | null>(null);
+  const mediaTransitionFrameRef = useRef<number | null>(null);
   const previousResolvedMediaIndexRef = useRef(0);
   const previewMediaFrameRef = useRef<HTMLDivElement | null>(null);
   const [previewMeasuredWidth, setPreviewMeasuredWidth] = useState<
     number | null
   >(null);
-
-  const getMediaPresentation = (media: MomentMedia | null) => {
-    const isAudio = Boolean(media?.type === "audio");
-    const isVideo = Boolean(
-      media && !isAudio && (media.type === "video" || isVideoUrl(media.url))
-    );
-    const shouldSkipOptimization = Boolean(
-      media && !isVideo && shouldBypassNextImageOptimization(media.url)
-    );
-    return { isAudio, isVideo, shouldSkipOptimization };
-  };
-
-  useEffect(() => {
-    setInternalPreviewMediaIndex(0);
-    setOutgoingPreviewMediaIndex(null);
-    previousResolvedMediaIndexRef.current = 0;
-    if (mediaTransitionTimerRef.current !== null) {
-      window.clearTimeout(mediaTransitionTimerRef.current);
-      mediaTransitionTimerRef.current = null;
-    }
-  }, [moment.id]);
 
   const rawPreviewMediaIndex = previewMediaIndex ?? internalPreviewMediaIndex;
   const setPreviewMediaIndex = (nextIndex: number) => {
@@ -138,7 +131,7 @@ export function MomentCard({
     isAudio: isAudioMedia,
     isVideo: hasVideoMedia,
     shouldSkipOptimization: skipOptimization,
-  } = getMediaPresentation(mainMedia);
+  } = getMomentMediaPresentation(mainMedia);
   const momentDisplay = resolveMomentDisplayFromMoment(
     moment,
     mainMedia?.title
@@ -161,11 +154,14 @@ export function MomentCard({
   const previewMediaWidth = isPortraitMedia
     ? `min(74%, calc(56vh * ${previewMediaRatio}))`
     : "100%";
+  const isDetachedPreview = preview && hasMedia && !isAudioMedia;
+  const effectivePreviewMeasuredWidth = isDetachedPreview
+    ? previewMeasuredWidth
+    : null;
   const previewImageSizes = getDetachedPreviewImageSizes(
-    previewMeasuredWidth,
+    effectivePreviewMeasuredWidth,
     isPortraitMedia
   );
-  const isDetachedPreview = preview && hasMedia && !isAudioMedia;
   const canSwitchPreviewMedia =
     preview && hasMultipleMedia && showPreviewMediaControls;
   const activePreviewSeedSrc =
@@ -198,9 +194,31 @@ export function MomentCard({
     className
   );
 
+  const schedulePreviewTransitionState = useCallback(
+    (nextDirection: "forward" | "backward", previousIndex: number) => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      if (mediaTransitionFrameRef.current !== null) {
+        window.cancelAnimationFrame(mediaTransitionFrameRef.current);
+      }
+
+      mediaTransitionFrameRef.current = window.requestAnimationFrame(() => {
+        mediaTransitionFrameRef.current = null;
+        setMediaTransitionDirection(nextDirection);
+        setOutgoingPreviewMediaIndex(previousIndex);
+      });
+    },
+    []
+  );
+
   useEffect(() => {
     if (!preview || !hasMultipleMedia) {
-      setOutgoingPreviewMediaIndex(null);
+      if (mediaTransitionFrameRef.current !== null) {
+        window.cancelAnimationFrame(mediaTransitionFrameRef.current);
+        mediaTransitionFrameRef.current = null;
+      }
       previousResolvedMediaIndexRef.current = resolvedMediaIndex;
       if (mediaTransitionTimerRef.current !== null) {
         window.clearTimeout(mediaTransitionTimerRef.current);
@@ -228,18 +246,27 @@ export function MomentCard({
       mediaTransitionTimerRef.current = null;
     }
 
-    setMediaTransitionDirection(nextDirection);
-    setOutgoingPreviewMediaIndex(previousIndex);
+    schedulePreviewTransitionState(nextDirection, previousIndex);
     previousResolvedMediaIndexRef.current = resolvedMediaIndex;
 
     mediaTransitionTimerRef.current = window.setTimeout(() => {
       setOutgoingPreviewMediaIndex(null);
       mediaTransitionTimerRef.current = null;
     }, 320);
-  }, [hasMultipleMedia, mediaList.length, preview, resolvedMediaIndex]);
+  }, [
+    hasMultipleMedia,
+    mediaList.length,
+    preview,
+    resolvedMediaIndex,
+    schedulePreviewTransitionState,
+  ]);
 
   useEffect(() => {
     return () => {
+      if (mediaTransitionFrameRef.current !== null) {
+        window.cancelAnimationFrame(mediaTransitionFrameRef.current);
+        mediaTransitionFrameRef.current = null;
+      }
       if (mediaTransitionTimerRef.current !== null) {
         window.clearTimeout(mediaTransitionTimerRef.current);
         mediaTransitionTimerRef.current = null;
@@ -249,7 +276,6 @@ export function MomentCard({
 
   useLayoutEffect(() => {
     if (!preview || !isDetachedPreview) {
-      setPreviewMeasuredWidth(null);
       return;
     }
 
@@ -281,7 +307,7 @@ export function MomentCard({
       return;
     }
 
-    const measuredWidth = previewMeasuredWidth ?? 420;
+    const measuredWidth = effectivePreviewMeasuredWidth ?? 420;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const requestedWidth = Math.max(320, Math.round(measuredWidth * dpr));
     const preloadIndices = [
@@ -297,7 +323,7 @@ export function MomentCard({
       }
 
       const { isAudio, isVideo, shouldSkipOptimization } =
-        getMediaPresentation(media);
+        getMomentMediaPresentation(media);
       if (isAudio || isVideo || shouldSkipOptimization) {
         return;
       }
@@ -319,11 +345,10 @@ export function MomentCard({
       image.src = preloadUrl;
     });
   }, [
-    getMediaPresentation,
+    effectivePreviewMeasuredWidth,
     hasMultipleMedia,
     mediaList,
     preview,
-    previewMeasuredWidth,
     resolvedMediaIndex,
   ]);
 
@@ -332,7 +357,7 @@ export function MomentCard({
       isAudio: layerIsAudioMedia,
       isVideo: layerHasVideoMedia,
       shouldSkipOptimization: layerSkipOptimization,
-    } = getMediaPresentation(media);
+    } = getMomentMediaPresentation(media);
 
     if (layerIsAudioMedia) {
       return (

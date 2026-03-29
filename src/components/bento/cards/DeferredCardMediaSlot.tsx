@@ -84,14 +84,9 @@ export function DeferredCardMediaSlot({
       return;
     }
 
-    if (delayMs <= 0) {
-      setShouldRender(true);
-      return;
-    }
-
     const timeoutId = window.setTimeout(() => {
       setShouldRender(true);
-    }, delayMs);
+    }, Math.max(0, delayMs));
 
     return () => window.clearTimeout(timeoutId);
   }, [deferred, delayMs, isNearViewport, shouldRender, suspended]);

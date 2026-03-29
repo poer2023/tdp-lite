@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { resolveHomeImagePhaseItem } from "@/components/home/homeMediaPhases";
 import { DeferredCardMediaPlaceholder } from "./DeferredCardMediaSlot";
 import { createOptimizedImageLoader } from "./mediaSizing";
@@ -36,7 +36,8 @@ export function MomentImageOnly({
   previewSeedSrc,
 }: MomentImageOnlyProps) {
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const isLoaded = loadedSrc === src;
   const shouldBypassOptimization = useMemo(
     () => unoptimized || shouldBypassNextImageOptimization(src),
     [src, unoptimized]
@@ -49,21 +50,22 @@ export function MomentImageOnly({
     return createOptimizedImageLoader(sourceWidth, preview ? 640 : 384);
   }, [preview, shouldBypassOptimization, sourceWidth]);
 
-  useEffect(() => {
-    setIsLoaded(false);
-  }, [src]);
-
-  useEffect(() => {
-    if (!homeImagePhaseId) {
-      return;
-    }
-
-    const node = imageRef.current;
-    if (node?.complete && node.naturalWidth > 0) {
-      setIsLoaded(true);
-      resolveHomeImagePhaseItem(homeImagePhaseId);
-    }
+  const markLoaded = useCallback(() => {
+    setLoadedSrc((previous) => (previous === src ? previous : src));
+    resolveHomeImagePhaseItem(homeImagePhaseId);
   }, [homeImagePhaseId, src]);
+
+  const setImageRef = useCallback(
+    (node: HTMLImageElement | null) => {
+      imageRef.current = node;
+      if (!node || !node.complete || node.naturalWidth <= 0) {
+        return;
+      }
+
+      markLoaded();
+    },
+    [markLoaded]
+  );
 
   return (
     <div className={cn("relative h-full w-full overflow-hidden", className)}>
@@ -90,7 +92,7 @@ export function MomentImageOnly({
         />
       ) : null}
       <Image
-        ref={imageRef}
+        ref={setImageRef}
         src={src}
         alt={alt}
         fill
@@ -100,10 +102,7 @@ export function MomentImageOnly({
         priority={priority}
         fetchPriority={fetchPriority}
         loader={optimizedLoader}
-        onLoad={() => {
-          setIsLoaded(true);
-          resolveHomeImagePhaseItem(homeImagePhaseId);
-        }}
+        onLoad={markLoaded}
         onError={() => resolveHomeImagePhaseItem(homeImagePhaseId)}
         className={cn(
           "object-cover transition-[opacity,transform] duration-500",

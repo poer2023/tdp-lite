@@ -26,8 +26,11 @@ export function MomentDetailPreviewClient({
 
   const previewMediaTotal = Math.max(1, moment.media?.length ?? 0);
   const canCyclePreviewMedia = previewMediaTotal > 1;
+  const normalizedPreviewMediaIndex = canCyclePreviewMedia
+    ? previewMediaIndex % previewMediaTotal
+    : 0;
   const previewMediaDisplayIndex = canCyclePreviewMedia
-    ? (previewMediaIndex % previewMediaTotal) + 1
+    ? normalizedPreviewMediaIndex + 1
     : 1;
   const homePath = useMemo(() => toLocalizedPath(locale, "/"), [locale]);
 
@@ -103,14 +106,6 @@ export function MomentDetailPreviewClient({
     };
   }, [setPreviewDockState]);
 
-  useEffect(() => {
-    if (!canCyclePreviewMedia) {
-      setPreviewMediaIndex(0);
-      return;
-    }
-    setPreviewMediaIndex((previous) => previous % previewMediaTotal);
-  }, [canCyclePreviewMedia, previewMediaTotal]);
-
   return (
     <div className="flex min-h-[calc(100dvh-11rem)] items-center justify-center px-4 pb-[calc(6rem+var(--tdp-content-bottom-inset))] pt-[calc(1.25rem+var(--tdp-content-top-inset))] md:px-8 md:pb-[calc(7rem+var(--tdp-content-bottom-inset))] md:pt-[calc(2.5rem+var(--tdp-content-top-inset))]">
       <div className="w-full max-w-3xl">
@@ -118,7 +113,7 @@ export function MomentDetailPreviewClient({
           moment={moment}
           preview
           className="w-full"
-          previewMediaIndex={previewMediaIndex}
+          previewMediaIndex={normalizedPreviewMediaIndex}
           onPreviewMediaIndexChange={setPreviewMediaIndex}
           showPreviewMediaControls={false}
         />

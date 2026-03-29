@@ -44,9 +44,12 @@ export function AutoplayCoverVideo({
 }: AutoplayCoverVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const posterImageRef = useRef<HTMLImageElement | null>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [isInView, setIsInView] = useState(false);
-  const [shouldLoad, setShouldLoad] = useState(false);
+  const [readySrc, setReadySrc] = useState<string | null>(null);
+  const [visibleSrc, setVisibleSrc] = useState<string | null>(null);
+  const [loadRequestedSrc, setLoadRequestedSrc] = useState<string | null>(null);
+  const isReady = readySrc === src;
+  const isInView = !suspended && (eager || visibleSrc === src);
+  const shouldLoad = loadRequestedSrc === src;
   const hasPosterImage = Boolean(
     poster && !(poster.startsWith("blob:") || poster.startsWith("data:"))
   );
@@ -65,12 +68,6 @@ export function AutoplayCoverVideo({
     poster && !bypassPosterOptimization
       ? createOptimizedImageLoader(undefined, eager ? 640 : 384)
       : undefined;
-
-  useEffect(() => {
-    setIsReady(false);
-    setIsInView(false);
-    setShouldLoad(false);
-  }, [src]);
 
   useEffect(() => {
     if (!homeImagePhaseId) {
@@ -94,13 +91,22 @@ export function AutoplayCoverVideo({
 
     let observer: IntersectionObserver | null = null;
     let removeImagesReadyListener: (() => void) | null = null;
+    let loadFrameId: number | null = null;
 
     const scheduleLoad = () => {
-      setShouldLoad(true);
+      if (typeof window === "undefined") {
+        return;
+      }
+      if (loadFrameId !== null) {
+        window.cancelAnimationFrame(loadFrameId);
+      }
+      loadFrameId = window.requestAnimationFrame(() => {
+        loadFrameId = null;
+        setLoadRequestedSrc((previous) => (previous === src ? previous : src));
+      });
     };
 
     if (eager && !suspended) {
-      setIsInView(true);
       let imagesReady = !waitForHomeImagesReady || areHomeImagesReady();
 
       const maybeSchedule = () => {
@@ -123,14 +129,19 @@ export function AutoplayCoverVideo({
       maybeSchedule();
 
       return () => {
+        if (loadFrameId !== null) {
+          window.cancelAnimationFrame(loadFrameId);
+        }
         removeImagesReadyListener?.();
         video.pause();
       };
     }
 
     if (suspended) {
-      setIsInView(false);
       return () => {
+        if (loadFrameId !== null) {
+          window.cancelAnimationFrame(loadFrameId);
+        }
         video.pause();
       };
     }
@@ -141,9 +152,9 @@ export function AutoplayCoverVideo({
         if (!entry) return;
 
         if (entry.isIntersecting) {
-          setIsInView(true);
+          setVisibleSrc(src);
         } else {
-          setIsInView(false);
+          setVisibleSrc(null);
         }
       },
       {
@@ -155,6 +166,9 @@ export function AutoplayCoverVideo({
     observer.observe(video);
 
     return () => {
+      if (loadFrameId !== null) {
+        window.cancelAnimationFrame(loadFrameId);
+      }
       observer?.disconnect();
       video.pause();
     };
@@ -165,13 +179,25 @@ export function AutoplayCoverVideo({
       return;
     }
 
+    let loadFrameId: number | null = null;
+    const scheduleLoad = () => {
+      loadFrameId = window.requestAnimationFrame(() => {
+        loadFrameId = null;
+        setLoadRequestedSrc((previous) => (previous === src ? previous : src));
+      });
+    };
+
     if (!waitForHomeImagesReady || areHomeImagesReady()) {
-      setShouldLoad(true);
-      return;
+      scheduleLoad();
+      return () => {
+        if (loadFrameId !== null) {
+          window.cancelAnimationFrame(loadFrameId);
+        }
+      };
     }
 
     const onImagesReady = () => {
-      setShouldLoad(true);
+      scheduleLoad();
     };
 
     window.addEventListener(HOME_IMAGES_READY_EVENT, onImagesReady, {
@@ -179,9 +205,12 @@ export function AutoplayCoverVideo({
     });
 
     return () => {
+      if (loadFrameId !== null) {
+        window.cancelAnimationFrame(loadFrameId);
+      }
       window.removeEventListener(HOME_IMAGES_READY_EVENT, onImagesReady);
     };
-  }, [eager, isInView, shouldLoad, suspended, waitForHomeImagesReady]);
+  }, [eager, isInView, shouldLoad, src, suspended, waitForHomeImagesReady]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -240,9 +269,15 @@ export function AutoplayCoverVideo({
           "absolute inset-0 h-full w-full object-cover transition-opacity duration-500",
           isReady ? "opacity-100" : hasPosterImage ? "opacity-0" : "opacity-100"
         )}
-        onLoadStart={() => setIsReady(false)}
-        onLoadedMetadata={() => setIsReady(true)}
-        onLoadedData={() => setIsReady(true)}
+        onLoadStart={() => {
+          setReadySrc((previous) => (previous === src ? null : previous));
+        }}
+        onLoadedMetadata={() => {
+          setReadySrc(src);
+        }}
+        onLoadedData={() => {
+          setReadySrc(src);
+        }}
       />
     </div>
   );
