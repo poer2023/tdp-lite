@@ -128,8 +128,8 @@
 
 脚本说明（`scripts/deploy-coolify.sh`）：
 
-- 默认 `cli` 模式：调用 `coolify deploy uuid`。
-- 可切换 `api` 模式：`COOLIFY_DEPLOY_MODE=api`（使用 `/api/v1/deploy?uuid=`）。
+- 默认 `api` 模式：调用 `/api/v1/deploy?uuid=`，更利于保留构建缓存。
+- 如需回退，可切换 `cli` 模式：`COOLIFY_DEPLOY_MODE=cli`（调用 `coolify deploy uuid`）。
 - 支持按 UUID 或按名称自动发现应用。
 - 支持 `api|lite|publisher|all` 多目标发布；`all` 会按 `api -> lite -> publisher` 顺序执行。
 - 支持等待部署完成、失败即退出、部署后健康检查。

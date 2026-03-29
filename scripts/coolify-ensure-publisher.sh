@@ -91,13 +91,43 @@ run_coolify() {
   fi
 }
 
+strip_cli_notice() {
+  awk '
+    {
+      lines[NR] = $0
+    }
+    json_start == 0 && $0 ~ /^[[:space:]]*[\[{]/ {
+      json_start = NR
+    }
+    END {
+      if (json_start > 1) {
+        for (i = json_start; i <= NR; i++) {
+          print lines[i]
+        }
+      } else {
+        for (i = 1; i <= NR; i++) {
+          print lines[i]
+        }
+      }
+    }
+  '
+}
+
+run_coolify_json() {
+  run_coolify "$@" --format json | strip_cli_notice
+}
+
+run_context_json() {
+  coolify context list --format json | strip_cli_notice
+}
+
 get_context_field() {
   local field="$1"
   local context_name="$2"
-  coolify context list --format json | jq -r --arg c "$context_name" --arg f "$field" '.[] | select(.name == $c) | .[$f]' | head -n1
+  run_context_json | jq -r --arg c "$context_name" --arg f "$field" '.[] | select(.name == $c) | .[$f]' | head -n1
 }
 
-app_list_json="$(run_coolify app list --format json)"
+app_list_json="$(run_coolify_json app list)"
 
 if [[ -z "$COOLIFY_PUBLISHER_UUID" ]]; then
   COOLIFY_PUBLISHER_UUID="$(jq -r --arg name "$COOLIFY_PUBLISHER_NAME" '.[] | select(.name == $name) | .uuid' <<<"$app_list_json" | head -n1)"
@@ -115,7 +145,7 @@ resolve_lite_fqdn() {
   local lite_uuid
   lite_uuid="$(resolve_lite_uuid)"
   [[ -z "$lite_uuid" ]] && return 1
-  run_coolify app get "$lite_uuid" --format json | jq -r '.fqdn // ""'
+  run_coolify_json app get "$lite_uuid" | jq -r '.fqdn // ""'
 }
 
 resolve_api_uuid() {
@@ -142,7 +172,7 @@ resolve_api_fqdn() {
   local api_uuid
   api_uuid="$(resolve_api_uuid || true)"
   [[ -z "$api_uuid" ]] && return 1
-  run_coolify app get "$api_uuid" --format json | jq -r '.fqdn // ""'
+  run_coolify_json app get "$api_uuid" | jq -r '.fqdn // ""'
 }
 
 verify_publish_target() {
@@ -184,7 +214,7 @@ resolve_environment_name() {
   [[ -z "$COOLIFY_PROJECT_UUID" ]] && return 1
 
   local project_json env_name
-  project_json="$(run_coolify project get "$COOLIFY_PROJECT_UUID" --format json 2>/dev/null || true)"
+  project_json="$(run_coolify_json project get "$COOLIFY_PROJECT_UUID" 2>/dev/null || true)"
   [[ -z "$project_json" ]] && return 1
 
   if [[ -n "$COOLIFY_ENVIRONMENT_UUID" ]]; then
@@ -212,7 +242,7 @@ create_publisher_with_env_uuid() {
     --ports-exposes "$COOLIFY_PUBLISHER_PORT" \
     --health-check-enabled \
     --health-check-path "$COOLIFY_PUBLISHER_HEALTH_PATH" \
-    --format json 2>&1)"
+    --format json 2>&1 | strip_cli_notice)"
   local status=$?
   set -e
   printf '%s' "$output"
@@ -235,7 +265,7 @@ create_publisher_with_env_name() {
     --ports-exposes "$COOLIFY_PUBLISHER_PORT" \
     --health-check-enabled \
     --health-check-path "$COOLIFY_PUBLISHER_HEALTH_PATH" \
-    --format json 2>&1)"
+    --format json 2>&1 | strip_cli_notice)"
   local status=$?
   set -e
   printf '%s' "$output"
@@ -303,7 +333,7 @@ if [[ -z "$COOLIFY_PUBLISH_TARGET_BASE_URL" ]]; then
   die "Missing COOLIFY_PUBLISH_TARGET_BASE_URL. Set it explicitly or ensure API app exists (default names: $COOLIFY_API_APP_NAME)."
 fi
 if [[ -z "$NEXT_PUBLIC_PUBLISHER_URL" ]]; then
-  NEXT_PUBLIC_PUBLISHER_URL="$(run_coolify app get "$COOLIFY_PUBLISHER_UUID" --format json | jq -r '.fqdn // ""')"
+  NEXT_PUBLIC_PUBLISHER_URL="$(run_coolify_json app get "$COOLIFY_PUBLISHER_UUID" | jq -r '.fqdn // ""')"
 fi
 
 verify_publish_target "$COOLIFY_PUBLISH_TARGET_BASE_URL"
@@ -338,7 +368,7 @@ fi
 
 log "Syncing publisher env vars..."
 sync_failed=0
-app_env_list_json="$(run_coolify --show-sensitive app env list "$COOLIFY_PUBLISHER_UUID" --format json)"
+app_env_list_json="$(run_coolify_json --show-sensitive app env list "$COOLIFY_PUBLISHER_UUID")"
 
 while IFS= read -r line || [[ -n "$line" ]]; do
   [[ -z "$line" ]] && continue
@@ -366,7 +396,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 done <"$tmp_env"
 
 if [[ -s "$tmp_updates" ]]; then
-  ctx_name="${COOLIFY_CONTEXT:-$(coolify context list --format json | jq -r '.[] | select(.default == true) | .name' | head -n1)}"
+  ctx_name="${COOLIFY_CONTEXT:-$(run_context_json | jq -r '.[] | select(.default == true) | .name' | head -n1)}"
   api_url="${COOLIFY_API_URL:-$(get_context_field fqdn "$ctx_name")}"
   api_token="${COOLIFY_API_TOKEN:-$(get_context_field token "$ctx_name")}"
 

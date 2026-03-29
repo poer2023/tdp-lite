@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEFAULT_ENV_FILE="${ROOT_DIR}/.env.coolify"
 
 ENV_FILE="${COOLIFY_ENV_FILE:-$DEFAULT_ENV_FILE}"
-DEPLOY_MODE="${COOLIFY_DEPLOY_MODE:-cli}" # cli | api
+DEPLOY_MODE="${COOLIFY_DEPLOY_MODE:-api}" # api | cli
 TARGETS="${COOLIFY_TARGETS:-lite}"        # lite | api | publisher | all | lite,api,publisher
 COOLIFY_CONTEXT="${COOLIFY_CONTEXT:-}"
 COOLIFY_FORCE="${COOLIFY_FORCE:-false}"
@@ -37,7 +37,7 @@ Usage:
 
 Options:
   --targets <lite|api|publisher|all|lite,api,publisher>  Deploy targets (default: lite)
-  --mode <cli|api>                                Deploy mode (default: cli)
+  --mode <api|cli>                                Deploy mode (default: api)
   --context <name>                                Coolify context name (CLI mode)
   --force                                         Force deployment
   --no-wait                                       Trigger only, do not wait
@@ -49,6 +49,7 @@ Environment file defaults:
   .env.coolify in repo root (if present)
 
 Notes:
+  API mode is preferred because it preserves build cache more reliably for this project.
   When targets=all, publisher failures are ignored by default
   (COOLIFY_PUBLISHER_OPTIONAL_IN_ALL=true).
 EOF
@@ -164,9 +165,21 @@ run_coolify() {
   fi
 }
 
+strip_cli_notice() {
+  awk 'NR == 1 && $0 !~ /^[[:space:]]*[\[{]/ { next } { print }'
+}
+
+run_coolify_json() {
+  run_coolify "$@" --format json | strip_cli_notice
+}
+
+run_context_json() {
+  coolify context list --format json | strip_cli_notice
+}
+
 get_app_list_json() {
   if [[ -z "$APP_LIST_JSON" ]]; then
-    APP_LIST_JSON="$(run_coolify app list --format json)"
+    APP_LIST_JSON="$(run_coolify_json app list)"
   fi
   printf '%s' "$APP_LIST_JSON"
 }
@@ -193,12 +206,12 @@ find_uuid_by_names() {
 get_context_field() {
   local field="$1"
   local context_name="$2"
-  coolify context list --format json | jq -r --arg c "$context_name" --arg f "$field" '.[] | select(.name == $c) | .[$f]' | head -n1
+  run_context_json | jq -r --arg c "$context_name" --arg f "$field" '.[] | select(.name == $c) | .[$f]' | head -n1
 }
 
 get_latest_deployment_json() {
   local uuid="$1"
-  run_coolify app deployments list "$uuid" --format json | jq -c '.[0] // {}'
+  run_coolify_json app deployments list "$uuid" | jq -c '.[0] // {}'
 }
 
 trigger_deploy_cli() {
@@ -216,7 +229,7 @@ trigger_deploy_api() {
   local token="$COOLIFY_API_TOKEN"
 
   if [[ -z "$base_url" || -z "$token" ]]; then
-    local ctx="${COOLIFY_CONTEXT:-$(coolify context list --format json | jq -r '.[] | select(.default == true) | .name' | head -n1)}"
+    local ctx="${COOLIFY_CONTEXT:-$(run_context_json | jq -r '.[] | select(.default == true) | .name' | head -n1)}"
     [[ -z "$base_url" ]] && base_url="$(get_context_field fqdn "$ctx")"
     [[ -z "$token" ]] && token="$(get_context_field token "$ctx")"
   fi
