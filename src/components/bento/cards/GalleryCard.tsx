@@ -78,27 +78,31 @@ export function GalleryCard({
       {/* Hover overlay with EXIF info */}
       <div
         className={cn(
-          "absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-black/80 via-transparent to-transparent p-4 transition-opacity duration-300",
+          "absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-black/80 via-transparent to-transparent p-2.5 transition-opacity duration-300 md:p-4",
           preview ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         )}
       >
         <div className="flex justify-end">
-          {item.title && <LgChipDark>{item.title}</LgChipDark>}
+          {item.title && (
+            <LgChipDark className="max-w-[72%] truncate">
+              {item.title}
+            </LgChipDark>
+          )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1 md:space-y-2">
           {item.camera && (
-            <div className="flex items-center gap-2 text-xs text-white/90">
-              <Camera className="h-3.5 w-3.5" />
-              <span className="font-medium">{item.camera}</span>
+            <div className="flex items-center gap-1.5 text-[10px] text-white/90 md:gap-2 md:text-xs">
+              <Camera className="h-3 w-3 md:h-3.5 md:w-3.5" />
+              <span className="truncate font-medium">{item.camera}</span>
             </div>
           )}
           {(item.focalLength || item.aperture || item.iso) && (
-            <div className="flex items-center gap-3 font-mono text-xs text-white/70">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[9px] text-white/70 md:gap-3 md:text-xs">
               {item.focalLength && <span>{item.focalLength}</span>}
               {item.aperture && (
                 <span className="flex items-center gap-1">
-                  <Aperture className="h-3 w-3" />
+                  <Aperture className="h-2.5 w-2.5 md:h-3 md:w-3" />
                   {item.aperture}
                 </span>
               )}
@@ -116,7 +120,7 @@ export function GalleryCard({
             preview ? "opacity-0" : "opacity-100 group-hover:opacity-0"
           )}
         >
-          <LgChipDark className="bg-white/90 text-white shadow-sm dark:bg-black/70">
+          <LgChipDark className="max-w-[9.5rem] truncate bg-white/90 text-white shadow-sm dark:bg-black/70">
             {item.title}
           </LgChipDark>
         </div>

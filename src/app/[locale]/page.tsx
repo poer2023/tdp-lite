@@ -61,12 +61,12 @@ export default async function HomePage({ params }: HomePageProps) {
         className="tdp-safe-noise bg-noise pointer-events-none fixed inset-0 z-0 opacity-40 mix-blend-multiply"
         data-lg-bg-layer="home-noise"
       />
-      <div className="relative z-10 mx-auto max-w-[1400px] px-6 pb-12 pt-[calc(1.5rem+var(--tdp-content-top-inset))] md:px-12 md:pt-[calc(3rem+var(--tdp-content-top-inset))]">
-        <div className="mb-14 flex items-start justify-between gap-8">
+      <div className="relative z-10 mx-auto max-w-[1400px] px-5 pb-10 pt-[calc(1rem+var(--tdp-content-top-inset))] md:px-12 md:pb-12 md:pt-[calc(3rem+var(--tdp-content-top-inset))]">
+        <div className="mb-10 flex items-start justify-between gap-4 md:mb-14 md:gap-8">
           {/* Hero Title Section */}
-          <section className="relative min-w-0 flex-1 px-2">
+          <section className="relative min-w-0 flex-1">
             <div className="absolute -left-4 top-0 hidden h-full w-1 rounded-full bg-black/5 md:block" />
-            <h2 className="text-ink mb-6 text-6xl font-medium tracking-[-0.03em] md:text-8xl">
+            <h2 className="text-ink mb-4 text-[3.25rem] font-medium leading-none tracking-[-0.035em] md:mb-6 md:text-8xl md:tracking-[-0.03em]">
               {t.heroMonth}
               {t.heroAccent ? (
                 <>
@@ -77,14 +77,14 @@ export default async function HomePage({ params }: HomePageProps) {
                 </>
               ) : null}
             </h2>
-            <p className="text-ink-light max-w-2xl pl-1 font-mono text-lg font-normal leading-relaxed md:text-xl">
+            <p className="text-ink-light max-w-xl pl-0.5 font-mono text-base font-normal leading-[1.55] md:max-w-2xl md:pl-1 md:text-xl md:leading-relaxed">
               {t.heroDescription}
             </p>
           </section>
 
           {/* Right: Status + Avatar */}
           <div className="shrink-0">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 md:gap-6">
               <Suspense
                 fallback={
                   <HomePresenceFallback
@@ -113,7 +113,7 @@ export default async function HomePage({ params }: HomePageProps) {
                   width={48}
                   height={48}
                   sizes="48px"
-                  className="size-12 rounded-full border border-white object-cover shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03),inset_0_0_0_1px_rgba(255,255,255,0.5)] ring-1 ring-black/5 sepia-[0.1] transition-transform hover:scale-105"
+                  className="size-11 rounded-full border border-white object-cover shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03),inset_0_0_0_1px_rgba(255,255,255,0.5)] ring-1 ring-black/5 sepia-[0.1] transition-transform hover:scale-105 md:size-12"
                 />
               </PageTransitionLink>
             </div>

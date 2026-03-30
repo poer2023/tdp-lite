@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { toLocalizedPath } from "@/lib/locale-routing";
@@ -8,22 +9,28 @@ import { PostCard } from "@/components/bento/cards/PostCard";
 import { MomentCard } from "@/components/bento/cards/MomentCard";
 import { GalleryCard } from "@/components/bento/cards/GalleryCard";
 import {
-  computeBentoSpans,
+  computeBentoSpanKeys,
   getFeedItemLayoutKey,
   getHighlightedItemId,
+  type BentoSpanKey,
+  TWO_COLUMN_MOBILE_BENTO_SPAN_CLASS,
 } from "@/components/bento/layoutEngine";
+import { getSearchSparseMobileSpan } from "@/components/search/mobileLayout";
 
 interface SearchFeedGridProps {
   items: FeedItem[];
   className?: string;
   maxDesktopCells?: number;
+  maxMobileCells?: number;
+  isCompactViewport?: boolean;
+  mobileRowHeight?: number;
+  mobileViewportHeight?: number;
+  stretchSparseItems?: boolean;
 }
 
-function getDesktopCellCost(spanClass: string): number {
-  const isWide = spanClass.includes("md:col-span-2");
-  const isTall = spanClass.includes("row-span-2");
-  if (isWide && isTall) return 4;
-  if (isWide || isTall) return 2;
+function getSpanCellCost(span: BentoSpanKey): number {
+  if (span === "2x2") return 4;
+  if (span === "2x1" || span === "1x2") return 2;
   return 1;
 }
 
@@ -31,18 +38,24 @@ export function SearchFeedGrid({
   items,
   className,
   maxDesktopCells,
+  maxMobileCells,
+  isCompactViewport = false,
+  mobileRowHeight = 124,
+  mobileViewportHeight = 0,
+  stretchSparseItems = false,
 }: SearchFeedGridProps) {
-  const spanByItemKey = computeBentoSpans(items);
+  const spanKeyByItemKey = computeBentoSpanKeys(items);
+  const maxVisibleCells = isCompactViewport ? maxMobileCells : maxDesktopCells;
   const visibleItems =
-    typeof maxDesktopCells === "number" && maxDesktopCells > 0
+    typeof maxVisibleCells === "number" && maxVisibleCells > 0
       ? (() => {
           const selected: FeedItem[] = [];
           let used = 0;
           for (const item of items) {
             const itemKey = getFeedItemLayoutKey(item);
-            const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
-            const cost = getDesktopCellCost(spanClass);
-            if (used + cost > maxDesktopCells) {
+            const spanKey = spanKeyByItemKey[itemKey] ?? "1x1";
+            const cost = getSpanCellCost(spanKey);
+            if (used + cost > maxVisibleCells) {
               break;
             }
             selected.push(item);
@@ -52,18 +65,34 @@ export function SearchFeedGrid({
         })()
       : items;
   const highlightedId = getHighlightedItemId(visibleItems);
+  const gridStyle = {
+    "--search-feed-row-height": `${mobileRowHeight}px`,
+  } as CSSProperties;
 
   return (
     <div
+      style={gridStyle}
       className={cn(
-        "grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4 auto-rows-[220px] grid-flow-dense",
+        "grid grid-flow-dense auto-rows-[var(--search-feed-row-height)] grid-cols-2 gap-2.5 md:auto-rows-[220px] md:grid-cols-3 md:gap-4 lg:grid-cols-4",
         className
       )}
     >
-      {visibleItems.map((item) => {
+      {visibleItems.map((item, index) => {
         const itemKey = getFeedItemLayoutKey(item);
-        const spanClass = spanByItemKey[itemKey] ?? "col-span-1 row-span-1";
-        const isHighlighted = item.type !== "action" && item.id === highlightedId;
+        const baseSpanKey = spanKeyByItemKey[itemKey] ?? "1x1";
+        const effectiveSpanKey =
+          isCompactViewport && stretchSparseItems
+            ? getSearchSparseMobileSpan(baseSpanKey, {
+                itemCount: visibleItems.length,
+                itemIndex: index,
+                viewportHeight: mobileViewportHeight,
+              })
+            : baseSpanKey;
+        const spanClass =
+          TWO_COLUMN_MOBILE_BENTO_SPAN_CLASS[effectiveSpanKey] ??
+          "col-span-1 row-span-1";
+        const isHighlighted =
+          item.type !== "action" && item.id === highlightedId;
 
         if (item.type === "post") {
           return (

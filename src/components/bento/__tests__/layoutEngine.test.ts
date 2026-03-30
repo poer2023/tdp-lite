@@ -4,10 +4,12 @@ import type { ActionItem, FeedItem } from "../types";
 import {
   BENTO_SPAN_CLASS,
   computeBentoSpans,
+  computeBentoSpanKeys,
   getFeedItemLayoutKey,
   getHighlightedItemId,
   resolvePreferredBentoSpan,
   type BentoSpanKey,
+  TWO_COLUMN_MOBILE_BENTO_SPAN_CLASS,
 } from "../layoutEngine";
 
 function createPost(id: string, options?: { withCover?: boolean }): FeedItem {
@@ -145,6 +147,26 @@ describe("layoutEngine", () => {
     const first = computeBentoSpans(items);
     const second = computeBentoSpans(items);
     expect(first).toEqual(second);
+  });
+
+  it("can project the same semantic spans into a mobile two-column class map", () => {
+    const items = [
+      createPost("p1"),
+      createMoment("m1", { withMedia: true }),
+      createGallery("g1", { width: 1600, height: 700 }),
+      createMoment("m2", { withMedia: false, contentLength: 180 }),
+    ];
+
+    const semanticLayout = computeBentoSpanKeys(items);
+    const mobileLayout = computeBentoSpans(items, {
+      classMap: TWO_COLUMN_MOBILE_BENTO_SPAN_CLASS,
+    });
+
+    items.forEach((item) => {
+      const layoutKey = getFeedItemLayoutKey(item);
+      const spanKey = semanticLayout[layoutKey];
+      expect(mobileLayout[layoutKey]).toBe(TWO_COLUMN_MOBILE_BENTO_SPAN_CLASS[spanKey]);
+    });
   });
 
   it("keeps zh/en layout consistent for translated content", () => {

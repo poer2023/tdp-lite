@@ -13,7 +13,7 @@ export function LgChipDark({ children, className }: LgChipDarkProps) {
     return (
         <span
             className={cn(
-                "lg-chip-dark rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white",
+                "lg-chip-dark rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-medium text-white md:px-3 md:py-1 md:text-xs",
                 className,
             )}
         >

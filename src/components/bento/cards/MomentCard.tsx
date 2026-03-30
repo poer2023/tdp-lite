@@ -362,16 +362,18 @@ export function MomentCard({
     if (layerIsAudioMedia) {
       return (
         <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#111] via-[#1f2937] to-[#111827]">
-          <div className="flex flex-col items-center gap-3 text-white/90">
-            <span className="lg-chip-dark inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium">
-              <Music2 className="h-3.5 w-3.5" />
+          <div className="flex flex-col items-center gap-2.5 text-white/90 md:gap-3">
+            <span className="lg-chip-dark inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[10px] font-medium md:gap-2 md:px-3 md:py-1 md:text-xs">
+              <Music2 className="h-3 w-3 md:h-3.5 md:w-3.5" />
               Music
             </span>
-            <p className="font-display text-lg font-medium text-white">
+            <p className="line-clamp-2 font-display text-[0.95rem] font-medium leading-[1.28] text-white md:text-lg">
               {media.title || moment.content}
             </p>
             {media.artist ? (
-              <p className="font-mono text-xs text-white/70">{media.artist}</p>
+              <p className="font-mono text-[10px] text-white/70 md:text-xs">
+                {media.artist}
+              </p>
             ) : null}
           </div>
         </div>
@@ -498,20 +500,20 @@ export function MomentCard({
           </div>
         </div>
 
-        <div className="mx-3 mt-3 rounded-[20px] border border-white/75 bg-white/90 p-3.5 shadow-preview-info">
-          <div className="mb-2.5 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/80 px-2.5 py-0.5 text-[11px] font-medium text-[#333]">
+        <div className="mx-3 mt-3 rounded-[20px] border border-white/75 bg-white/90 p-3 shadow-preview-info md:p-3.5">
+          <div className="mb-2 flex flex-wrap items-center gap-1.5 md:mb-2.5 md:gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/80 px-2 py-0.5 text-[10px] font-medium text-[#333] md:gap-1.5 md:px-2.5 md:text-[11px]">
               {isHighlighted ? "Spotlight" : "Insight"}
             </span>
             {moment.location ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/80 px-2.5 py-0.5 text-[11px] text-[#555]">
-                <MapPin className="h-3 w-3 shrink-0" />
+              <span className="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/80 px-2 py-0.5 text-[10px] text-[#555] md:px-2.5 md:text-[11px]">
+                <MapPin className="h-2.5 w-2.5 shrink-0 md:h-3 md:w-3" />
                 {moment.location.name}
               </span>
             ) : null}
           </div>
 
-          <p className="line-clamp-3 whitespace-pre-wrap font-display text-[1rem] font-medium leading-[1.42] tracking-[-0.004em] text-[#111]">
+          <p className="line-clamp-3 whitespace-pre-wrap font-display text-[0.93rem] font-medium leading-[1.3] tracking-[-0.01em] text-[#111] md:text-[1rem] md:leading-[1.42] md:tracking-[-0.004em]">
             {shouldQuoteMomentText ? (
               <>&ldquo;{momentText}&rdquo;</>
             ) : (
@@ -519,7 +521,7 @@ export function MomentCard({
             )}
           </p>
 
-          <div className="mt-2.5 font-mono text-[10px] uppercase tracking-wider text-[#666]">
+          <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[#666] md:mt-2.5 md:tracking-wider">
             <RelativeTimeLabel date={moment.createdAt} locale={moment.locale} />
           </div>
         </div>
@@ -532,16 +534,16 @@ export function MomentCard({
         >
           {isAudioMedia ? (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#111] via-[#1f2937] to-[#111827]">
-              <div className="flex flex-col items-center gap-3 text-white/90">
-                <span className="lg-chip-dark inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium">
-                  <Music2 className="h-3.5 w-3.5" />
+              <div className="flex flex-col items-center gap-2.5 text-white/90 md:gap-3">
+                <span className="lg-chip-dark inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-0.5 text-[10px] font-medium md:gap-2 md:px-3 md:py-1 md:text-xs">
+                  <Music2 className="h-3 w-3 md:h-3.5 md:w-3.5" />
                   Music
                 </span>
-                <p className="font-display text-lg font-medium text-white">
+                <p className="line-clamp-2 font-display text-[0.95rem] font-medium leading-[1.28] text-white md:text-lg">
                   {momentText}
                 </p>
                 {mainMedia?.artist ? (
-                  <p className="font-mono text-xs text-white/70">
+                  <p className="font-mono text-[10px] text-white/70 md:text-xs">
                     {mainMedia.artist}
                   </p>
                 ) : null}
@@ -591,22 +593,22 @@ export function MomentCard({
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         </div>
 
-        <div className="relative z-10 flex h-full flex-col justify-between p-6">
+        <div className="relative z-10 flex h-full flex-col justify-between p-3.5 md:p-6">
           <div className="flex items-start justify-between">
-            <LgChipDark className="inline-flex items-center gap-1.5">
+            <LgChipDark className="inline-flex items-center gap-1 md:gap-1.5">
               {isHighlighted ? "Spotlight" : "Insight"}
             </LgChipDark>
             {moment.location && (
-              <LgChipDark className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {moment.location.name}
+              <LgChipDark className="flex max-w-[8.5rem] items-center gap-1 truncate">
+                <MapPin className="h-2.5 w-2.5 md:h-3 md:w-3" />
+                <span className="truncate">{moment.location.name}</span>
               </LgChipDark>
             )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1 md:space-y-2">
             {preview ? (
-              <p className="font-display text-lg font-medium leading-relaxed text-white">
+              <p className="line-clamp-2 font-display text-[0.95rem] font-medium leading-[1.3] text-white md:line-clamp-3 md:text-lg md:leading-relaxed">
                 {shouldQuoteMomentText ? (
                   <>&ldquo;{momentText}&rdquo;</>
                 ) : (
@@ -615,14 +617,14 @@ export function MomentCard({
               </p>
             ) : (
               <div className="relative">
-                <p className="line-clamp-2 font-display text-lg font-medium leading-relaxed text-white transition-[transform,opacity] duration-300 ease-out will-change-transform group-hover:-translate-y-2 group-hover:opacity-0">
+                <p className="line-clamp-2 font-display text-[0.95rem] font-medium leading-[1.3] tracking-[-0.01em] text-white transition-[transform,opacity] duration-300 ease-out will-change-transform group-hover:-translate-y-2 group-hover:opacity-0 md:line-clamp-2 md:text-lg md:leading-relaxed md:tracking-normal">
                   {shouldQuoteMomentText ? (
                     <>&ldquo;{momentText}&rdquo;</>
                   ) : (
                     momentText
                   )}
                 </p>
-                <p className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 font-display text-lg font-medium leading-relaxed text-white opacity-0 transition-[transform,opacity] duration-300 ease-out will-change-transform group-hover:translate-y-0 group-hover:opacity-100">
+                <p className="pointer-events-none absolute inset-x-0 bottom-0 translate-y-3 font-display text-[0.95rem] font-medium leading-[1.3] tracking-[-0.01em] text-white opacity-0 transition-[transform,opacity] duration-300 ease-out will-change-transform group-hover:translate-y-0 group-hover:opacity-100 md:text-lg md:leading-relaxed md:tracking-normal">
                   {shouldQuoteMomentText ? (
                     <>&ldquo;{momentText}&rdquo;</>
                   ) : (
@@ -632,40 +634,40 @@ export function MomentCard({
               </div>
             )}
             {isAudioMedia && mainMedia?.artist ? (
-              <div className="font-mono text-xs text-white/70">
+              <div className="font-mono text-[10px] text-white/70 md:text-xs">
                 {mainMedia.artist}
               </div>
             ) : null}
             <RelativeTimeLabel
               date={moment.createdAt}
               locale={moment.locale}
-              className="font-mono text-xs text-white/60"
+              className="font-mono text-[10px] text-white/60 md:text-xs"
             />
           </div>
         </div>
       </>
     )
   ) : (
-    <div className="flex h-full flex-col justify-between p-6">
+    <div className="flex h-full flex-col justify-between p-3.5 md:p-6">
       <div className="flex items-start justify-between">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
-          <Quote className="h-4 w-4" />
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 md:h-8 md:w-8">
+          <Quote className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </div>
         {isHighlighted && (
-          <span className="rounded-full bg-black px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-white">
+          <span className="rounded-full bg-black px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-white md:py-1 md:tracking-wider">
             Spotlight
           </span>
         )}
         {moment.location && (
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3" />
-            {moment.location.name}
+          <span className="flex max-w-[8.5rem] items-center gap-1 truncate text-[10px] text-muted-foreground md:text-xs">
+            <MapPin className="h-2.5 w-2.5 md:h-3 md:w-3" />
+            <span className="truncate">{moment.location.name}</span>
           </span>
         )}
       </div>
 
       <div className="flex flex-1 items-center">
-        <p className="font-display text-lg font-medium leading-relaxed text-foreground">
+        <p className="line-clamp-3 font-display text-[0.97rem] font-medium leading-[1.3] tracking-[-0.01em] text-foreground md:line-clamp-4 md:text-lg md:leading-relaxed md:tracking-normal">
           {shouldQuoteMomentText ? <>&ldquo;{momentText}&rdquo;</> : momentText}
         </p>
       </div>
@@ -673,7 +675,7 @@ export function MomentCard({
       <RelativeTimeLabel
         date={moment.createdAt}
         locale={moment.locale}
-        className="font-mono text-xs text-muted-foreground"
+        className="font-mono text-[10px] text-muted-foreground md:text-xs"
       />
     </div>
   );

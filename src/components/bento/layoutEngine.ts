@@ -9,6 +9,13 @@ export const BENTO_SPAN_CLASS: Record<BentoSpanKey, string> = {
   "2x2": "col-span-1 md:col-span-2 row-span-2",
 };
 
+export const TWO_COLUMN_MOBILE_BENTO_SPAN_CLASS: Record<BentoSpanKey, string> = {
+  "1x1": "col-span-1 row-span-1",
+  "1x2": "col-span-1 row-span-2",
+  "2x1": "col-span-2 md:col-span-2 row-span-1",
+  "2x2": "col-span-2 md:col-span-2 row-span-2",
+};
+
 const LARGE_SPANS = new Set<BentoSpanKey>(["1x2", "2x1", "2x2"]);
 
 export function getFeedItemLayoutKey(item: FeedItem): string {
@@ -180,8 +187,8 @@ function applyAutoConstraints(
   return next;
 }
 
-export function computeBentoSpans(items: FeedItem[]): Record<string, string> {
-  const layout: Record<string, string> = {};
+export function computeBentoSpanKeys(items: FeedItem[]): Record<string, BentoSpanKey> {
+  const layout: Record<string, BentoSpanKey> = {};
   const contentCount = items.filter((item) => item.type !== "action").length;
   const maxTwoByTwo = contentCount < 8 ? 0 : Math.ceil(contentCount / 10);
 
@@ -204,10 +211,24 @@ export function computeBentoSpans(items: FeedItem[]): Record<string, string> {
     }
     prevWasLarge = LARGE_SPANS.has(pickedSpan);
 
-    layout[getFeedItemLayoutKey(item)] = BENTO_SPAN_CLASS[pickedSpan];
+    layout[getFeedItemLayoutKey(item)] = pickedSpan;
   });
 
   return layout;
+}
+
+export function computeBentoSpans(
+  items: FeedItem[],
+  options?: {
+    classMap?: Record<BentoSpanKey, string>;
+  }
+): Record<string, string> {
+  const classMap = options?.classMap ?? BENTO_SPAN_CLASS;
+  const spanKeys = computeBentoSpanKeys(items);
+
+  return Object.fromEntries(
+    Object.entries(spanKeys).map(([layoutKey, spanKey]) => [layoutKey, classMap[spanKey]])
+  );
 }
 
 export function getHighlightedItemId(items: FeedItem[]): string | null {

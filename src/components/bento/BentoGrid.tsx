@@ -26,6 +26,7 @@ import {
   computeBentoSpans,
   getFeedItemLayoutKey,
   getHighlightedItemId,
+  TWO_COLUMN_MOBILE_BENTO_SPAN_CLASS,
 } from "./layoutEngine";
 import {
   DEFAULT_PREVIEW_DOCK_STATE,
@@ -58,12 +59,12 @@ interface DeferredBentoCardSlotProps {
 function getDeferredCardIntrinsicSize(spanClass: string): string {
   const rowSpanMatch = spanClass.match(/row-span-(\d+)/);
   const rowSpan = Number(rowSpanMatch?.[1] ?? 1);
-  const baseRowHeight = 220;
-  const rowGap = 16;
   const intrinsicHeight =
-    rowSpan * baseRowHeight + Math.max(0, rowSpan - 1) * rowGap;
+    rowSpan > 1
+      ? "calc(var(--feed-bento-row-height) + var(--feed-bento-row-height) + var(--feed-bento-row-gap))"
+      : "var(--feed-bento-row-height)";
 
-  return `${intrinsicHeight}px 100%`;
+  return `${intrinsicHeight} 100%`;
 }
 
 function DeferredBentoCardSlot({
@@ -158,7 +159,9 @@ export function BentoGrid({
   deferredCardRootMargin = "320px 0px",
   suspendBackgroundLoading = false,
 }: BentoGridProps) {
-  const spanByItemKey = computeBentoSpans(items);
+  const spanByItemKey = computeBentoSpans(items, {
+    classMap: TWO_COLUMN_MOBILE_BENTO_SPAN_CLASS,
+  });
   const highlightedId = highlightFeatured ? getHighlightedItemId(items) : null;
   const mediaOrderByItemKey = useMemo(() => {
     const next: Record<string, number | null> = {};
@@ -490,7 +493,7 @@ export function BentoGrid({
     <>
       <div
         className={cn(
-          "bento-grid grid grid-flow-dense auto-rows-[220px] grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-4",
+          "[--feed-bento-row-gap:12px] [--feed-bento-row-height:180px] bento-grid grid grid-flow-dense auto-rows-[180px] grid-cols-2 gap-3 sm:[--feed-bento-row-height:200px] sm:auto-rows-[200px] md:[--feed-bento-row-gap:16px] md:[--feed-bento-row-height:220px] md:auto-rows-[220px] md:grid-cols-3 md:gap-4 lg:grid-cols-4",
           className
         )}
       >
