@@ -26,9 +26,9 @@ Status: Phase 2 complete, Phase 3 in progress
 
 ### 3. Lite Runtime Boundary
 
-- Keep DB/Auth/Storage/Publisher concerns out of the public read path.
+- Keep DB/Auth/Storage/write-time concerns out of the public read path.
 - Mark server-only modules explicitly.
-- Move write-time concerns behind publisher/admin/sync boundaries.
+- Move write-time concerns behind admin/sync boundaries.
 
 ### 4. Snapshot-Based External Data
 
@@ -119,7 +119,7 @@ Status: Phase 2 complete, Phase 3 in progress
 
 ### Remaining after this pass
 
-- Continue Phase 3 by reducing how much public runtime code depends on DB/Auth/Storage/Publisher packages still present in the lite workspace.
+- Continue Phase 3 by reducing how much public runtime code depends on DB/Auth/Storage packages still present in the lite workspace.
 - Consider package/workspace extraction once the public read path is fully decoupled from write-time modules.
 
 ## Deferred

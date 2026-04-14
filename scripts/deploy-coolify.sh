@@ -6,25 +6,21 @@ DEFAULT_ENV_FILE="${ROOT_DIR}/.env.coolify"
 
 ENV_FILE="${COOLIFY_ENV_FILE:-$DEFAULT_ENV_FILE}"
 DEPLOY_MODE="${COOLIFY_DEPLOY_MODE:-api}" # api | cli
-TARGETS="${COOLIFY_TARGETS:-lite}"        # lite | api | publisher | all | lite,api,publisher
+TARGETS="${COOLIFY_TARGETS:-lite}"        # lite | api | all | lite,api
 COOLIFY_CONTEXT="${COOLIFY_CONTEXT:-}"
 COOLIFY_FORCE="${COOLIFY_FORCE:-false}"
 COOLIFY_WAIT="${COOLIFY_WAIT:-true}"
 COOLIFY_TIMEOUT_SECONDS="${COOLIFY_TIMEOUT_SECONDS:-900}"
 COOLIFY_POLL_SECONDS="${COOLIFY_POLL_SECONDS:-8}"
 COOLIFY_HEALTH_STRICT="${COOLIFY_HEALTH_STRICT:-true}"
-COOLIFY_PUBLISHER_OPTIONAL_IN_ALL="${COOLIFY_PUBLISHER_OPTIONAL_IN_ALL:-true}"
 DRY_RUN="false"
 
 COOLIFY_LITE_NAME="${COOLIFY_LITE_NAME:-tdp-lite}"
 COOLIFY_API_APP_NAME="${COOLIFY_API_APP_NAME:-tdp-lite-api,lite-api}"
-COOLIFY_PUBLISHER_NAME="${COOLIFY_PUBLISHER_NAME:-tdp-publisher,publisher}"
 COOLIFY_LITE_UUID="${COOLIFY_LITE_UUID:-}"
 COOLIFY_API_APP_UUID="${COOLIFY_API_APP_UUID:-}"
-COOLIFY_PUBLISHER_UUID="${COOLIFY_PUBLISHER_UUID:-}"
 COOLIFY_LITE_HEALTH_URL="${COOLIFY_LITE_HEALTH_URL:-}"
 COOLIFY_API_HEALTH_URL="${COOLIFY_API_HEALTH_URL:-}"
-COOLIFY_PUBLISHER_HEALTH_URL="${COOLIFY_PUBLISHER_HEALTH_URL:-}"
 COOLIFY_API_URL="${COOLIFY_API_URL:-}"
 COOLIFY_API_TOKEN="${COOLIFY_API_TOKEN:-}"
 
@@ -36,7 +32,7 @@ Usage:
   scripts/deploy-coolify.sh [options]
 
 Options:
-  --targets <lite|api|publisher|all|lite,api,publisher>  Deploy targets (default: lite)
+  --targets <lite|api|all|lite,api>                 Deploy targets (default: lite)
   --mode <api|cli>                                Deploy mode (default: api)
   --context <name>                                Coolify context name (CLI mode)
   --force                                         Force deployment
@@ -50,8 +46,7 @@ Environment file defaults:
 
 Notes:
   API mode is preferred because it preserves build cache more reliably for this project.
-  When targets=all, publisher failures are ignored by default
-  (COOLIFY_PUBLISHER_OPTIONAL_IN_ALL=true).
+  The legacy publisher target has been removed; use the tdp-slide publish app instead.
 EOF
 }
 
@@ -141,16 +136,12 @@ COOLIFY_WAIT="${COOLIFY_WAIT:-$COOLIFY_WAIT}"
 COOLIFY_TIMEOUT_SECONDS="${COOLIFY_TIMEOUT_SECONDS:-$COOLIFY_TIMEOUT_SECONDS}"
 COOLIFY_POLL_SECONDS="${COOLIFY_POLL_SECONDS:-$COOLIFY_POLL_SECONDS}"
 COOLIFY_HEALTH_STRICT="${COOLIFY_HEALTH_STRICT:-$COOLIFY_HEALTH_STRICT}"
-COOLIFY_PUBLISHER_OPTIONAL_IN_ALL="${COOLIFY_PUBLISHER_OPTIONAL_IN_ALL:-$COOLIFY_PUBLISHER_OPTIONAL_IN_ALL}"
 COOLIFY_LITE_NAME="${COOLIFY_LITE_NAME:-$COOLIFY_LITE_NAME}"
 COOLIFY_API_APP_NAME="${COOLIFY_API_APP_NAME:-$COOLIFY_API_APP_NAME}"
-COOLIFY_PUBLISHER_NAME="${COOLIFY_PUBLISHER_NAME:-$COOLIFY_PUBLISHER_NAME}"
 COOLIFY_LITE_UUID="${COOLIFY_LITE_UUID:-$COOLIFY_LITE_UUID}"
 COOLIFY_API_APP_UUID="${COOLIFY_API_APP_UUID:-$COOLIFY_API_APP_UUID}"
-COOLIFY_PUBLISHER_UUID="${COOLIFY_PUBLISHER_UUID:-$COOLIFY_PUBLISHER_UUID}"
 COOLIFY_LITE_HEALTH_URL="${COOLIFY_LITE_HEALTH_URL:-$COOLIFY_LITE_HEALTH_URL}"
 COOLIFY_API_HEALTH_URL="${COOLIFY_API_HEALTH_URL:-$COOLIFY_API_HEALTH_URL}"
-COOLIFY_PUBLISHER_HEALTH_URL="${COOLIFY_PUBLISHER_HEALTH_URL:-$COOLIFY_PUBLISHER_HEALTH_URL}"
 COOLIFY_API_URL="${COOLIFY_API_URL:-$COOLIFY_API_URL}"
 COOLIFY_API_TOKEN="${COOLIFY_API_TOKEN:-$COOLIFY_API_TOKEN}"
 
@@ -344,10 +335,10 @@ deploy_one() {
 }
 
 normalize_targets() {
-  case "$TARGETS" in
-    all)
-      printf '%s\n' "api" "lite" "publisher"
-      ;;
+	case "$TARGETS" in
+	  all)
+	    printf '%s\n' "api" "lite"
+	    ;;
     *)
       IFS=',' read -r -a arr <<< "$TARGETS"
       for t in "${arr[@]}"; do
@@ -364,10 +355,6 @@ fi
 if [[ -z "$COOLIFY_API_APP_UUID" ]]; then
   COOLIFY_API_APP_UUID="$(find_uuid_by_names "$COOLIFY_API_APP_NAME" || true)"
 fi
-if [[ -z "$COOLIFY_PUBLISHER_UUID" ]]; then
-  COOLIFY_PUBLISHER_UUID="$(find_uuid_by_names "$COOLIFY_PUBLISHER_NAME" || true)"
-fi
-
 log "Deploy targets: $TARGETS"
 log "Mode: $DEPLOY_MODE"
 [[ -n "$COOLIFY_CONTEXT" ]] && log "Context: $COOLIFY_CONTEXT"
@@ -384,23 +371,10 @@ while IFS= read -r target; do
       deploy_one "lite" "$COOLIFY_LITE_UUID" "$COOLIFY_LITE_HEALTH_URL"
       ;;
     publisher)
-      if [[ -z "$COOLIFY_PUBLISHER_UUID" ]]; then
-        if [[ "$TARGETS" == "all" ]]; then
-          warn "Publisher app UUID not found, skipped."
-          continue
-        fi
-        die "Publisher app UUID not found."
-      fi
-      if [[ "$TARGETS" == "all" ]] && str_true "$COOLIFY_PUBLISHER_OPTIONAL_IN_ALL"; then
-        if ! deploy_one "publisher" "$COOLIFY_PUBLISHER_UUID" "$COOLIFY_PUBLISHER_HEALTH_URL"; then
-          warn "Publisher deploy failed but ignored (optional in all-target mode)."
-        fi
-      else
-        deploy_one "publisher" "$COOLIFY_PUBLISHER_UUID" "$COOLIFY_PUBLISHER_HEALTH_URL"
-      fi
+      die "Legacy publisher target has been removed. Use poer2023/tdp-slide tdp-slide-test-publish."
       ;;
     *)
-      die "Unsupported target: $target (expected lite|api|publisher|all)"
+      die "Unsupported target: $target (expected lite|api|all)"
       ;;
   esac
 done < <(normalize_targets)

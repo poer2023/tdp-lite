@@ -69,37 +69,32 @@
 - Full stack (frontend + Go API + worker):
   - `pnpm dev:all`
 
-### Publisher App (same repo)
+### Publishing
 
-- Publisher source now lives in `publisher/` and is deployed as an independent service.
-- Lite runtime never depends on publisher process health.
-- `/admin` is non-blocking: it only shows publisher entry link when configured.
+- The legacy in-repo `publisher/` service has been removed.
+- Publishing is handled by the separate `tdp-slide` publish app.
+- Lite runtime does not depend on any publisher process.
 
 ## Docker Compose（单仓库、双服务隔离）
 
 1. 复制 compose 环境变量模板：
    - `cp docker/.env.compose.example .env.compose`
    - 必填强密钥：`NEXTAUTH_SECRET`、`TDP_PREVIEW_SECRET`、`TDP_INTERNAL_KEY_SECRET`
-2. 启动 Lite 主链路（默认不启动 publisher）：
+2. 启动 Lite 主链路：
    - `docker compose --env-file .env.compose up -d`
-3. 若需要发布工具，再启 publisher profile：
-   - `docker compose --env-file .env.compose --profile publisher up -d`
-4. 若需要独立同步 GitHub / Apple Music / search snapshot，再启 sync profile：
+3. 若需要独立同步 GitHub / Apple Music / search snapshot，再启 sync profile：
    - `docker compose --env-file .env.compose --profile sync up -d profile-sync`
 
 默认端口：
 
 - Lite Web: `3000`
 - Go API: `8080`
-- Publisher: `3100`（仅在 `publisher` profile 启动时）
 
 隔离保证：
 
-- `lite-web` / `lite-api` / `lite-worker` 没有对 `publisher` 的运行依赖。
-- `publisher` 挂掉、重启失败或关闭时，不影响 Lite 展示链路。
-- `publisher` 仅在发布动作触发时调用 API；失败只影响发布动作本身。
-- Compose 已启用 `lite-api` / `lite-web` / `publisher` 健康检查。
-- `db` / `api` / `publisher` 默认仅绑定到 `127.0.0.1`（可通过 `*.BIND_HOST` 覆盖）。
+- `lite-web` / `lite-api` / `lite-worker` 没有对发布后台的运行依赖。
+- Compose 已启用 `lite-api` / `lite-web` 健康检查。
+- `db` / `api` 默认仅绑定到 `127.0.0.1`（可通过 `*.BIND_HOST` 覆盖）。
 
 ## Coolify 发布（推荐）
 
@@ -108,22 +103,15 @@
 1. 初始化配置：
    - `cp .env.coolify.example .env.coolify`
    - 按需修改 `COOLIFY_CONTEXT`、`COOLIFY_LITE_UUID`、`COOLIFY_API_APP_UUID`、健康检查 URL 等。
-2. 如果 publisher 还没单独建应用，先执行：
-   - `pnpm deploy:coolify:ensure-publisher`
-   - 该命令会在 Coolify 创建独立 `tdp-publisher`（`base-directory=/publisher`）并同步核心 env。
-   - `PUBLISH_TARGET_BASE_URL` 会默认自动解析到 `tdp-lite-api`（而不是 `tdp-lite` 前端 URL），并在写入前校验 `/healthz` 与 `/v1/previews/sessions`。
-   - 当 env 有更新时，会自动触发 publisher 重部署，确保新变量立即生效。
-   - 若创建时 `environment-uuid` 不兼容，会自动回退到 `environment-name`（可在 `.env.coolify` 配置 `COOLIFY_ENVIRONMENT_NAME`）。
-3. 发布 API（推荐先发 API）：
+2. 发布 API（推荐先发 API）：
    - `pnpm deploy:coolify:api`
-4. 发布 Lite：
+3. 发布 Lite：
    - `pnpm deploy:coolify:lite`
-5. 发布全部目标（api + lite + publisher，publisher 若未配置会自动跳过）：
+4. 发布全部目标（api + lite）：
    - `pnpm deploy:coolify:all`
-   - 默认 `COOLIFY_PUBLISHER_OPTIONAL_IN_ALL=true`，即 publisher 失败不会阻断 lite 发布。
-6. 发布前预演：
+5. 发布前预演：
    - `pnpm deploy:coolify:dry-run`
-7. 发布前硬化检查（建议）：
+6. 发布前硬化检查（建议）：
    - `pnpm release:preflight`
 
 脚本说明（`scripts/deploy-coolify.sh`）：
@@ -131,9 +119,8 @@
 - 默认 `api` 模式：调用 `/api/v1/deploy?uuid=`，更利于保留构建缓存。
 - 如需回退，可切换 `cli` 模式：`COOLIFY_DEPLOY_MODE=cli`（调用 `coolify deploy uuid`）。
 - 支持按 UUID 或按名称自动发现应用。
-- 支持 `api|lite|publisher|all` 多目标发布；`all` 会按 `api -> lite -> publisher` 顺序执行。
+- 支持 `api|lite|all` 多目标发布；`all` 会按 `api -> lite` 顺序执行。
 - 支持等待部署完成、失败即退出、部署后健康检查。
-- `scripts/coolify-ensure-publisher.sh` 用于自动创建 publisher 独立应用。
 
 ### Lightweight Frontend Mode
 
@@ -193,20 +180,12 @@ Optional env:
   - disable writing `data/profile-snapshot.json`
 - `PROFILE_SYNC_OUTPUT_FILE=/custom/path/profile-snapshot.json`
   - override the local profile snapshot output path
-- `GITHUB_SYNC_TARGET=publisher`
-  - delegate GitHub fetch + normalization to `tdp-publisher`, while the sync runner only collects the payload and writes the merged snapshot to Go API
-- `GITHUB_SYNC_PUBLISHER_BASE_URL=http://publisher:3100`
-  - publisher base URL used by the sync runner when `GITHUB_SYNC_TARGET=publisher`
-- `PUBLISHER_CRON_SECRET=...`
-  - optional shared secret for the publisher internal sync endpoint (`Authorization: Bearer ...`); when omitted, the sync runner reuses `TDP_INTERNAL_KEY_SECRET`
-
 Required env:
 
 - `TDP_INTERNAL_KEY_ID`, `TDP_INTERNAL_KEY_SECRET`
 - GitHub:
   - `GITHUB_SYNC_USERNAME` (required for GitHub sync)
   - `GITHUB_SYNC_TOKEN` (optional, recommended to avoid low rate limits)
-  - when `GITHUB_SYNC_TARGET=publisher`, the same GitHub env vars must also be present on the publisher app
 - Apple Music:
   - `APPLE_MUSIC_DEVELOPER_TOKEN`
   - `APPLE_MUSIC_USER_TOKEN`
@@ -215,24 +194,12 @@ Required env:
   - `SEARCH_SYNC_INTERVAL_HOURS` (default `1` in compose sync profile)
   - `SEARCH_SYNC_WRITE_LOCAL` (`true` for local dev, `false` for isolated sync container)
 
-Publisher-proxied GitHub sync:
-
-- `publisher` exposes `POST /api/internal/profile-sync/github`
-- auth: publisher session cookie or `Authorization: Bearer $PUBLISHER_CRON_SECRET` (fallback: `TDP_INTERNAL_KEY_SECRET`)
-- intended flow:
-  1. sync runner calls publisher route daily
-  2. publisher fetches real GitHub events and returns normalized heatmap / recent pushes
-  3. sync runner merges that payload with other profile snapshot fields and writes `/v1/internal/profile-snapshot`
-- result: main site only renders snapshot data and never talks to GitHub directly
-
 ## CI/CD
 
 - Frontend CI: `.github/workflows/frontend-ci.yml`
   - `pnpm type-check`, `pnpm lint`, `pnpm test:layout`, `pnpm build`
 - Backend CI: `.github/workflows/backend-ci.yml`
   - `cd backend && go test ./... && go build ./...`
-- Publisher CI: `.github/workflows/publisher-ci.yml`
-  - `pnpm -C publisher type-check`, `pnpm -C publisher lint`, `pnpm -C publisher build`
 - Integration E2E (nightly/manual): `.github/workflows/integration-e2e.yml`
   - 启动 PostgreSQL + Next + Go API + worker，做端到端 smoke 验证。
 - CD workflow: `.github/workflows/cd.yml`

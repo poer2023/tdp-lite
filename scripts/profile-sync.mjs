@@ -420,10 +420,6 @@ async function fetchRecentPushSummary(config, username, startTs) {
 }
 
 async function fetchGithubSnapshot(config) {
-  if (config.githubSyncTarget === "publisher") {
-    return fetchGithubSnapshotFromPublisher(config);
-  }
-
   const username = config.githubUsername?.trim();
   if (!username) {
     return {
@@ -531,48 +527,6 @@ async function fetchGithubSnapshot(config) {
       },
       recentPushes,
     },
-  };
-}
-
-async function fetchGithubSnapshotFromPublisher(config) {
-  const baseUrl = config.githubPublisherBaseUrl?.trim().replace(/\/$/, "");
-  if (!baseUrl) {
-    throw new Error(
-      "GITHUB_SYNC_TARGET=publisher but GITHUB_SYNC_PUBLISHER_BASE_URL/PUBLISHER_BASE_URL is empty."
-    );
-  }
-
-  const response = await fetch(`${baseUrl}/api/internal/profile-sync/github`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      ...(config.publisherCronSecret
-        ? { Authorization: `Bearer ${config.publisherCronSecret}` }
-        : {}),
-    },
-    signal: AbortSignal.timeout(config.timeoutMs),
-  });
-
-  const text = await response.text();
-  if (!response.ok) {
-    throw new Error(
-      `publisher github sync failed (${response.status}): ${text.slice(0, 320)}`
-    );
-  }
-
-  const body = text ? JSON.parse(text) : {};
-  if (typeof body !== "object" || body === null) {
-    throw new Error("publisher github sync returned an invalid payload.");
-  }
-
-  return {
-    ok: Boolean(body.ok),
-    skipped: Boolean(body.skipped),
-    error: typeof body.error === "string" ? body.error : null,
-    payload:
-      typeof body.payload === "object" && body.payload !== null
-        ? body.payload
-        : null,
   };
 }
 
@@ -768,18 +722,7 @@ function buildConfig(args) {
     ).replace(/\/$/, ""),
     internalKeyID: process.env.TDP_INTERNAL_KEY_ID || "",
     internalKeySecret: process.env.TDP_INTERNAL_KEY_SECRET || "",
-    githubSyncTarget:
-      process.env.GITHUB_SYNC_TARGET?.trim().toLowerCase() === "publisher"
-        ? "publisher"
-        : "local",
-    githubPublisherBaseUrl:
-      process.env.GITHUB_SYNC_PUBLISHER_BASE_URL ||
-      process.env.PUBLISHER_BASE_URL ||
-      "",
-    publisherCronSecret:
-      process.env.PUBLISHER_CRON_SECRET ||
-      process.env.TDP_INTERNAL_KEY_SECRET ||
-      "",
+    githubSyncTarget: "local",
     githubApiBase: process.env.GITHUB_SYNC_API_BASE || "https://api.github.com",
     githubHtmlBase: process.env.GITHUB_SYNC_HTML_BASE || "https://github.com",
     githubUsername: process.env.GITHUB_SYNC_USERNAME || "",

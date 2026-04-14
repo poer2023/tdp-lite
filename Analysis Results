@@ -61,7 +61,7 @@
 
 - `preview/` 路由保留在前端作为入口
 - 核心 preview session 逻辑走 Go API
-- `publisher/` 已独立为子应用
+- 旧 `publisher/` 子应用已移除
 
 ### 5）前台依赖瘦身 — ❌ 未完成
 
@@ -75,13 +75,12 @@
 | `@aws-sdk/client-s3` | `r2.ts` | 仍在前端 |
 | `bcryptjs` | `package.json` | 仍为前端依赖 |
 
-> 这些依赖按目标应迁移到 Go/publisher/admin 侧。
+> 这些依赖按目标应迁移到 Go/admin 侧。
 
 ### 6）CI 分层拆分 — ✅ 已完成
 
 - 前端 CI：`frontend-ci.yml` (type-check / lint / test / build)
 - 后端 CI：`backend-ci.yml` (go test / go build)
-- Publisher CI：`publisher-ci.yml`
 - 集成 E2E：`integration-e2e.yml`（独立流水线）
 - CD：`cd.yml`（main 分支触发）
 

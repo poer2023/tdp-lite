@@ -12,7 +12,6 @@ Usage:
 Checks:
   - git worktree clean (unless --allow-dirty)
   - tdp-lite: type-check, lint, test:layout, build
-  - publisher: install, type-check, lint, build
   - docker compose config validation
 EOF
 }
@@ -59,18 +58,6 @@ pnpm test:layout
 
 echo "[release-preflight] tdp-lite build"
 pnpm build
-
-echo "[release-preflight] publisher install"
-pnpm -C publisher install --frozen-lockfile
-
-echo "[release-preflight] publisher type-check"
-pnpm -C publisher type-check
-
-echo "[release-preflight] publisher lint"
-pnpm -C publisher lint
-
-echo "[release-preflight] publisher build"
-pnpm -C publisher build
 
 echo "[release-preflight] docker compose config"
 docker compose -f docker-compose.yml config >/dev/null

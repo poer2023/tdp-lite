@@ -1,7 +1,36 @@
-import { randomUUID } from "node:crypto";
-import { buildTdpSignature, sha256Hex } from "../publisher/lib/signature";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 
 type HttpMethod = "GET" | "POST" | "PATCH";
+
+function sha256Hex(input: string | Uint8Array): string {
+  return createHash("sha256").update(input).digest("hex");
+}
+
+function canonicalQuery(raw: string): string {
+  if (!raw) return "";
+  return raw.split("&").filter(Boolean).sort().join("&");
+}
+
+function buildTdpSignature(params: {
+  keySecret: string;
+  method: string;
+  path: string;
+  query: string;
+  timestamp: string;
+  nonce: string;
+  bodyHash: string;
+}): string {
+  const canonical = [
+    params.method.toUpperCase(),
+    params.path,
+    canonicalQuery(params.query),
+    params.timestamp,
+    params.nonce,
+    params.bodyHash.toLowerCase(),
+  ].join("\n");
+
+  return createHmac("sha256", params.keySecret).update(canonical).digest("hex");
+}
 
 type PublicPost = {
   id: string;

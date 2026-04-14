@@ -40,7 +40,6 @@
     "deploy:coolify:api": "bash scripts/deploy-coolify.sh --targets api",
     "deploy:coolify:all": "bash scripts/deploy-coolify.sh --targets all",
     "deploy:coolify:dry-run": "bash scripts/deploy-coolify.sh --dry-run",
-    "deploy:coolify:ensure-publisher": "bash scripts/coolify-ensure-publisher.sh",
     "release:preflight": "bash scripts/release-preflight.sh"
   },
   "dependencies": {

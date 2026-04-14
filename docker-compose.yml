@@ -122,7 +122,6 @@ services:
       NEXT_PUBLIC_TDP_API_BASE_URL: http://lite-api:8080
       TDP_SEARCH_PRIMARY: go
       TDP_SEARCH_ALLOW_FALLBACK_TO_NEXT: "false"
-      PUBLISHER_BASE_URL: ${PUBLISHER_BASE_URL:-http://localhost:3100}
     ports:
       - "${TDP_WEB_BIND_HOST:-0.0.0.0}:${TDP_WEB_PORT:-3000}:3000"
     healthcheck:
@@ -155,70 +154,15 @@ services:
       SEARCH_SYNC_WRITE_LOCAL: ${SEARCH_SYNC_WRITE_LOCAL:-false}
       PROFILE_SYNC_TIMEOUT_MS: ${PROFILE_SYNC_TIMEOUT_MS:-20000}
       GITHUB_SYNC_TARGET: ${GITHUB_SYNC_TARGET:-local}
-      GITHUB_SYNC_PUBLISHER_BASE_URL: ${GITHUB_SYNC_PUBLISHER_BASE_URL:-}
       GITHUB_SYNC_USERNAME: ${GITHUB_SYNC_USERNAME:-}
       GITHUB_SYNC_TOKEN: ${GITHUB_SYNC_TOKEN:-}
       GITHUB_SYNC_WINDOW_DAYS: ${GITHUB_SYNC_WINDOW_DAYS:-36}
       GITHUB_SYNC_MAX_PAGES: ${GITHUB_SYNC_MAX_PAGES:-4}
-      PUBLISHER_CRON_SECRET: ${PUBLISHER_CRON_SECRET:-}
       APPLE_MUSIC_API_BASE: ${APPLE_MUSIC_API_BASE:-https://api.music.apple.com/v1}
       APPLE_MUSIC_DEVELOPER_TOKEN: ${APPLE_MUSIC_DEVELOPER_TOKEN:-}
       APPLE_MUSIC_USER_TOKEN: ${APPLE_MUSIC_USER_TOKEN:-}
       APPLE_MUSIC_STOREFRONT: ${APPLE_MUSIC_STOREFRONT:-us}
       APPLE_MUSIC_SYNC_LIMIT: ${APPLE_MUSIC_SYNC_LIMIT:-25}
-
-  publisher-key-sync:
-    profiles: ["publisher"]
-    image: postgres:16-alpine
-    restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
-      lite-migrate:
-        condition: service_completed_successfully
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-tdp}:${POSTGRES_PASSWORD:-tdp}@db:5432/${POSTGRES_DB:-tdp_lite}
-      TDP_INTERNAL_KEY_ID: ${TDP_INTERNAL_KEY_ID:?TDP_INTERNAL_KEY_ID is required}
-      TDP_INTERNAL_KEY_SECRET: ${TDP_INTERNAL_KEY_SECRET:?TDP_INTERNAL_KEY_SECRET is required}
-    volumes:
-      - ./docker/scripts:/docker-scripts:ro
-    entrypoint: ["/bin/sh", "/docker-scripts/sync-publisher-key.sh"]
-
-  publisher:
-    profiles: ["publisher"]
-    build:
-      context: .
-      dockerfile: docker/publisher.Dockerfile
-    restart: unless-stopped
-    depends_on:
-      lite-api:
-        condition: service_healthy
-      publisher-key-sync:
-        condition: service_completed_successfully
-    environment:
-      NEXT_PUBLIC_PUBLISHER_URL: ${NEXT_PUBLIC_PUBLISHER_URL:-http://localhost:3100}
-      PUBLISHER_AUTH_USERNAME: ${PUBLISHER_AUTH_USERNAME:?PUBLISHER_AUTH_USERNAME is required}
-      PUBLISHER_AUTH_PASSWORD: ${PUBLISHER_AUTH_PASSWORD:?PUBLISHER_AUTH_PASSWORD is required}
-      PUBLISHER_SESSION_SECRET: ${PUBLISHER_SESSION_SECRET:?PUBLISHER_SESSION_SECRET is required}
-      PUBLISH_TARGET_BASE_URL: http://lite-api:8080
-      TDP_INTERNAL_KEY_ID: ${TDP_INTERNAL_KEY_ID:?TDP_INTERNAL_KEY_ID is required}
-      TDP_INTERNAL_KEY_SECRET: ${TDP_INTERNAL_KEY_SECRET:?TDP_INTERNAL_KEY_SECRET is required}
-      PUBLISHER_CRON_SECRET: ${PUBLISHER_CRON_SECRET:-}
-      PROFILE_SYNC_TIMEOUT_MS: ${PROFILE_SYNC_TIMEOUT_MS:-20000}
-      GITHUB_SYNC_API_BASE: ${GITHUB_SYNC_API_BASE:-https://api.github.com}
-      GITHUB_SYNC_USERNAME: ${GITHUB_SYNC_USERNAME:-}
-      GITHUB_SYNC_TOKEN: ${GITHUB_SYNC_TOKEN:-}
-      GITHUB_SYNC_WINDOW_DAYS: ${GITHUB_SYNC_WINDOW_DAYS:-36}
-      GITHUB_SYNC_MAX_PAGES: ${GITHUB_SYNC_MAX_PAGES:-4}
-    ports:
-      - "${PUBLISHER_BIND_HOST:-127.0.0.1}:${PUBLISHER_PORT:-3100}:3100"
-    healthcheck:
-      test:
-        ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3100/ || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 15s
 
 volumes:
   postgres-data:
